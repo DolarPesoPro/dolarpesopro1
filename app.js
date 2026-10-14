@@ -205,8 +205,8 @@
       db.ref('.info/connected').on('value', function (s) { S.online = !!s.val(); update(); });
       db.ref('config').on('value', function (s) {
         var old = S.cfg.rate; S.cfg = readCfg(s.val()); S.live = true;
-        if (!S.firstCfg && old !== S.cfg.rate) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); }
-        S.firstCfg = false; update(); if (S.admin) refreshPanel();
+        if (!S.firstCfg && old !== S.cfg.rate) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); liveToast(old); }
+        S.firstCfg = false; update(); if (S.admin) refreshPanel(); maybeInitialToast();
       }, function () {});
       db.ref('history').on('value', function (s) { S.historyRaw = s.val() || []; update(); }, function () {});
       auth.onAuthStateChanged(function (u) {
@@ -303,6 +303,7 @@
     setText('#rBig', v);
     var showTop = S.dir === 'usd' && k.ok;
     $('#stVal').textContent = showTop ? v : '';
+    var ll = $('#liveLine'); ll.hidden = !showTop; if (showTop) ll.textContent = 'Recibirás ≈ ' + v;
     $('#stLbl').textContent = showTop ? t('stRecv') : t('stHelp');
   }
   function tween(to) {
@@ -361,14 +362,17 @@
     $$('#dirTabs button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-dir') === S.dir); });
     var chips = $('#chips');
     if (!chips.children.length) [50, 100, 200, 500].forEach(function (v) {
-      var bt = el('button', 'chip', 'USD ' + v); bt.type = 'button'; bt.addEventListener('click', function () { S.amount = String(v); $('#amount').value = S.amount; update(); }); chips.appendChild(bt);
+      var bt = el('button', 'chip', String(v)); bt.type = 'button'; bt.addEventListener('click', function () { S.amount = String(v); $('#amount').value = S.amount; update(); }); chips.appendChild(bt);
     });
     $$('#chips .chip').forEach(function (x, i) { x.classList.toggle('on', k.amt === [50, 100, 200, 500][i]); });
     var rateEl = $('#rate'), allow = c.allowManual;
-    rateEl.hidden = !allow; $('#rateFixed').hidden = allow;
-    if (!allow) setText('#rateFixedTxt', ars(c.rate));
+    setText('#rateShow', ars(k.rate));
+    $('#rateAdj').hidden = !allow; $('#rateLock').hidden = allow;
+    $('#rateTag').hidden = !(allow && k.useM && k.rate !== c.rate);
+    $('#rateBox').classList.toggle('open', allow && !!S.rateOpen);
+    setText('#rateAdj', S.rateOpen ? 'Listo' : 'Ajustar');
     if (allow && S.manual === null && document.activeElement !== rateEl) rateEl.value = inN(c.rate);
-    setText('#rateHelp', allow ? t('helpManual', { r: ars(c.rate) }) : t('helpFixed'));
+    setText('#rateHelp', t('helpManual', { r: ars(c.rate) }));
     var rs = $('#rateReset'); rs.hidden = !(allow && k.useM && k.rate !== c.rate); rs.textContent = t('reset', { r: ars(c.rate) });
     $('#seg').classList.toggle('b', S.mode !== 'incluida');
     $$('#seg button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-mode') === S.mode); });
@@ -408,6 +412,9 @@
   var amountEl = $('#amount'), rateEl = $('#rate');
   bindClean(amountEl); bindClean(rateEl); bindClean($('#alTarget'));
   amountEl.addEventListener('input', function () { S.amount = amountEl.value; update(); });
+  amountEl.addEventListener('focus', function () { var e = amountEl; setTimeout(function () { try { e.select(); } catch (x) {} }, 30); });
+  [amountEl, rateEl].forEach(function (x) { x.addEventListener('keydown', function (e) { if (e.key === 'Enter') x.blur(); }); });
+  $('#rateAdj').addEventListener('click', function () { S.rateOpen = !S.rateOpen; update(); if (S.rateOpen) setTimeout(function () { rateEl.focus(); }, 350); });
   rateEl.addEventListener('input', function () { S.manual = rateEl.value; update(); });
   $('#rateReset').addEventListener('click', function () { S.manual = null; rateEl.value = inN(S.cfg.rate); update(); });
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
@@ -420,24 +427,22 @@
   }
   $('#themeBtn').addEventListener('click', function () {
     var btn = this, next = S.theme === 'light' ? 'dark' : 'light', root = document.documentElement;
-    btn.classList.add('spin'); setTimeout(function () { btn.classList.remove('spin'); }, 650);
+    btn.classList.add('spin'); setTimeout(function () { btn.classList.remove('spin'); }, 750);
     if (reduce) { applyTheme(next); return; }
     if (document.startViewTransition) {
-      var r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-      var end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      var r = btn.getBoundingClientRect();
+      root.style.setProperty('--cx', (r.left + r.width / 2) + 'px'); root.style.setProperty('--cy', (r.top + r.height / 2) + 'px');
+      if (window.CSS && CSS.registerProperty) root.classList.add('feather');
       var vt = document.startViewTransition(function () { applyTheme(next); });
-      vt.ready.then(function () {
-        root.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + end + 'px at ' + x + 'px ' + y + 'px)'] },
-          { duration: 750, easing: 'cubic-bezier(.22,1,.36,1)', pseudoElement: '::view-transition-new(root)' });
-      }).catch(function () {});
+      vt.finished.then(function () { root.classList.remove('feather'); }, function () { root.classList.remove('feather'); });
     } else {
-      root.classList.add('theme-anim'); applyTheme(next); setTimeout(function () { root.classList.remove('theme-anim'); }, 700);
+      root.classList.add('theme-anim'); applyTheme(next); setTimeout(function () { root.classList.remove('theme-anim'); }, 1100);
     }
   });
   ['holder', 'bank', 'alias'].forEach(function (id) { $('#' + id).addEventListener('input', function (e) { S[id] = e.target.value; update(); }); });
   function doCopy() {
     var m = $('#msgbox').value;
-    function done() { S.copied = true; update(); clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
+    function done() { try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) {} S.copied = true; update(); clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
     function fb() {
       try { var x = document.createElement('textarea'); x.value = m; x.setAttribute('readonly', ''); x.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
         document.body.appendChild(x); x.focus(); x.select(); x.setSelectionRange(0, 99999); var ok = document.execCommand('copy'); document.body.removeChild(x); if (ok) done(); } catch (e) {}
@@ -450,8 +455,8 @@
     var w = $('#dataWrap'), o = !w.classList.contains('open'); w.classList.toggle('open', o); this.setAttribute('aria-expanded', o ? 'true' : 'false');
   });
   function setSheet(o) { $('#sheet').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) $('#guide').scrollTop = 0; }
-  $('#guideBtn').addEventListener('click', function () { setSheet(true); });
   $('#guideLink').addEventListener('click', function () { setSheet(true); });
+  $('#guideFoot').addEventListener('click', function () { setSheet(true); });
   $('#sheetClose').addEventListener('click', function () { setSheet(false); });
   $('#sheetBd').addEventListener('click', function () { setSheet(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setSheet(false); });
@@ -581,8 +586,32 @@
     });
   }
 
+  /* ---------- aviso discreto de cambio de cotización ---------- */
+  var toastT = null;
+  function relTime(ts) {
+    if (!ts) return ''; var s = Math.round((Date.now() - ts) / 1000);
+    try { var f = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+      if (s < 3600) return f.format(-Math.max(1, Math.round(s / 60)), 'minute');
+      if (s < 86400) return f.format(-Math.round(s / 3600), 'hour'); return f.format(-Math.round(s / 86400), 'day'); } catch (e) { return ''; }
+  }
+  function showToast(up, text) {
+    var tt = $('#toast'); tt.textContent = '';
+    var a = el('span', 'ar ' + (up ? 'up' : 'dn'), up ? '▲' : '▼'); tt.appendChild(a); tt.appendChild(el('span', null, text));
+    tt.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { tt.classList.remove('show'); }, 5000);
+  }
+  $('#toast').addEventListener('click', function () { this.classList.remove('show'); });
+  function maybeInitialToast() {
+    if (S.toastShown || !S.splashDone || !S.live) return; S.toastShown = true;
+    var c = S.cfg; if (!(c.prev > 0) || c.prev === c.rate) return;
+    var up = c.rate > c.prev, w = relTime(c.updatedAt);
+    showToast(up, 'El dólar ' + (up ? 'subió' : 'bajó') + ' ' + fmtN(Math.abs(c.rate - c.prev)) + ' pesos' + (w ? ' · ' + w : ''));
+  }
+  function liveToast(old) {
+    var up = S.cfg.rate > old; showToast(up, 'Cotización actualizada: ' + (up ? '+' : '−') + fmtN(Math.abs(S.cfg.rate - old)) + ' → ' + ars(S.cfg.rate));
+  }
+
   /* ---------- arranque ---------- */
   applyStatic(); update();
   setInterval(update, 30000);
-  setTimeout(function () { S.splashDone = true; $('#splash').classList.add('hide'); update(); }, 1500);
+  setTimeout(function () { S.splashDone = true; $('#splash').classList.add('hide'); update(); setTimeout(maybeInitialToast, 500); }, 1500);
 })();
