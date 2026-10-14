@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dólar PesoPro · Calculadora</title>
+<meta name="description" content="Cambia dólares y pesos entre Ecuador y Argentina. Calcula cuánto recibes al instante.">
+<meta name="theme-color" content="#0F1B5C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PesoPro">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="badge" style="width:72%;max-width:300px"><img class="logoimg" src="assets/logo.jpg" alt="Dólar PesoPro"></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div style="font:600 15px 'Plus Jakarta Sans',sans-serif;color:#C9D2F7" data-i18n="loading">Cargando cotización…</div>
+    <div class="track"><div class="bar"></div></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="head rise">
+    <button type="button" class="themebtn" id="themeBtn" aria-label="Cambiar a modo oscuro"><svg class="sun" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    <div class="logo" style="margin-top:20px"><img class="logoimg" src="assets/logo.jpg" alt="Logo de Dólar PesoPro"></div>
+    <div class="tag" data-i18n="tagline">CAMBIOS DE DIVISAS · ECUADOR A ARGENTINA</div>
+    <div class="status" id="hoursChip" hidden><span class="dot g" id="hoursDot"></span><span id="hoursTxt"></span></div>
+    <div class="flag"></div>
+  </header>
+
+  <main class="pad" style="margin-top:14px">
+
+    <div class="ann rise" id="ann" hidden>
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>
+      <div id="annTxt"></div>
+    </div>
+
+    <!-- Cotización -->
+    <section class="hero rise2" id="hero">
+      <div class="row">
+        <div class="k"><span class="dot" id="liveDot"></span><span id="liveTxt" data-i18n="rateToday">DÓLAR HOY</span></div>
+        <b id="trend" style="color:#FFD54A;font-size:15px"></b>
+      </div>
+      <div class="big" id="officialBig">$ 1.580,00</div>
+      <div class="s" id="updTxt"></div>
+      <svg id="spark" aria-hidden="true" viewBox="0 0 300 60" preserveAspectRatio="none" style="width:100%;height:54px;margin-top:6px;overflow:visible" hidden>
+        <path id="sparkArea" fill="rgba(255,213,74,.18)"/><path id="sparkLine" fill="none" stroke="#FFD54A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle id="sparkDot" r="4.5" fill="#fff"/>
+      </svg>
+    </section>
+
+    <!-- Calculadora -->
+    <section class="card rise3" id="calc">
+      <h2 data-i18n="calcTitle">Calcula tu envío</h2>
+      <div class="tabs" id="dirTabs">
+        <span class="thumb"></span>
+        <button type="button" class="on" data-dir="usd" data-i18n="dirUsd">Dólares → Pesos</button>
+        <button type="button" data-dir="ars" data-i18n="dirArs">Pesos → Dólares</button>
+      </div>
+
+      <div id="usdPane" style="display:flex;flex-direction:column;gap:20px">
+        <div class="fg">
+          <label class="lbl" for="amount" data-i18n="amountLbl">Monto a enviar (USD)</label>
+          <input id="amount" class="field" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="0" value="100">
+          <div class="chips" id="chips"></div>
+        </div>
+
+        <div class="fg">
+          <label class="lbl" for="rate" data-i18n="rateLbl">Cotización (pesos por USD)</label>
+          <input id="rate" class="field" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+          <div class="fixed" id="rateFixed" hidden><span id="rateFixedTxt"></span><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+          <div class="sub" id="rateHelp"></div>
+          <button type="button" class="linkbtn" id="rateReset" hidden></button>
+        </div>
+
+        <div class="fg">
+          <div class="lbl" data-i18n="feeLbl">Comisión</div>
+          <div class="seg" id="seg">
+            <span class="thumb"></span>
+            <button type="button" class="on" data-mode="incluida" data-i18n="feeIncl">Incluida en el monto</button>
+            <button type="button" data-mode="aparte" data-i18n="feeApart">Aparte del monto</button>
+          </div>
+          <div class="sub" id="modeHelp"></div>
+        </div>
+
+        <div id="result" hidden></div>
+        <div class="hint" id="hintBox" data-i18n="enterAmount">Ingresa cuántos dólares quieres enviar para ver cuánto recibirás en pesos.</div>
+      </div>
+
+      <div id="arsPane" class="pesos" hidden>
+        <span class="nofee"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span data-i18n="noFee">No se cobra comisión</span></span>
+        <div class="sub" style="font-size:15px" data-i18n="arsText">Para cambiar de pesos a dólares, escríbele directamente a un administrador. La cotización se acuerda en el momento.</div>
+        <a class="adm" data-wa="justo" target="_blank" rel="noopener"><img class="avatar" src="assets/justo.jpg" alt="Justo"><div style="flex:1;min-width:0"><b>Justo 🤠</b><em data-i18n="chatWa">Chatear por WhatsApp</em></div><span class="go"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        <a class="adm" data-wa="boris" target="_blank" rel="noopener"><img class="avatar" src="assets/boris.jpg" alt="Boris"><div style="flex:1;min-width:0"><b>Boris 😎</b><em data-i18n="chatWa">Chatear por WhatsApp</em></div><span class="go"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      </div>
+    </section>
+
+    <!-- Guía (arriba para que se vea) -->
+    <section class="card" id="guide">
+      <div><h2 data-i18n="guideTitle">Guía de uso</h2><div class="sub" style="margin-top:4px" data-i18n="guideSub">Todo lo que necesitas saber para cambiar con Dólar PesoPro.</div></div>
+      <div class="tabrow" id="gtabs">
+        <button type="button" class="chip on" data-g="como" data-i18n="gHow">Cómo funciona</button>
+        <button type="button" class="chip" data-g="guia" data-i18n="gQuick">Guía rápida</button>
+        <button type="button" class="chip" data-g="faq" data-i18n="gFaq">Preguntas</button>
+      </div>
+      <div id="gComo" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="gGuia" style="display:none;flex-direction:column;gap:12px"></div>
+      <div id="gFaq" style="display:none;flex-direction:column;gap:10px"></div>
+    </section>
+
+    <!-- Agiliza -->
+    <section class="card">
+      <div><h2 data-i18n="speedTitle">Agiliza tu operación</h2><div class="sub" style="margin-top:4px" data-i18n="speedSub">Datos opcionales: el mensaje de abajo se arma solo y lo copias con un toque.</div></div>
+      <div class="fg"><label class="lbl" for="holder" data-i18n="holder">Nombre completo del titular</label><input id="holder" class="field sm" type="text" autocomplete="off" data-i18n-ph="holderPh" placeholder="Como figura en tu cuenta"></div>
+      <div class="fg"><label class="lbl" for="bank" data-i18n="bank">Banco o billetera virtual donde recibes</label><input id="bank" class="field sm" type="text" autocomplete="off" data-i18n-ph="bankPh" placeholder="Tu banco de preferencia o billetera virtual"></div>
+      <div class="fg"><label class="lbl" for="alias" data-i18n="alias">Alias, CBU o CVU</label><input id="alias" class="field sm" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-i18n-ph="aliasPh" placeholder="Tu alias o número de cuenta"></div>
+      <div class="warn"><span aria-hidden="true">⚠️</span><span data-i18n="aliasWarn">Por favor, asegúrate de que tu alias o CBU esté bien escrito antes de enviar el mensaje.</span></div>
+      <hr style="border:0;height:1px;background:var(--line);width:100%;margin:0">
+      <div><h3 style="font-size:16px" data-i18n="msgTitle">Mensaje listo para copiar</h3><div class="sub" style="margin-top:2px" data-i18n="msgSub">Pégalo en el chat de Justo o Boris. Ya incluye tu monto y tus datos.</div></div>
+      <label for="msgbox" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Mensaje</label>
+      <textarea id="msgbox" class="msg" rows="9" readonly></textarea>
+      <button type="button" class="btn big" id="copyBtn"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span id="copyTxt" data-i18n="copy">Copiar mensaje</span></button>
+    </section>
+
+    <!-- Administradores -->
+    <section class="card">
+      <div><h2 data-i18n="talkTitle">Habla con un administrador</h2><div class="sub" style="margin-top:4px" data-i18n="talkSub">Abre el chat de WhatsApp con tu mensaje ya escrito. Solo administradores verificados.</div></div>
+      <a class="adm" data-wa="justo" target="_blank" rel="noopener"><img class="avatar" src="assets/justo.jpg" alt="Justo, administrador con sombrero vaquero"><div style="flex:1;min-width:0"><b>Justo 🤠</b><small>+54 9 221 696-0939</small><em data-i18n="chatWa">Chatear por WhatsApp</em></div><span class="go"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      <a class="adm" data-wa="boris" target="_blank" rel="noopener"><img class="avatar" src="assets/boris.jpg" alt="Boris, administrador con gafas"><div style="flex:1;min-width:0"><b>Boris 😎</b><small>+54 9 221 697-6823</small><em data-i18n="chatWa">Chatear por WhatsApp</em></div><span class="go"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+      <div class="checks">
+        <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2547C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span data-i18n="chk1">Administradores verificados. Opera solo con Justo y Boris.</span></div>
+        <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2547C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span data-i18n="chk2">Directo a tu cuenta, en tu banco de preferencia o billetera virtual.</span></div>
+        <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2547C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span data-i18n="chk3">Precio congelado 10 minutos al confirmar.</span></div>
+      </div>
+    </section>
+
+    <!-- Alerta de cotización -->
+    <section class="card" id="alertCard">
+      <div><h2 data-i18n="alertTitle">Avísame cuando suba</h2><div class="sub" style="margin-top:4px" data-i18n="alertSub">Dinos a qué cotización quieres cambiar y te escribimos por WhatsApp cuando llegue.</div></div>
+      <div class="fg"><label class="lbl" for="alTarget" data-i18n="alertTarget">Cotización objetivo (pesos por USD)</label><input id="alTarget" class="field sm" type="text" inputmode="decimal" autocomplete="off" placeholder="1600"></div>
+      <div class="fg"><label class="lbl" for="alPhone" data-i18n="alertPhone">Tu WhatsApp (con código de país)</label><input id="alPhone" class="field sm" type="tel" inputmode="tel" autocomplete="tel" placeholder="+593 ..."></div>
+      <button type="button" class="btn gold" id="alBtn" data-i18n="alertBtn">Avisarme</button>
+      <div class="sub" id="alMsg" style="min-height:20px;font-weight:700"></div>
+      <div class="sub" style="font-size:12px" data-i18n="alertPriv">Solo usaremos tu número para este aviso.</div>
+    </section>
+
+    <!-- Compartir -->
+    <section class="card">
+      <div><h2 data-i18n="shareTitle">Comparte y únete</h2><div class="sub" style="margin-top:4px" data-i18n="shareSub">Recomienda Dólar PesoPro y entra al grupo para ver las novedades.</div></div>
+      <button type="button" class="btn" id="shareBtn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg><span data-i18n="shareBtn">Compartir con un amigo</span></button>
+      <div class="qr">
+        <img src="assets/qr.png" alt="Código QR del grupo de WhatsApp de Dólar PesoPro">
+        <div style="flex:1 1 160px;display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div class="sub"><strong style="color:var(--ink)" data-i18n="group">Grupo de WhatsApp</strong><br><span data-i18n="groupSub">Escanea el QR o toca el botón para unirte.</span></div>
+          <a class="btn green" href="https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR" target="_blank" rel="noopener" data-i18n="join">Unirme al grupo</a>
+        </div>
+      </div>
+      <a class="btn ig" href="https://www.instagram.com/dolarpesopro_" target="_blank" rel="noopener"><img src="assets/instagram.png" alt=""><span data-i18n="follow">Seguirnos en Instagram</span></a>
+    </section>
+
+    <!-- Instalar -->
+    <section class="card" id="installCard" hidden>
+      <div><h2 data-i18n="instTitle">Ten la app en tu celular</h2><div class="sub" style="margin-top:4px" id="instTxt"></div></div>
+      <button type="button" class="btn gold" id="instBtn" hidden data-i18n="instBtn">Instalar app</button>
+    </section>
+
+    <!-- Historial -->
+    <section class="card">
+      <h2 data-i18n="histTitle">Historial de cotización</h2>
+      <div id="histList"></div>
+      <div class="sub" id="histEmpty" data-i18n="histEmpty">Aquí aparecerán las últimas cotizaciones publicadas.</div>
+    </section>
+
+    <!-- Marca -->
+    <section class="brand">
+      <div class="badge"><img class="logoimg" src="assets/logo.jpg" alt="Logo completo de Dólar PesoPro"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+        <div class="tg" data-i18n="brandTag">NUESTRA MARCA</div>
+        <h3 data-i18n="brandH">¡Conviértete mejor, ahorra más!</h3>
+        <p data-i18n="brandP">Dólar PesoPro conecta Ecuador y Argentina con cambios de divisas rápidos, claros y con administradores verificados.</p>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center"><img class="mini" src="assets/justo.jpg" alt="Justo"><img class="mini" src="assets/boris.jpg" alt="Boris"></div>
+      <div style="font-size:13px;color:#C9D2F7"><strong style="color:#fff">Justo y Boris</strong> · <span data-i18n="brandAdm">tus administradores verificados</span></div>
+      <div class="stripe"></div>
+    </section>
+
+    <!-- Admin (solo aparece tras tocar el candado o abrir #admin) -->
+    <section class="card adminbox" id="gate" hidden>
+      <h2 style="font-size:18px">Administrador</h2>
+      <label class="lbl" for="pass">Clave</label>
+      <input id="pass" class="field sm" type="password" autocomplete="current-password" placeholder="Clave">
+      <button type="button" class="btn gold" id="passBtn">Entrar</button>
+      <div class="msgok msgerr" id="gateMsg"></div>
+    </section>
+    <div id="adminSlot"></div>
+
+    <footer class="foot">
+      <strong data-i18n="copyright">© 2026 Dólar PesoPro. Todos los derechos reservados.</strong>
+      <span data-i18n="disclaimer">Aviso importante: los valores mostrados son una simulación referencial calculada con la cotización indicada y pueden cambiar sin previo aviso. Una operación solo se considera válida cuando es confirmada por un administrador verificado (Justo o Boris); en ese momento se congela el precio por 10 minutos. Verifica siempre los datos de la cuenta antes de enviar dinero. Este contenido es informativo y no constituye asesoramiento financiero.</span>
+      <button type="button" class="lockbtn" id="lockBtn" aria-label="Administrador"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+    </footer>
+  </main>
+</div>
+
+<div class="sticky" id="sticky">
+  <div class="in">
+    <div class="top"><span id="stLbl"></span><strong id="stVal"></strong></div>
+    <div class="two">
+      <a class="btn green" data-wa="justo" target="_blank" rel="noopener"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span data-i18n="wJusto">Justo 🤠</span></a>
+      <a class="btn green" data-wa="boris" target="_blank" rel="noopener"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg><span data-i18n="wBoris">Boris 😎</span></a>
+    </div>
+  </div>
+</div>
+
+<template id="adminTpl">
+  <section class="card adminbox rise">
+    <div class="srow"><h2 style="font-size:19px">Panel de administrador</h2><button type="button" class="btn ghost" id="aOut" style="width:auto;min-height:44px">Salir</button></div>
+
+    <div class="live" id="aLive"></div>
+
+    <div class="fg">
+      <label class="lbl" for="aRate">1. Cotización oficial (pesos por USD)</label>
+      <input id="aRate" class="field" type="text" inputmode="decimal" autocomplete="off">
+      <div class="chips" id="aSteps"></div>
+      <button type="button" class="btn gold" id="aPub">Publicar cotización</button>
+    </div>
+    <hr>
+    <div class="srow"><div><b>2. Clientes pueden cambiar la cotización</b><div class="sub" style="font-size:12px" id="aManualHelp"></div></div><button type="button" class="sw" id="aManual" role="switch" aria-label="Permitir cambiar cotización"><i></i></button></div>
+    <hr>
+    <div class="fg"><b>3. Comisiones y mínimo</b>
+      <label class="lbl" for="aFixed">Comisión fija en envíos pequeños (USD)</label><input id="aFixed" class="field sm" type="text" inputmode="decimal" autocomplete="off">
+      <label class="lbl" for="aThr">Desde qué monto se cobra porcentaje (USD)</label><input id="aThr" class="field sm" type="text" inputmode="decimal" autocomplete="off">
+      <label class="lbl" for="aPct">Porcentaje del monto a enviar (%)</label><input id="aPct" class="field sm" type="text" inputmode="decimal" autocomplete="off">
+      <label class="lbl" for="aMin">Monto mínimo para calcular (USD)</label><input id="aMin" class="field sm" type="text" inputmode="decimal" autocomplete="off">
+      <button type="button" class="btn gold" id="aFees">Guardar comisiones</button>
+    </div>
+    <hr>
+    <div class="fg"><label class="lbl" for="aAnn"><b style="color:var(--ink)">4. Aviso para los clientes</b> (vacío lo oculta)</label><input id="aAnn" class="field sm" type="text" autocomplete="off" placeholder="Ej: Hoy atendemos hasta las 20:00"><button type="button" class="btn gold" id="aAnnBtn">Guardar aviso</button></div>
+    <hr>
+    <div class="fg"><div class="srow"><b>5. Mostrar horario de atención</b><button type="button" class="sw" id="aHoursOn" role="switch" aria-label="Mostrar horario"><i></i></button></div>
+      <div class="two"><div class="fg"><label class="lbl" for="aFrom">Desde</label><input id="aFrom" class="field sm" type="time"></div><div class="fg"><label class="lbl" for="aTo">Hasta</label><input id="aTo" class="field sm" type="time"></div></div>
+      <div class="sub" style="font-size:12px">Hora de Argentina. Fuera de ese horario los clientes ven “Fuera de horario”.</div>
+      <button type="button" class="btn gold" id="aHoursBtn">Guardar horario</button></div>
+    <hr>
+    <div class="fg"><b>6. Avisos de cotización pedidos por clientes</b><div id="aAlerts" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aAlertsEmpty">Aún no hay avisos pedidos.</div></div>
+    <hr>
+    <div class="fg"><label class="lbl" for="aNewPass"><b style="color:var(--ink)">7. Cambiar clave</b> (mínimo 6 caracteres)</label><input id="aNewPass" class="field sm" type="password" autocomplete="new-password" placeholder="Nueva clave"><button type="button" class="btn ghost" id="aPassBtn">Cambiar clave</button></div>
+    <div class="msgok" id="aMsg"></div>
+  </section>
+</template>
+
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

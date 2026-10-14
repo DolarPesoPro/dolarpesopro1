@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "config": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'"
+    },
+    "history": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'"
+    },
+    "alerts": {
+      ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
+      "$id": {
+        ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (!data.exists() && newData.exists())",
+        ".validate": "newData.hasChildren(['phone','target','at'])",
+        "phone": {
+          ".validate": "newData.isString() && newData.val().length >= 8 && newData.val().length <= 20"
+        },
+        "target": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 100000"
+        },
+        "at": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
