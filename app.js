@@ -23,7 +23,7 @@
       chatWa: 'Chatear por WhatsApp', guideTitle: 'Guía de uso', guideSub: 'Todo lo que necesitas saber para cambiar con Dólar PesoPro.',
       gHow: 'Cómo funciona', gQuick: 'Guía rápida', gFaq: 'Preguntas',
       speedTitle: 'Agiliza tu operación', speedSub: 'Datos opcionales: el mensaje de abajo se arma solo y lo copias con un toque.',
-      holder: 'Nombre completo del titular', holderPh: 'Como figura en tu cuenta', bank: 'Banco o billetera virtual donde recibes',
+      addData: 'Agregar mis datos (opcional)', holder: 'Nombre completo del titular', holderPh: 'Como figura en tu cuenta', bank: 'Banco o billetera virtual donde recibes',
       bankPh: 'Tu banco de preferencia o billetera virtual', alias: 'Alias, CBU o CVU', aliasPh: 'Tu alias o número de cuenta',
       aliasWarn: 'Por favor, asegúrate de que tu alias o CBU esté bien escrito antes de enviar el mensaje.',
       msgTitle: 'Mensaje listo para copiar', msgSub: 'Pégalo en el chat de Justo o Boris. Ya incluye tu monto y tus datos.',
@@ -383,7 +383,7 @@
     /* mensaje + enlaces */
     var msg = message(k); var mb = $('#msgbox'); if (mb.value !== msg) mb.value = msg;
     $$('[data-wa]').forEach(function (x) { x.href = 'https://wa.me/' + PHONES[x.getAttribute('data-wa')] + '?text=' + encodeURIComponent(msg); });
-    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy'));
+    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar mensaje');
     /* guía (se redibuja si cambia el idioma o las comisiones) */
     var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct;
     if (gk !== guideKey) { guideKey = gk; renderGuide(); setGuideTab(); }
@@ -413,19 +413,48 @@
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
   $$('#dirTabs button').forEach(function (b) { b.addEventListener('click', function () { S.dir = b.getAttribute('data-dir'); update(); }); });
   $$('#gtabs .chip').forEach(function (b) { b.addEventListener('click', function () { S.gtab = b.getAttribute('data-g'); setGuideTab(); }); });
+  function applyTheme(next) {
+    S.theme = next; document.documentElement.setAttribute('data-theme', next);
+    $('#themeBtn').setAttribute('aria-label', next === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro');
+    var mt = document.querySelector('meta[name=theme-color]'); if (mt) mt.setAttribute('content', next === 'dark' ? '#070B26' : '#0F1B5C');
+  }
   $('#themeBtn').addEventListener('click', function () {
-    S.theme = S.theme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', S.theme);
-    $('#themeBtn').setAttribute('aria-label', S.theme === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro');
-    var mt = document.querySelector('meta[name=theme-color]'); if (mt) mt.setAttribute('content', S.theme === 'dark' ? '#070B26' : '#0F1B5C');
+    var btn = this, next = S.theme === 'light' ? 'dark' : 'light', root = document.documentElement;
+    btn.classList.add('spin'); setTimeout(function () { btn.classList.remove('spin'); }, 650);
+    if (reduce) { applyTheme(next); return; }
+    if (document.startViewTransition) {
+      var r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      var end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      var vt = document.startViewTransition(function () { applyTheme(next); });
+      vt.ready.then(function () {
+        root.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + end + 'px at ' + x + 'px ' + y + 'px)'] },
+          { duration: 750, easing: 'cubic-bezier(.22,1,.36,1)', pseudoElement: '::view-transition-new(root)' });
+      }).catch(function () {});
+    } else {
+      root.classList.add('theme-anim'); applyTheme(next); setTimeout(function () { root.classList.remove('theme-anim'); }, 700);
+    }
   });
   ['holder', 'bank', 'alias'].forEach(function (id) { $('#' + id).addEventListener('input', function (e) { S[id] = e.target.value; update(); }); });
-  $('#copyBtn').addEventListener('click', function () {
+  function doCopy() {
     var m = $('#msgbox').value;
     function done() { S.copied = true; update(); clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
-    function fb() { try { var x = $('#msgbox'); x.removeAttribute('readonly'); x.focus(); x.select(); x.setSelectionRange(0, 99999); if (document.execCommand('copy')) done(); x.setAttribute('readonly', ''); } catch (e) {} }
+    function fb() {
+      try { var x = document.createElement('textarea'); x.value = m; x.setAttribute('readonly', ''); x.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+        document.body.appendChild(x); x.focus(); x.select(); x.setSelectionRange(0, 99999); var ok = document.execCommand('copy'); document.body.removeChild(x); if (ok) done(); } catch (e) {}
+    }
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m).then(done).catch(fb); else fb(); } catch (e) { fb(); }
+  }
+  $('#copyBtn').addEventListener('click', doCopy);
+  $('#stCopy').addEventListener('click', doCopy);
+  $('#dataToggle').addEventListener('click', function () {
+    var w = $('#dataWrap'), o = !w.classList.contains('open'); w.classList.toggle('open', o); this.setAttribute('aria-expanded', o ? 'true' : 'false');
   });
+  function setSheet(o) { $('#sheet').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) $('#guide').scrollTop = 0; }
+  $('#guideBtn').addEventListener('click', function () { setSheet(true); });
+  $('#guideLink').addEventListener('click', function () { setSheet(true); });
+  $('#sheetClose').addEventListener('click', function () { setSheet(false); });
+  $('#sheetBd').addEventListener('click', function () { setSheet(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setSheet(false); });
   $('#shareBtn').addEventListener('click', function () {
     var url = location.href.split('#')[0], text = t('shareText') + ' ' + url;
     function fb() { window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank'); }
@@ -450,11 +479,13 @@
   window.addEventListener('hashchange', function () { if (location.hash === '#admin') openGate(); });
   function errMsg(e) {
     var c = (e && e.code) || '';
-    if (/wrong-password|invalid-credential|user-not-found|invalid-login/.test(c)) return 'Clave incorrecta.';
+    if (/wrong-password|invalid-credential|user-not-found|invalid-login/.test(c)) return 'Clave incorrecta, o el usuario admin@dolarpesopro.app no existe en Firebase → Authentication → Usuarios.';
+    if (/operation-not-allowed/.test(c)) return 'Falta activar Correo/contraseña en Firebase → Authentication → Método de acceso.';
+    if (/unauthorized-domain/.test(c)) return 'Falta autorizar este dominio en Firebase → Authentication → Configuración.';
     if (/too-many/.test(c)) return 'Demasiados intentos. Espera unos minutos.';
     if (/network/.test(c)) return 'Sin conexión. Intenta de nuevo.';
     if (/PERMISSION_DENIED|permission/i.test((e && e.message) || '') || /permission/.test(c)) return 'Sin permiso: vuelve a entrar con tu clave.';
-    return 'No se pudo completar. Intenta de nuevo.';
+    return 'No se pudo completar (' + (c || 'error') + ').';
   }
   function login() {
     var gm = $('#gateMsg'), pw = $('#pass').value;
