@@ -11,3 +11,8 @@ window.FIREBASE_CONFIG = {
 
 // Correo interno del administrador (el mismo que creaste en Firebase → Authentication).
 window.ADMIN_EMAIL = "admin@dolarpesopro.app";
+
+// Avisos al celular de Justo (opcional). Instala la app gratuita "ntfy" en su teléfono,
+// suscríbete a un nombre secreto y largo (ej: "pesopro-justo-x7k29q") y escríbelo aquí.
+// Déjalo vacío ("") para desactivar.
+window.NTFY_TOPIC = "pesopro-justo-im6zas834chdzq";

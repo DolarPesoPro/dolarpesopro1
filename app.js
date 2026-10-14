@@ -8,12 +8,24 @@
 
   var PHONES = { justo: '5492216960939', boris: '5492216976823' };
   var DEFAULTS = { rate: 1580, prev: 0, updatedAt: 0, allowManual: true, feeFixed: 1.5, feeThreshold: 60, feePct: 2.5,
-    minUsd: 3, announcement: '', hoursOn: false, hoursFrom: '09:00', hoursTo: '22:00' };
+    minUsd: 3, rateSell: 0, online: true, announcement: '', hoursOn: false, hoursFrom: '09:00', hoursTo: '22:00' };
 
   /* ---------- textos ---------- */
   var I18N = {
     es: {
       loading: 'Cargando cotización…', tagline: 'CAMBIOS DE DIVISAS · ECUADOR A ARGENTINA', rateToday: 'DÓLAR HOY',
+      offTitle: 'Fuera de línea', offSub: 'Por ahora no estamos atendiendo. Volvemos pronto: sigue el grupo de WhatsApp para enterarte.', offChip: 'Fuera de línea · volvemos pronto', onChip: 'Atendiendo ahora', liveClosed: 'FUERA DE LÍNEA', offHero: 'Volvemos pronto',
+      doChange: 'Hacer cambio', pickTitle: '¿Con quién haces el cambio?', pickSub: 'Ya copiamos tu mensaje. Elige a quién escribirle: el chat se abre con tu monto y tus datos.',
+      offH: 'Estamos descansando 🌙', offP: 'Dólar PesoPro está apagado por ahora. Volvemos pronto con la cotización al día. Entra al grupo para enterarte primero.', offClock: 'Hora en Argentina',
+      offH_noche: 'Estamos descansando', offH_ciudad: 'La ciudad duerme, nosotros también', offH_atardecer: 'Cerramos por hoy', offH_desierto: 'Siesta bajo el sol',
+      opensIn: 'Abrimos en {x}', hoursInfo: 'Horario de atención · {a} – {b}',
+      sellHero: 'Pesos → Dólares', sellLbl: 'Cotización de hoy (pesos por USD)', arsAmtLbl: 'Pesos que quieres cambiar (ARS)', arsLiveTxt: 'Recibirás ≈ {v}',
+      arsText2: 'Esta es la cotización de hoy. No se cobra comisión. Escríbele a un administrador para confirmar el precio antes de enviar.',
+      alertPhoneHelp: 'Elige tu país y escribe tu número sin el 0 inicial.', instGuide: 'Ver paso a paso', gApp: 'Instalar app', footTag: 'Cambios de divisas entre Ecuador y Argentina, con administradores verificados.',
+      ap_intro: 'Instala Dólar PesoPro gratis en la pantalla de inicio: se abre a pantalla completa, como una app, casi no ocupa espacio y siempre muestra la cotización al día.', mine: 'Tu dispositivo',
+      ap_ios_t: 'iPhone o iPad (Safari)', ap_ios_1: 'Abre esta página en Safari.', ap_ios_2: 'Toca el botón Compartir: el cuadrado con una flecha hacia arriba, en la barra de abajo.', ap_ios_3: 'Desliza hacia abajo y toca “Agregar a inicio”.', ap_ios_4: 'Toca “Agregar”. Listo: el ícono de Dólar PesoPro queda en tu pantalla de inicio.', ap_ios_n: 'Si estás en otro navegador, copia el enlace y ábrelo en Safari para que aparezca esa opción.',
+      ap_and_t: 'Android (Chrome)', ap_and_1: 'Abre esta página en Chrome.', ap_and_2: 'Toca el menú ⋮ (tres puntos), arriba a la derecha.', ap_and_3: 'Elige “Instalar app” o, si no aparece, “Añadir a la pantalla de inicio”.', ap_and_4: 'Confirma con “Instalar”. El ícono aparece junto a tus otras apps.', ap_and_n: 'En Samsung Internet: menú ☰ → “Añadir página a” → “Pantalla de inicio”. Si ves el botón “Instalar app” en la página, también puedes usarlo.',
+      ap_pc_t: 'Computadora (Chrome o Edge)', ap_pc_1: 'Toca el ícono de instalar que aparece a la derecha de la barra de direcciones y confirma con “Instalar”.',
       calcTitle: 'Calcula tu envío', dirUsd: 'Dólares → Pesos', dirArs: 'Pesos → Dólares',
       amountLbl: 'Monto a enviar (USD)', rateLbl: 'Cotización (pesos por USD)', feeLbl: 'Comisión',
       feeIncl: 'Incluida en el monto', feeApart: 'Aparte del monto',
@@ -31,7 +43,7 @@
       talkTitle: 'Habla con un administrador', talkSub: 'Abre el chat de WhatsApp con tu mensaje ya escrito. Solo administradores verificados.',
       chk1: 'Administradores verificados. Opera solo con Justo y Boris.', chk2: 'Directo a tu cuenta, en tu banco de preferencia o billetera virtual.', chk3: 'Precio congelado 10 minutos al confirmar.',
       alertTitle: 'Avísame cuando suba', alertSub: 'Dinos a qué cotización quieres cambiar y te escribimos por WhatsApp cuando llegue.',
-      alertTarget: 'Cotización objetivo (pesos por USD)', alertPhone: 'Tu WhatsApp (con código de país)', alertBtn: 'Avisarme',
+      alertTarget: 'Cotización objetivo (pesos por USD)', alertPhone: 'Tu WhatsApp', alertBtn: 'Avisarme',
       alertPriv: 'Solo usaremos tu número para este aviso.', alertOk: '¡Listo! Te avisaremos por WhatsApp.',
       alertBad: 'Revisa la cotización y tu número de WhatsApp.', alertErr: 'No se pudo guardar. Intenta de nuevo.',
       shareTitle: 'Comparte y únete', shareSub: 'Recomienda Dólar PesoPro y entra al grupo para ver las novedades.', shareBtn: 'Compartir con un amigo',
@@ -41,13 +53,13 @@
       instAndroid: 'Toca el menú ⋮ de Chrome y elige “Instalar app” o “Añadir a pantalla de inicio”.',
       instIos: 'En Safari toca el botón Compartir y elige “Agregar a inicio”.',
       histTitle: 'Historial de cotización', histEmpty: 'Aquí aparecerán las últimas cotizaciones publicadas.',
-      brandTag: 'NUESTRA MARCA', brandH: '¡Conviértete mejor, ahorra más!',
+      brandTag: 'NUESTRA MARCA', brandH: '¡Cambia mejor, ahorra más!',
       brandP: 'Dólar PesoPro conecta Ecuador y Argentina con cambios de divisas rápidos, claros y con administradores verificados.',
       brandAdm: 'tus administradores verificados', copyright: '© 2026 Dólar PesoPro. Todos los derechos reservados.',
-      disclaimer: 'Aviso importante: los valores mostrados son una simulación referencial calculada con la cotización indicada y pueden cambiar sin previo aviso. Una operación solo se considera válida cuando es confirmada por un administrador verificado (Justo o Boris); en ese momento se congela el precio por 10 minutos. Verifica siempre los datos de la cuenta antes de enviar dinero. Este contenido es informativo y no constituye asesoramiento financiero.',
+      disclaimer: 'Dato importante: los valores que ves son una simulación de referencia, calculada con la cotización publicada, y pueden ir variando durante el día. Tu operación queda confirmada cuando un administrador verificado (Justo o Boris) te lo indica; en ese momento te congelamos el precio por 10 minutos. Antes de enviar dinero, revisa bien los datos de la cuenta. Este contenido es solo informativo y no es asesoramiento financiero.',
       wJusto: 'Justo 🤠', wBoris: 'Boris 😎',
       recv: 'Recibirás en Argentina', rAmt: 'Monto', rFee: 'Comisión', rPay: 'Total a pagar', rRate: 'Cotización',
-      freeze: 'El precio se congela 10 minutos al confirmar con un administrador. Actúa rápido o se actualiza.',
+      freeze: 'El precio se congela 10 minutos al confirmar con un administrador. Actúa rápido: pasado ese tiempo, el precio se actualiza.',
       stRecv: 'Recibirás', stHelp: 'Habla con un administrador',
       helpManual: 'Cotización oficial: {r}. Puedes ajustarla si necesitas calcular con otro valor.',
       helpFixed: 'Esta cotización está fijada por el administrador.', reset: 'Volver a la cotización oficial ({r})',
@@ -57,22 +69,34 @@
       liveOn: 'EN VIVO', liveOff: 'SIN CONEXIÓN', liveDemo: 'DEMOSTRACIÓN', upd: 'Pesos por cada dólar · Act. {d}', updNone: 'Pesos por cada dólar',
       open: 'Atendiendo ahora · {a}–{b}', closed: 'Fuera de horario · {a}–{b} (Argentina)',
       s1t: 'Cotiza', s1d: 'Ingresa el monto en dólares y mira al instante cuánto recibirás en pesos.',
-      s2t: 'Copia tu mensaje', s2d: 'Completa tus datos (opcional), copia el mensaje listo o abre el chat con Justo o Boris.',
+      s2t: 'Copia tu mensaje', s2d: 'Completa tus datos (opcional) y toca “Hacer cambio”: copiamos tu mensaje y abrimos el chat con Justo o Boris.',
       s3t: 'Confirma', s3d: 'El administrador confirma el precio, lo congela 10 minutos y te indica a qué cuenta enviar.',
       s4t: 'Recibe', s4d: 'Envía tu transferencia, manda el comprobante y recibe tus pesos en tu banco de preferencia o billetera virtual.',
       q1t: 'Ten listo antes de escribir', q1d: 'Tu monto en USD y el cálculo de arriba.\nEl nombre completo del titular de la cuenta donde recibes.\nTu alias, CBU o CVU (revisa que esté bien escrito).\nEl comprobante de tu transferencia, cuando el administrador te indique a qué cuenta enviar.',
       q2t: 'Comisiones por transferencia', q2a: 'Menos de {t} USD', q2b: 'Desde {t} USD', q2n: 'Elige arriba si la comisión va incluida en el monto o aparte.',
       q3t: 'Pesos a dólares', q3d: 'No se cobra comisión. Escríbele a Justo o Boris y acuerden la cotización del momento.',
-      q4t: 'Para operar más rápido', q4d: 'Completa “Agiliza tu operación” y toca Copiar mensaje.\nActúa dentro de los 10 minutos del precio congelado.\nEscribe solo a Justo o Boris.',
+      q4t: 'Para operar más rápido', q4d: 'Completa “Agregar mis datos” y toca Hacer cambio.\nActúa dentro de los 10 minutos del precio congelado.\nEscribe solo a Justo o Boris.',
       f1q: '¿Cuánto cobran de comisión?', f1a: 'Para montos menores a {t} USD la comisión es de {f} USD fijos. Desde {t} USD es el {p}% del monto a enviar.',
       f2q: '¿Qué significa comisión incluida o aparte?', f2a: 'Incluida: la comisión se calcula dentro del monto que envías, así que pagas exactamente ese monto. Aparte: recibes el monto completo en pesos y la comisión se suma a lo que pagas.',
       f3q: '¿Cuánto dura el precio?', f3a: 'Al confirmar con un administrador, el precio queda congelado 10 minutos. Pasado ese tiempo se actualiza, por eso conviene actuar rápido.',
       f4q: '¿Cómo sé que es seguro?', f4a: 'Opera únicamente con los administradores verificados Justo y Boris, cuyos números están en esta página. No envíes dinero a ningún otro contacto.',
-      f5q: '¿Dónde recibo mis pesos?', f5a: 'Directo en tu banco de preferencia o en tu billetera virtual, sin filas.',
+      f5q: '¿Dónde recibo mis pesos?', f5a: 'Directo en tu banco de preferencia o en tu billetera virtual, sin hacer filas.',
       f6q: '¿Y si quiero cambiar pesos a dólares?', f6a: 'No se cobra comisión. Escríbele a un administrador para acordar la cotización en el momento.'
     },
     en: {
       loading: 'Loading rate…', tagline: 'CURRENCY EXCHANGE · ECUADOR TO ARGENTINA', rateToday: 'DOLLAR TODAY',
+      offTitle: 'Offline', offSub: 'We are not available right now. Back soon: follow the WhatsApp group to stay in the loop.', offChip: 'Offline · back soon', onChip: 'Available now', liveClosed: 'OFFLINE', offHero: 'Back soon',
+      doChange: 'Start exchange', pickTitle: 'Who do you exchange with?', pickSub: 'Your message is copied. Pick who to write to: the chat opens with your amount and details.',
+      offH: 'We are resting', offP: 'Dólar PesoPro is switched off for now. We will be back soon with an up-to-date rate. Join the group to hear first.', offClock: 'Argentina time',
+      offH_noche: 'We are resting', offH_ciudad: 'The city sleeps, and so do we', offH_atardecer: 'We are closed for today', offH_desierto: 'Siesta under the sun',
+      opensIn: 'We open in {x}', hoursInfo: 'Opening hours · {a} – {b}',
+      sellHero: 'Pesos → Dollars', sellLbl: 'Today’s rate (pesos per USD)', arsAmtLbl: 'Pesos you want to exchange (ARS)', arsLiveTxt: 'You will receive ≈ {v}',
+      arsText2: 'This is today’s rate. No fee is charged. Message an administrator to confirm the price before sending.',
+      alertPhoneHelp: 'Pick your country and type your number without the leading 0.', instGuide: 'See step by step', gApp: 'Install app', footTag: 'Currency exchange between Ecuador and Argentina, with verified administrators.',
+      ap_intro: 'Install Dólar PesoPro for free on your home screen: it opens full screen like an app, takes almost no space and always shows the latest rate.', mine: 'Your device',
+      ap_ios_t: 'iPhone or iPad (Safari)', ap_ios_1: 'Open this page in Safari.', ap_ios_2: 'Tap the Share button: the square with an arrow pointing up, in the bottom bar.', ap_ios_3: 'Scroll down and tap “Add to Home Screen”.', ap_ios_4: 'Tap “Add”. Done: the Dólar PesoPro icon is on your home screen.', ap_ios_n: 'If you are in another browser, copy the link and open it in Safari so that option appears.',
+      ap_and_t: 'Android (Chrome)', ap_and_1: 'Open this page in Chrome.', ap_and_2: 'Tap the ⋮ menu (three dots), top right.', ap_and_3: 'Choose “Install app” or, if it is not there, “Add to Home screen”.', ap_and_4: 'Confirm with “Install”. The icon appears next to your other apps.', ap_and_n: 'On Samsung Internet: menu ☰ → “Add page to” → “Home screen”. If you see an “Install app” button on the page, you can use it too.',
+      ap_pc_t: 'Computer (Chrome or Edge)', ap_pc_1: 'Click the install icon at the right of the address bar and confirm with “Install”.',
       calcTitle: 'Calculate your transfer', dirUsd: 'Dollars → Pesos', dirArs: 'Pesos → Dollars',
       amountLbl: 'Amount to send (USD)', rateLbl: 'Rate (pesos per USD)', feeLbl: 'Fee',
       feeIncl: 'Included in amount', feeApart: 'On top of amount',
@@ -90,7 +114,7 @@
       talkTitle: 'Talk to an administrator', talkSub: 'Opens a WhatsApp chat with your message already written. Verified administrators only.',
       chk1: 'Verified administrators. Only deal with Justo and Boris.', chk2: 'Straight to your account, in your preferred bank or digital wallet.', chk3: 'Price frozen for 10 minutes once confirmed.',
       alertTitle: 'Notify me when it rises', alertSub: 'Tell us the rate you want and we will message you on WhatsApp when it arrives.',
-      alertTarget: 'Target rate (pesos per USD)', alertPhone: 'Your WhatsApp (with country code)', alertBtn: 'Notify me',
+      alertTarget: 'Target rate (pesos per USD)', alertPhone: 'Your WhatsApp', alertBtn: 'Notify me',
       alertPriv: 'We will only use your number for this alert.', alertOk: 'Done! We will notify you on WhatsApp.',
       alertBad: 'Check the rate and your WhatsApp number.', alertErr: 'Could not save. Please try again.',
       shareTitle: 'Share and join', shareSub: 'Recommend Dólar PesoPro and join the group for updates.', shareBtn: 'Share with a friend',
@@ -100,10 +124,10 @@
       instAndroid: 'Tap the Chrome menu ⋮ and choose “Install app” or “Add to Home screen”.',
       instIos: 'In Safari tap the Share button and choose “Add to Home Screen”.',
       histTitle: 'Rate history', histEmpty: 'The latest published rates will appear here.',
-      brandTag: 'OUR BRAND', brandH: 'Convert better, save more!',
+      brandTag: 'OUR BRAND', brandH: 'Exchange better, save more!',
       brandP: 'Dólar PesoPro connects Ecuador and Argentina with fast, clear currency exchange and verified administrators.',
       brandAdm: 'your verified administrators', copyright: '© 2026 Dólar PesoPro. All rights reserved.',
-      disclaimer: 'Important notice: the values shown are an indicative simulation calculated with the stated rate and may change without notice. A transfer is only valid once confirmed by a verified administrator (Justo or Boris); at that moment the price is frozen for 10 minutes. Always double-check the account details before sending money. This content is informational and is not financial advice.',
+      disclaimer: 'Important notice: the values shown are an indicative simulation calculated with the stated rate and may vary during the day. Your transfer is confirmed when a verified administrator (Justo or Boris) tells you so; at that moment we freeze the price for 10 minutes. Before sending money, double-check the account details. This content is for information only and is not financial advice.',
       wJusto: 'Justo 🤠', wBoris: 'Boris 😎',
       recv: 'You will receive in Argentina', rAmt: 'Amount', rFee: 'Fee', rPay: 'Total to pay', rRate: 'Rate',
       freeze: 'The price is frozen for 10 minutes once an administrator confirms. Act fast or it updates.',
@@ -122,7 +146,7 @@
       q1t: 'Have ready before writing', q1d: 'Your amount in USD and the calculation above.\nThe full name of the holder of the account where you receive.\nYour alias, CBU or CVU (check it is written correctly).\nYour transfer receipt, once the administrator tells you which account to send to.',
       q2t: 'Transfer fees', q2a: 'Under {t} USD', q2b: 'From {t} USD', q2n: 'Choose above whether the fee is included in the amount or on top.',
       q3t: 'Pesos to dollars', q3d: 'No fee charged. Message Justo or Boris and agree on the rate of the moment.',
-      q4t: 'To go faster', q4d: 'Fill in “Speed up your transfer” and tap Copy message.\nAct within the 10 minutes of the frozen price.\nOnly write to Justo or Boris.',
+      q4t: 'To go faster', q4d: 'Fill in “Add my details” and tap Start exchange.\nAct within the 10 minutes of the frozen price.\nOnly write to Justo or Boris.',
       f1q: 'What fee do you charge?', f1a: 'For amounts under {t} USD the fee is {f} USD flat. From {t} USD it is {p}% of the amount to send.',
       f2q: 'What does fee included or on top mean?', f2a: 'Included: the fee is taken from the amount you send, so you pay exactly that amount. On top: you receive the full amount in pesos and the fee is added to what you pay.',
       f3q: 'How long does the price last?', f3a: 'Once an administrator confirms, the price is frozen for 10 minutes. After that it updates, so it pays to act fast.',
@@ -140,10 +164,10 @@
   var S = {
     lang: 'es', theme: 'light',
     cfg: Object.assign({}, DEFAULTS), historyRaw: [], online: false, live: false, firstCfg: true,
-    amount: '100', mode: 'incluida', manual: null, dir: 'usd', gtab: 'como', faq: -1,
-    holder: '', bank: '', alias: '', shown: 0, target: null, copied: false, admin: false, alerts: [], alSent: 0
+    amount: '100', mode: 'incluida', op: 'cambio', manual: null, dir: 'usd', gtab: 'como', faq: -1,
+    holder: '', bank: '', alias: '', shown: 0, target: null, copied: false, admin: false, alerts: [], alSent: 0, arsAmount: '', startedN: 0, stats: {}
   };
-  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reduce = false;   // las animaciones se ven siempre (en muchos celulares 'reducir movimiento' viene activado y las apagaba)
   var t = function (k, v) {
     var s = (I18N[S.lang] && I18N[S.lang][k]) || I18N.es[k] || k;
     if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); });
@@ -169,7 +193,7 @@
   var inN = function (n) { return String(n).replace('.', ','); };
   function whenTxt(ts) {
     var d = new Date(ts); if (isNaN(d.getTime())) return '';
-    return d.toLocaleString(S.lang === 'en' ? 'en-GB' : 'es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString(S.lang === 'en' ? 'en-GB' : 'es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   }
   function bindClean(el) {
     el.addEventListener('keydown', function (e) { if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') e.preventDefault(); });
@@ -187,7 +211,7 @@
       rate: numOr(v.rate, 0) > 0 ? v.rate : DEFAULTS.rate, prev: numOr(v.prev, 0), updatedAt: numOr(v.updatedAt, 0),
       allowManual: v.allowManual !== false, feeFixed: Math.max(0, numOr(v.feeFixed, DEFAULTS.feeFixed)),
       feeThreshold: numOr(v.feeThreshold, 0) > 0 ? v.feeThreshold : DEFAULTS.feeThreshold, feePct: Math.max(0, numOr(v.feePct, DEFAULTS.feePct)),
-      minUsd: Math.max(0, numOr(v.minUsd, DEFAULTS.minUsd)), announcement: typeof v.announcement === 'string' ? v.announcement : '',
+      minUsd: Math.max(0, numOr(v.minUsd, DEFAULTS.minUsd)), rateSell: numOr(v.rateSell, 0) > 0 ? v.rateSell : 0, online: v.online !== false, announcement: typeof v.announcement === 'string' ? v.announcement : '',
       hoursOn: v.hoursOn === true, hoursFrom: typeof v.hoursFrom === 'string' ? v.hoursFrom : DEFAULTS.hoursFrom,
       hoursTo: typeof v.hoursTo === 'string' ? v.hoursTo : DEFAULTS.hoursTo
     };
@@ -226,13 +250,16 @@
     return { rate: rate, official: c.rate, useM: useM, amt: amt, fee: fee, feeLabel: feeLabel, net: net, pay: pay, ok: ok, receive: ok ? net * rate : 0 };
   }
   function message(k) {
-    var L = ['Hola, quiero hacer un cambio con Dólar PesoPro.', ''];
+    var OPN = { cambio: 'un cambio', transaccion: 'una transacción', giro: 'un giro' }, op = OPN[S.op] || OPN.cambio;
+    var L = ['Hola, quiero hacer ' + op + ' con Dólar PesoPro.', ''];
     if (S.dir === 'ars') {
-      L = ['Hola, quiero cambiar pesos a dólares con Dólar PesoPro.', '¿Me indican la cotización del momento?'];
+      var sc = S.cfg, aa = num(S.arsAmount);
+      if (sc.rateSell > 0 && aa > 0) L = ['Hola, quiero hacer ' + op + ' de pesos a dólares con Dólar PesoPro.', 'Cambio: ' + ars(aa), 'Cotización: ' + ars(sc.rateSell), 'Recibiré ≈ ' + usd(aa / sc.rateSell)];
+      else L = ['Hola, quiero hacer ' + op + ' de pesos a dólares con Dólar PesoPro.', '¿Me indican la cotización del momento?'];
     } else if (k.ok) {
       L.push('Envío: ' + usd(k.amt) + ' (comisión ' + (S.mode === 'incluida' ? 'incluida' : 'aparte') + ')');
       L.push('Cotización: ' + ars(k.rate)); L.push('Recibiré: ' + ars(k.receive));
-    } else L.push('Quiero cotizar un cambio de dólares a pesos.');
+    } else L.push('Quiero cotizar ' + op + ' de dólares a pesos.');
     L.push('Titular: ' + (S.holder.trim() || '____'));
     L.push('Banco o billetera virtual: ' + (S.bank.trim() || '____'));
     L.push('Alias / CBU / CVU: ' + (S.alias.trim() || '____'));
@@ -258,13 +285,21 @@
     $$('[data-i18n-ph]').forEach(function (n) { n.setAttribute('placeholder', t(n.getAttribute('data-i18n-ph'))); });
     $$('[data-lang]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-lang') === S.lang); });
   }
-  function renderGuide() {
-    var c = S.cfg, a = $('#gComo'); a.textContent = '';
+  function chevSvg() { var ch = el('span', 'chev'); ch.innerHTML = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M6 9l6 6 6-6"/></svg>'; return ch; }
+  function paintFaq() {
+    $$('.faqlist').forEach(function (f) {
+      Array.prototype.forEach.call(f.children, function (d, idx) { var o = S.faq === idx + 1; d.classList.toggle('open', o); d.querySelector('button').setAttribute('aria-expanded', o ? 'true' : 'false'); });
+    });
+  }
+  function fillSteps(a) {
+    a.textContent = '';
     [1, 2, 3, 4].forEach(function (i) {
       var s = el('div', 'step'), n = el('i', null, String(i)), b = el('div'), h = el('b', null, t('s' + i + 't')), d = el('div', 'sub', t('s' + i + 'd'));
       b.appendChild(h); b.appendChild(d); s.appendChild(n); s.appendChild(b); a.appendChild(s);
     });
-    var g = $('#gGuia'); g.textContent = '';
+  }
+  function fillQuick(g) {
+    var c = S.cfg; g.textContent = '';
     function box(title, lines) { var x = el('div', 'panelbox'); x.appendChild(el('b', null, title)); lines.forEach(function (l) { x.appendChild(el('p', null, l)); }); return x; }
     g.appendChild(box(t('q1t'), t('q1d').split('\n')));
     var fb = el('div', 'panelbox'); fb.appendChild(el('b', null, t('q2t')));
@@ -273,29 +308,41 @@
     });
     fb.appendChild(el('p', null, t('q2n'))); g.appendChild(fb);
     g.appendChild(box(t('q3t'), [t('q3d')])); g.appendChild(box(t('q4t'), t('q4d').split('\n')));
-    var f = $('#gFaq'); f.textContent = '';
+  }
+  function fillFaq(f) {
+    var c = S.cfg; f.textContent = ''; f.classList.add('faqlist');
     for (var i = 1; i <= 6; i++) (function (i) {
-      var w = el('div'); w.id = 'faq' + i;
-      var q = el('button', 'faqq'); q.type = 'button'; q.appendChild(el('span', null, t('f' + i + 'q')));
-      var ch = el('span', 'chev'); ch.innerHTML = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M6 9l6 6 6-6"/></svg>';
-      q.appendChild(ch);
+      var w = el('div');
+      var q = el('button', 'faqq'); q.type = 'button'; q.appendChild(el('span', null, t('f' + i + 'q'))); q.appendChild(chevSvg());
       var acc = el('div', 'acc'), inner = el('div'); inner.appendChild(el('p', null, t('f' + i + 'a', { t: fmtN(c.feeThreshold), f: fmtN(c.feeFixed), p: fmtN(c.feePct) }))); acc.appendChild(inner);
       w.appendChild(q); w.appendChild(acc);
       if (S.faq === i) w.classList.add('open');
       q.setAttribute('aria-expanded', S.faq === i ? 'true' : 'false');
-      q.addEventListener('click', function () {
-        S.faq = S.faq === i ? -1 : i;
-        $$('#gFaq > div').forEach(function (d, idx) { var o = S.faq === idx + 1; d.classList.toggle('open', o); d.querySelector('button').setAttribute('aria-expanded', o ? 'true' : 'false'); });
-      });
+      q.addEventListener('click', function () { S.faq = S.faq === i ? -1 : i; paintFaq(); });
       f.appendChild(w);
     })(i);
   }
+  function fillApp(g) {
+    g.textContent = '';
+    g.appendChild(el('p', 'sub', t('ap_intro')));
+    var order = OS === 'android' ? ['and', 'ios', 'pc'] : OS === 'desktop' ? ['pc', 'ios', 'and'] : ['ios', 'and', 'pc'];
+    var mineKey = OS === 'android' ? 'and' : OS === 'ios' ? 'ios' : 'pc';
+    order.forEach(function (k) {
+      var x = el('div', 'panelbox'), h = el('b', null, t('ap_' + k + '_t')); if (k === mineKey) h.appendChild(el('span', 'mine', t('mine'))); x.appendChild(h);
+      var n = k === 'pc' ? 1 : 4;
+      for (var i = 1; i <= n; i++) { var r = el('div', 'istep'); if (k !== 'pc') r.appendChild(el('i', null, String(i))); r.appendChild(el('span', null, t('ap_' + k + '_' + i))); x.appendChild(r); }
+      if (k !== 'pc') x.appendChild(el('div', 'inote', t('ap_' + k + '_n')));
+      g.appendChild(x);
+    });
+  }
+  function renderGuide() { fillSteps($('#gComo')); fillQuick($('#gGuia')); fillFaq($('#gFaq')); fillApp($('#gApp')); }
   var guideKey = '';
   function setGuideTab() {
     $$('#gtabs .chip').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-g') === S.gtab); });
     $('#gComo').style.display = S.gtab === 'como' ? 'flex' : 'none';
     $('#gGuia').style.display = S.gtab === 'guia' ? 'flex' : 'none';
     $('#gFaq').style.display = S.gtab === 'faq' ? 'flex' : 'none';
+    $('#gApp').style.display = S.gtab === 'app' ? 'flex' : 'none';
   }
   function paintReceive() {
     var k = S.lastCalc || { ok: false };
@@ -326,20 +373,37 @@
       '<div class="r"><span id="rL3"></span><strong id="rV3"></strong></div><div class="r"><span id="rL4"></span><strong id="rV4"></strong></div></div>' +
       '<div class="note" id="rN"></div></div>';
   }
+  function isLocked() { return !!(fbOk && S.live && S.cfg.online === false && !S.admin); }
+  function applyLock(locked) {
+    if (S.lockApplied === locked) return; S.lockApplied = locked;
+    ['calc', 'talkCard', 'alertCard'].forEach(function (id) {
+      var card = document.getElementById(id); if (!card) return;
+      card.classList.toggle('locked', locked);
+      Array.prototype.forEach.call(card.children, function (ch) {
+        if (ch.classList.contains('lockov')) ch.hidden = !locked;
+        else if (locked) ch.setAttribute('inert', ''); else ch.removeAttribute('inert');
+      });
+    });
+    $('#hero').classList.toggle('off', locked);
+    $('#histCard').hidden = locked;
+    if (locked) { var tt = $('#toast'); tt.classList.remove('show'); }
+  }
   function update() {
-    var c = S.cfg, k = calc(); S.lastCalc = k;
+    var c = S.cfg, k = calc(); S.lastCalc = k; var locked = isLocked();
     /* cotización */
-    setText('#officialBig', ars(c.rate));
+    setText('#officialBig', locked ? '$ ·····' : ars(c.rate));
     var tr = $('#trend');
-    if (c.prev > 0 && c.prev !== c.rate && S.live) { var df = c.rate - c.prev; tr.textContent = (df > 0 ? '▲ +' : '▼ −') + fmtN(Math.abs(df)); } else tr.textContent = '';
-    setText('#updTxt', c.updatedAt ? t('upd', { d: whenTxt(c.updatedAt) }) : t('updNone'));
+    if (c.prev > 0 && c.prev !== c.rate && S.live && !locked) { var df = c.rate - c.prev; tr.textContent = (df > 0 ? '▲ +' : '▼ −') + fmtN(Math.abs(df)); } else tr.textContent = '';
+    setText('#updTxt', locked ? t('offHero') : (c.updatedAt ? t('upd', { d: whenTxt(c.updatedAt) }) : t('updNone')));
     var dot = $('#liveDot'), lt = $('#liveTxt');
-    if (!fbOk) { dot.className = 'dot off'; lt.textContent = t('liveDemo'); }
+    if (locked) { dot.className = 'dot off'; lt.textContent = t('liveClosed'); }
+    else if (!fbOk) { dot.className = 'dot off'; lt.textContent = t('liveDemo'); }
     else if (S.online && S.live) { dot.className = 'dot g'; lt.textContent = t('liveOn'); }
     else { dot.className = 'dot off'; lt.textContent = t('liveOff'); }
+    var sell = c.rateSell > 0 && !locked, hs = $('#heroSell'); hs.hidden = !sell; if (sell) setText('#sellBig', ars(c.rateSell));
     /* gráfica */
     var h = histList(), pts = h.slice(0, 8).reverse().map(function (x) { return x.rate; }), sp = $('#spark');
-    if (pts.length >= 2) {
+    if (pts.length >= 2 && !locked) {
       var mn = Math.min.apply(null, pts), mx = Math.max.apply(null, pts), span = mx - mn || 1;
       var xy = pts.map(function (v, i) { return [i * (300 / (pts.length - 1)), 52 - ((v - mn) / span) * 44]; });
       var ln = xy.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
@@ -350,13 +414,16 @@
     var an = (c.announcement || '').trim(); $('#ann').hidden = !an; if (an) setText('#annTxt', an);
     /* horario */
     var chip = $('#hoursChip'), a = toMin(c.hoursFrom), b = toMin(c.hoursTo);
-    if (c.hoursOn && a != null && b != null) {
-      var n = arMinutes(), open = a <= b ? (n >= a && n < b) : (n >= a || n < b);
-      chip.hidden = false; $('#hoursDot').className = 'dot ' + (open ? 'g' : 'off');
-      setText('#hoursTxt', t(open ? 'open' : 'closed', { a: c.hoursFrom, b: c.hoursTo }));
-    } else chip.hidden = true;
+    if (fbOk && S.live && !c.online) { chip.hidden = false; $('#hoursDot').className = 'dot off'; setText('#hoursTxt', t('offChip')); }
+    else if (c.hoursOn && a != null && b != null) { chip.hidden = false; $('#hoursDot').className = 'dot g'; setText('#hoursTxt', t('open', { a: c.hoursFrom, b: c.hoursTo })); }
+    else if (fbOk && S.live) { chip.hidden = false; $('#hoursDot').className = 'dot g'; setText('#hoursTxt', t('onChip')); }
+    else chip.hidden = true;
     /* calculadora */
     var usdOn = S.dir === 'usd';
+    $('#sellBox').hidden = !(c.rateSell > 0); setText('#arsTxt', t(c.rateSell > 0 ? 'arsText2' : 'arsText'));
+    if (c.rateSell > 0) {
+      setText('#sellShow', ars(c.rateSell)); var aa = num(S.arsAmount), al = $('#arsLive'); al.hidden = !(aa > 0); if (aa > 0) al.textContent = t('arsLiveTxt', { v: usd(aa / c.rateSell) });
+    }
     $('#usdPane').style.display = usdOn ? 'flex' : 'none'; $('#arsPane').hidden = usdOn;
     $('#dirTabs').classList.toggle('b', !usdOn);
     $$('#dirTabs button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-dir') === S.dir); });
@@ -387,9 +454,9 @@
     /* mensaje + enlaces */
     var msg = message(k); var mb = $('#msgbox'); if (mb.value !== msg) mb.value = msg;
     $$('[data-wa]').forEach(function (x) { x.href = 'https://wa.me/' + PHONES[x.getAttribute('data-wa')] + '?text=' + encodeURIComponent(msg); });
-    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar mensaje');
+    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar');
     /* guía (se redibuja si cambia el idioma o las comisiones) */
-    var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct;
+    var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct + '|' + OS;
     if (gk !== guideKey) { guideKey = gk; renderGuide(); setGuideTab(); }
     /* historial */
     var hl = $('#histList'); hl.textContent = '';
@@ -405,12 +472,17 @@
     var ic = $('#installCard');
     if (standalone || OS === 'desktop') ic.hidden = true;
     else { ic.hidden = false; setText('#instTxt', t(OS === 'ios' ? 'instIos' : 'instAndroid')); $('#instBtn').hidden = !(OS === 'android' && S.dip); }
-    $('#sticky').classList.toggle('show', S.splashDone === true);
+    applyLock(locked);
+    $('#sticky').classList.toggle('show', S.splashDone === true && !locked);
+    syncOff();
   }
 
   /* ---------- eventos ---------- */
   var amountEl = $('#amount'), rateEl = $('#rate');
-  bindClean(amountEl); bindClean(rateEl); bindClean($('#alTarget'));
+  bindClean(amountEl); bindClean(rateEl); bindClean($('#alTarget')); bindClean($('#arsAmount'));
+  $('#arsAmount').addEventListener('input', function (e) { S.arsAmount = e.target.value; update(); });
+  $('#arsAmount').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.blur(); });
+  $('#histToggle').addEventListener('click', function () { var w = $('#histWrap'), o = !w.classList.contains('open'); w.classList.toggle('open', o); this.setAttribute('aria-expanded', o ? 'true' : 'false'); });
   amountEl.addEventListener('input', function () { S.amount = amountEl.value; update(); });
   amountEl.addEventListener('focus', function () { var e = amountEl; setTimeout(function () { try { e.select(); } catch (x) {} }, 30); });
   [amountEl, rateEl].forEach(function (x) { x.addEventListener('keydown', function (e) { if (e.key === 'Enter') x.blur(); }); });
@@ -418,6 +490,7 @@
   rateEl.addEventListener('input', function () { S.manual = rateEl.value; update(); });
   $('#rateReset').addEventListener('click', function () { S.manual = null; rateEl.value = inN(S.cfg.rate); update(); });
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
+  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }); });
   $$('#dirTabs button').forEach(function (b) { b.addEventListener('click', function () { S.dir = b.getAttribute('data-dir'); update(); }); });
   $$('#gtabs .chip').forEach(function (b) { b.addEventListener('click', function () { S.gtab = b.getAttribute('data-g'); setGuideTab(); }); });
   function applyTheme(next) {
@@ -428,16 +501,17 @@
   $('#themeBtn').addEventListener('click', function () {
     var btn = this, next = S.theme === 'light' ? 'dark' : 'light', root = document.documentElement;
     btn.classList.add('spin'); setTimeout(function () { btn.classList.remove('spin'); }, 750);
-    if (reduce) { applyTheme(next); return; }
-    if (document.startViewTransition) {
-      var r = btn.getBoundingClientRect();
-      root.style.setProperty('--cx', (r.left + r.width / 2) + 'px'); root.style.setProperty('--cy', (r.top + r.height / 2) + 'px');
-      if (window.CSS && CSS.registerProperty) root.classList.add('feather');
+    function fallback() { root.classList.add('theme-anim'); applyTheme(next); setTimeout(function () { root.classList.remove('theme-anim'); }, 1100); }
+    if (!document.startViewTransition) { fallback(); return; }
+    var r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    var rad = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    try {
       var vt = document.startViewTransition(function () { applyTheme(next); });
-      vt.finished.then(function () { root.classList.remove('feather'); }, function () { root.classList.remove('feather'); });
-    } else {
-      root.classList.add('theme-anim'); applyTheme(next); setTimeout(function () { root.classList.remove('theme-anim'); }, 1100);
-    }
+      vt.ready.then(function () {
+        root.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + rad + 'px at ' + x + 'px ' + y + 'px)'] },
+          { duration: 1000, easing: 'cubic-bezier(.4,0,.2,1)', pseudoElement: '::view-transition-new(root)' });
+      }).catch(function () {});
+    } catch (e) { fallback(); }
   });
   ['holder', 'bank', 'alias'].forEach(function (id) { $('#' + id).addEventListener('input', function (e) { S[id] = e.target.value; update(); }); });
   function doCopy() {
@@ -456,29 +530,136 @@
   });
   function setSheet(o) { $('#sheet').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) $('#guide').scrollTop = 0; }
   $('#guideLink').addEventListener('click', function () { setSheet(true); });
-  $('#guideFoot').addEventListener('click', function () { setSheet(true); });
+  $('#guideFoot').addEventListener('click', function () { S.gtab = 'como'; setGuideTab(); setSheet(true); });
+  $('#faqFoot').addEventListener('click', function () { S.gtab = 'faq'; setGuideTab(); setSheet(true); });
+  $('#appFoot').addEventListener('click', function () { S.gtab = 'app'; setGuideTab(); setSheet(true); });
+  $('#instGuide').addEventListener('click', function () { S.gtab = 'app'; setGuideTab(); setSheet(true); });
   $('#sheetClose').addEventListener('click', function () { setSheet(false); });
   $('#sheetBd').addEventListener('click', function () { setSheet(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setSheet(false); });
-  $('#shareBtn').addEventListener('click', function () {
+  function doShare() {
     var url = location.href.split('#')[0], text = t('shareText') + ' ' + url;
     function fb() { window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank'); }
     try { if (navigator.share) navigator.share({ title: 'Dólar PesoPro', text: t('shareText'), url: url }).catch(function (e) { if (!e || e.name !== 'AbortError') fb(); }); else fb(); } catch (e) { fb(); }
-  });
+  }
+  $('#shareBtn').addEventListener('click', doShare); $('#shareFoot').addEventListener('click', doShare);
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); S.dip = e; update(); });
   $('#instBtn').addEventListener('click', function () { if (S.dip) { S.dip.prompt(); S.dip = null; update(); } });
+  /* Notificación al celular de Justo (app gratuita ntfy). Se activa poniendo window.NTFY_TOPIC en firebase-config.js */
+  function notifyAdmin(target, phone) {
+    var topic = window.NTFY_TOPIC; if (!topic) return;
+    try {
+      fetch('https://ntfy.sh/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        topic: topic, title: 'Nueva alerta de cotización', message: '+' + phone + ' quiere cambiar a ' + ars(target) + '. Dólar ahora: ' + ars(S.cfg.rate),
+        priority: 4, tags: ['bell', 'moneybag'], click: 'https://wa.me/' + phone }) }).catch(function () {});
+    } catch (e) {}
+  }
   $('#alBtn').addEventListener('click', function () {
-    var target = num($('#alTarget').value), phone = $('#alPhone').value.replace(/\D/g, ''), msg = $('#alMsg');
-    if (!(target > 0 && target < 100000) || phone.length < 8 || phone.length > 15 || S.alSent >= 3) { msg.textContent = t('alertBad'); msg.style.color = '#E5484D'; return; }
+    var cc = $('#alCc').value, nat = $('#alPhone').value.replace(/\D/g, '').replace(/^0+/, '');
+    if (nat.indexOf(cc) === 0 && nat.length > cc.length + 6) nat = nat.slice(cc.length);
+    else if (cc === '549' && nat.indexOf('54') === 0 && nat.length > 9) nat = nat.replace(/^549?/, '');
+    var target = num($('#alTarget').value), phone = cc + nat, msg = $('#alMsg');
+    if (!(target > 0 && target < 100000) || nat.length < 7 || nat.length > 11 || S.alSent >= 3) { msg.textContent = t('alertBad'); msg.style.color = '#E5484D'; return; }
     if (!db) { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; return; }
     db.ref('alerts').push({ phone: phone, target: target, at: firebase.database.ServerValue.TIMESTAMP }).then(function () {
-      S.alSent++; msg.textContent = t('alertOk'); msg.style.color = 'var(--green)'; $('#alTarget').value = ''; $('#alPhone').value = '';
+      notifyAdmin(target, phone); S.alSent++; msg.textContent = t('alertOk'); msg.style.color = 'var(--green)'; $('#alTarget').value = ''; $('#alPhone').value = '';
     }).catch(function () { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; });
   });
 
+  /* ---------- Hacer cambio (elige administrador) ---------- */
+  function setSheet2(o) { $('#sheet2').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) $('#pick').scrollTop = 0; }
+  function dayKey(d) {
+    try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d || new Date()); }
+    catch (e) { return (d || new Date()).toISOString().slice(0, 10); }
+  }
+  function countStart() {
+    if (!db || S.admin || S.startedN >= 5) return; S.startedN++;
+    try { db.ref('stats/' + dayKey() + '/started').transaction(function (v) { return (typeof v === 'number' ? v : 0) + 1; }).catch(function () {}); } catch (e) {}
+  }
+  function doChange() { doCopy(); countStart(); setSheet2(true); }
+  $('#changeBtn').addEventListener('click', doChange);
+  $('#stChange').addEventListener('click', doChange);
+  $('#sheet2Close').addEventListener('click', function () { setSheet2(false); });
+  $('#sheet2Bd').addEventListener('click', function () { setSheet2(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setSheet2(false); });
+
+  /* ---------- Pantalla de apagado (fuera de línea) ---------- */
+  function arTime() {
+    try { return new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()); }
+    catch (e) { var d = new Date(); return (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes(); }
+  }
+  function offWanted() { return !!(fbOk && S.live && S.cfg.online === false && (!S.admin || S.preview)); }
+  function setInert(o) { ['.wrap', '#sticky'].forEach(function (sel) { var n = $(sel); if (n) { if (o) n.setAttribute('inert', ''); else n.removeAttribute('inert'); } }); }
+  function buildStars() {
+    var st = $('#stars'); if (st.children.length) return;
+    for (var i = 0; i < 48; i++) {
+      var d = document.createElement('i'), z = 1 + Math.random() * 2;
+      d.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;top:' + (Math.random() * 62).toFixed(1) + '%;width:' + z.toFixed(1) + 'px;height:' + z.toFixed(1) + 'px;animation-delay:' + (Math.random() * 4).toFixed(2) + 's;animation-duration:' + (2 + Math.random() * 3).toFixed(2) + 's';
+      st.appendChild(d);
+    }
+  }
+  function showOff() {
+    var ov = $('#off'); clearTimeout(S.offT);
+    var was = !ov.hidden && !ov.classList.contains('boot');
+    ov.classList.remove('boot'); if (was) return;
+    ov.hidden = false; ov.classList.remove('show', 'instant');
+    if (!S.splashDone) ov.classList.add('instant');
+    void ov.offsetWidth; ov.classList.add('show');
+    $('#offAdmin').hidden = true; $('#offMsg').textContent = '';
+    setInert(true); document.body.style.overflow = 'hidden'; buildStars();
+    try { if (navigator.vibrate && S.splashDone) navigator.vibrate(25); } catch (e) {}
+  }
+  function hideOff() {
+    var ov = $('#off'); if (ov.hidden || ov.classList.contains('boot')) return;
+    ov.classList.remove('instant'); ov.classList.add('boot'); setInert(false); document.body.style.overflow = '';
+    clearTimeout(S.offT); S.offT = setTimeout(function () { ov.hidden = true; ov.classList.remove('show', 'boot', 'instant'); }, 1400);
+  }
+  var SCENES = ['noche', 'ciudad', 'atardecer', 'desierto'], EMB = { noche: '🌙', ciudad: '🌃', atardecer: '🌅', desierto: '🌵' };
+  function sceneNow() {
+    var q = /[?&]escena=(\w+)/.exec(location.search); if (q && SCENES.indexOf(q[1]) > -1) return q[1];
+    if (S.sceneForce) return S.sceneForce;
+    var h = Math.floor(arMinutes() / 60);
+    return h >= 6 && h < 17 ? 'desierto' : h >= 17 && h < 20 ? 'atardecer' : h >= 20 ? 'ciudad' : 'noche';
+  }
+  function buildCity() {
+    var box = $('#cityBox'); if (box.children.length) return;
+    var W = 400, H = 200, svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">', seed = 7;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    [['#1a1565', 0.62, 0], ['#0a0838', 1, 1]].forEach(function (L) {
+      var x = -4; svg += '<g fill="' + L[0] + '">';
+      while (x < W) {
+        var w = 18 + rnd() * 26, h = (50 + rnd() * 100) * L[1]; svg += '<rect x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '"/>';
+        if (L[2]) { for (var wy = H - h + 8; wy < H - 6; wy += 11) for (var wx = x + 4; wx < x + w - 5; wx += 8) if (rnd() > 0.55) svg += '<rect class="win" style="animation-delay:' + (rnd() * 4).toFixed(1) + 's" x="' + wx.toFixed(1) + '" y="' + wy.toFixed(1) + '" width="3.4" height="5" fill="' + (rnd() > 0.8 ? '#7be9ff' : '#FFD54A') + '"/>'; }
+        x += w + 1 + rnd() * 3;
+      }
+      svg += '</g>';
+    });
+    box.innerHTML = svg + '</svg>';
+  }
+  function fmtDur(m) { var h = Math.floor(m / 60), r = m % 60; return h ? h + ' h' + (r ? ' ' + r + ' min' : '') : r + ' min'; }
+  function syncOff() {
+    var want = offWanted();
+    if (want) showOff(); else hideOff();
+    if (want) {
+      setText('#offTime', arTime());
+      var c = S.cfg, hh = $('#offHours'), a = toMin(c.hoursFrom), b = toMin(c.hoursTo), ov = $('#off'), sc = sceneNow();
+      if (ov.getAttribute('data-sc') !== sc) { ov.setAttribute('data-sc', sc); if (sc === 'ciudad') buildCity(); }
+      setText('#offEmb', EMB[sc]); setText('#offH', t('offH_' + sc));
+      if (c.hoursOn && a != null && b != null) {
+        var n = arMinutes(), open = a <= b ? (n >= a && n < b) : (n >= a || n < b);
+        hh.hidden = false; setText('#offHours', open ? t('hoursInfo', { a: c.hoursFrom, b: c.hoursTo }) : '⏰ ' + t('opensIn', { x: fmtDur((a - n + 1440) % 1440) }) + ' · ' + c.hoursFrom);
+      } else hh.hidden = true;
+      $('#offBack').hidden = !S.admin; $('#offLock').hidden = S.admin; $('#offScene').hidden = !(S.admin && S.preview);
+    }
+  }
+  function showOffAdmin() { $('#offAdmin').hidden = false; setTimeout(function () { $('#offPass').focus(); }, 60); }
+  $('#offLock').addEventListener('click', showOffAdmin);
+  $('#offBack').addEventListener('click', function () { S.preview = false; S.sceneForce = null; update(); });
+  $('#offScene').addEventListener('click', function () { var cur = sceneNow(); S.sceneForce = SCENES[(SCENES.indexOf(cur) + 1) % SCENES.length]; update(); });
+
   /* ---------- panel de administrador ---------- */
   var gate = $('#gate'), slot = $('#adminSlot');
-  function openGate() { if (S.admin) return; gate.hidden = false; setTimeout(function () { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pass').focus(); }, 60); }
+  function openGate() { if (S.admin) return; if (offWanted()) { showOffAdmin(); return; } gate.hidden = false; setTimeout(function () { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pass').focus(); }, 60); }
   $('#lockBtn').addEventListener('click', openGate);
   if (location.hash === '#admin') setTimeout(openGate, 1700);
   window.addEventListener('hashchange', function () { if (location.hash === '#admin') openGate(); });
@@ -492,23 +673,29 @@
     if (/PERMISSION_DENIED|permission/i.test((e && e.message) || '') || /permission/.test(c)) return 'Sin permiso: vuelve a entrar con tu clave.';
     return 'No se pudo completar (' + (c || 'error') + ').';
   }
-  function login() {
-    var gm = $('#gateMsg'), pw = $('#pass').value;
+  function login(ids) {
+    ids = ids || { pass: '#pass', btn: '#passBtn', msg: '#gateMsg' };
+    var gm = $(ids.msg), pw = $(ids.pass).value;
     if (!auth) { gm.textContent = 'Falta conectar Firebase (revisa el README).'; return; }
     if (!pw) { gm.textContent = 'Escribe la clave.'; return; }
-    $('#passBtn').disabled = true; gm.textContent = '';
-    auth.signInWithEmailAndPassword(window.ADMIN_EMAIL, pw).then(function () { $('#pass').value = ''; })
-      .catch(function (e) { gm.textContent = errMsg(e); }).then(function () { $('#passBtn').disabled = false; });
+    $(ids.btn).disabled = true; gm.textContent = '';
+    auth.signInWithEmailAndPassword(window.ADMIN_EMAIL, pw).then(function () { $(ids.pass).value = ''; })
+      .catch(function (e) { gm.textContent = errMsg(e); }).then(function () { $(ids.btn).disabled = false; });
   }
-  $('#passBtn').addEventListener('click', login);
+  var OFFIDS = { pass: '#offPass', btn: '#offPassBtn', msg: '#offMsg' };
+  $('#passBtn').addEventListener('click', function () { login(); });
   $('#pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
+  $('#offPassBtn').addEventListener('click', function () { login(OFFIDS); });
+  $('#offPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(OFFIDS); });
 
   var P = null;   // nodos del panel
   function pa(id) { return slot.querySelector('#' + id); }
   function msgA(txt, bad) { var m = pa('aMsg'); if (!m) return; m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
   function mountPanel() {
-    if (S.admin) return; S.admin = true; gate.hidden = true;
+    if (S.admin) return; S.admin = true; gate.hidden = true; update();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
+    ['aFrom', 'aTo'].forEach(function (id) { var sel = pa(id); for (var m = 0; m < 1440; m += 15) { var v = (m / 60 < 10 ? '0' : '') + Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + (m % 60), o = el('option', null, v); o.value = v; sel.appendChild(o); } });
+    pa('aPeek').addEventListener('click', function () { S.preview = true; update(); });
     $$('input[inputmode="decimal"]', slot).forEach(function (i) { bindClean(i); i.addEventListener('input', function () { i.dataset.dirty = '1'; }); });
     ['aAnn', 'aFrom', 'aTo'].forEach(function (id) { pa(id).addEventListener('input', function (e) { e.target.dataset.dirty = '1'; }); });
     var st = pa('aSteps');
@@ -528,15 +715,37 @@
       msgA('Publicando…');
       db.ref().update({ 'config/rate': v, 'config/prev': prev, 'config/updatedAt': firebase.database.ServerValue.TIMESTAMP, 'history': items })
         .then(function () { return db.ref('config/rate').once('value'); })
-        .then(function (s) { delete pa('aRate').dataset.dirty; msgA('Publicada ✓ Confirmado en el servidor: ' + ars(s.val()) + '. Los clientes ya la ven.'); refreshPanel(); })
+        .then(function (s) { delete pa('aRate').dataset.dirty; var hits = S.alerts.filter(function (x) { return s.val() >= x.target; }).length; msgA('Publicada ✓ Confirmado en el servidor: ' + ars(s.val()) + '. Los clientes ya la ven.' + (hits ? ' 🔔 ' + hits + ' cliente(s) esperaban este precio: avísales en el punto 7.' : '')); refreshPanel(); })
         .catch(function (e) { msgA(errMsg(e), true); });
     });
     pa('aManual').addEventListener('click', function () { run(db.ref('config/allowManual').set(!S.cfg.allowManual), 'Permiso actualizado'); });
-    pa('aFees').addEventListener('click', function () {
-      var f = num(pa('aFixed').value), th = num(pa('aThr').value), pc = num(pa('aPct').value), mn = num(pa('aMin').value);
-      if (!(th > 0) || pc > 30 || mn > 100000) { msgA('Revisa los valores.', true); return; }
-      run(db.ref('config').update({ feeFixed: f, feeThreshold: th, feePct: pc, minUsd: mn }), 'Comisiones guardadas', ['aFixed', 'aThr', 'aPct', 'aMin']);
+    pa('aMinBtn').addEventListener('click', function () {
+      var mn = num(pa('aMin').value); if (mn > 100000) { msgA('Revisa el valor.', true); return; }
+      run(db.ref('config/minUsd').set(mn), 'Mínimo guardado', ['aMin']);
     });
+    var cfTimer = null;
+    function hideConfirm() { clearTimeout(cfTimer); pa('aConfirm').hidden = true; }
+    pa('aConfirmNo').addEventListener('click', hideConfirm);
+    pa('aConfirmYes').addEventListener('click', function () { hideConfirm(); doEngine(false); });
+    pa('aEngine').addEventListener('click', function () {
+      if (S.cfg.online) { var cf = pa('aConfirm'); if (cf.hidden) { cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
+      doEngine(true);
+    });
+    function doEngine(turnOn) {
+      var btn = pa('aEngine');
+      btn.classList.remove('crank'); void btn.offsetWidth; btn.classList.add('crank'); setTimeout(function () { btn.classList.remove('crank'); }, 650);
+      try { if (navigator.vibrate) navigator.vibrate(turnOn ? [30, 40, 70] : 25); } catch (e) {}
+      run(db.ref('config').update({ online: turnOn, onlineAt: firebase.database.ServerValue.TIMESTAMP }), turnOn ? 'En línea' : 'Fuera de línea');
+    }
+    pa('aSellBtn').addEventListener('click', function () {
+      var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
+      run(db.ref('config/rateSell').set(v), 'Cotización pesos → dólares guardada', ['aSell']);
+    });
+    pa('aSellOff').addEventListener('click', function () { pa('aSell').value = ''; delete pa('aSell').dataset.dirty; run(db.ref('config/rateSell').remove(), 'Cotización pesos → dólares quitada'); });
+    function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function (e) { msgA(errMsg(e), true); }); }
+    pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
+    pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
+    S.stRef = db.ref('stats').orderByKey().limitToLast(7); S.stRef.on('value', function (s) { S.stats = s.val() || {}; renderStats(); }, function () {});
     pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
     pa('aHoursOn').addEventListener('click', function () { run(db.ref('config/hoursOn').set(!S.cfg.hoursOn), 'Horario actualizado'); });
     pa('aHoursBtn').addEventListener('click', function () {
@@ -557,20 +766,31 @@
     setTimeout(function () { slot.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   }
   function unmountPanel() {
-    if (!S.admin) return; S.admin = false;
+    if (!S.admin) return; S.admin = false; S.preview = false; update();
     if (S.alRef) { S.alRef.off(); S.alRef = null; }
+    if (S.stRef) { S.stRef.off(); S.stRef = null; }
     slot.textContent = '';
   }
   function refreshPanel() {
     if (!S.admin || !pa('aRate')) return; var c = S.cfg;
     function fill(id, v) { var n = pa(id); if (n && !n.dataset.dirty && document.activeElement !== n) n.value = v; }
-    fill('aRate', inN(c.rate)); fill('aFixed', inN(c.feeFixed)); fill('aThr', inN(c.feeThreshold)); fill('aPct', inN(c.feePct)); fill('aMin', inN(c.minUsd));
+    fill('aRate', inN(c.rate)); fill('aMin', inN(c.minUsd)); fill('aSell', c.rateSell > 0 ? inN(c.rateSell) : '');
     fill('aAnn', c.announcement); fill('aFrom', c.hoursFrom); fill('aTo', c.hoursTo);
     pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursOn);
     pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', c.hoursOn ? 'true' : 'false');
     pa('aManualHelp').textContent = c.allowManual ? 'Activado: cada cliente puede ajustar la cotización en su propio cálculo.' : 'Desactivado: los clientes solo ven la cotización oficial.';
-    pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + ars(c.rate) + '</b><br>Comisión: <b>' + fmtN(c.feeFixed) + ' USD</b> bajo ' + fmtN(c.feeThreshold) + ' USD · <b>' + fmtN(c.feePct) + '%</b> desde ahí<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
+    var on = c.online; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
+    pa('aEngineTitle').textContent = on ? 'EN LÍNEA' : 'FUERA DE LÍNEA'; pa('aPeek').hidden = on;
+    pa('aEngineSub').textContent = on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
+    pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (on ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
     renderAlerts();
+  }
+  function renderStats() {
+    if (!S.admin || !pa('aStStarted')) return;
+    var today = S.stats[dayKey()] || {}, st = 0, dn = 0, days = Object.keys(S.stats);
+    pa('aStStarted').textContent = today.started || 0; pa('aStDone').textContent = today.done || 0;
+    days.forEach(function (k) { st += S.stats[k].started || 0; dn += S.stats[k].done || 0; });
+    pa('aStWeek').textContent = 'Últimos ' + Math.max(1, days.length) + ' día(s) con actividad: ' + st + ' iniciados · ' + dn + ' concretados. “Iniciados” cuenta los toques de los clientes en Hacer cambio.';
   }
   function renderAlerts() {
     if (!S.admin || !pa('aAlerts')) return; var box = pa('aAlerts'); box.textContent = '';
@@ -601,17 +821,18 @@
   }
   $('#toast').addEventListener('click', function () { this.classList.remove('show'); });
   function maybeInitialToast() {
-    if (S.toastShown || !S.splashDone || !S.live) return; S.toastShown = true;
+    if (S.toastShown || !S.splashDone || !S.live || isLocked()) return; S.toastShown = true;
     var c = S.cfg; if (!(c.prev > 0) || c.prev === c.rate) return;
     var up = c.rate > c.prev, w = relTime(c.updatedAt);
     showToast(up, 'El dólar ' + (up ? 'subió' : 'bajó') + ' ' + fmtN(Math.abs(c.rate - c.prev)) + ' pesos' + (w ? ' · ' + w : ''));
   }
   function liveToast(old) {
+    if (isLocked()) return;
     var up = S.cfg.rate > old; showToast(up, 'Cotización actualizada: ' + (up ? '+' : '−') + fmtN(Math.abs(S.cfg.rate - old)) + ' → ' + ars(S.cfg.rate));
   }
 
   /* ---------- arranque ---------- */
   applyStatic(); update();
-  setInterval(update, 30000);
+  setInterval(update, 20000);
   setTimeout(function () { S.splashDone = true; $('#splash').classList.add('hide'); update(); setTimeout(maybeInitialToast, 500); }, 1500);
 })();
