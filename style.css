@@ -277,9 +277,9 @@ a{color:var(--accent)}
 .stars{position:absolute;inset:0}
 .stars i{position:absolute;border-radius:50%;background:#fff;opacity:.2;animation:twinkle 3s ease-in-out infinite}
 @keyframes twinkle{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
-.moon{position:absolute;top:calc(8vh + env(safe-area-inset-top));right:13%;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe6,#f3e6a8 60%,#d9c77c);box-shadow:0 0 40px 10px rgba(255,240,170,.35),0 0 120px 40px rgba(255,240,170,.14);animation:floaty 7s ease-in-out infinite}
-.moon::before,.moon::after{content:"";position:absolute;border-radius:50%;background:rgba(150,130,60,.25)}
-.moon::before{width:16px;height:16px;left:15px;top:20px}.moon::after{width:10px;height:10px;left:42px;top:40px}
+.off .moon{position:absolute;top:calc(8vh + env(safe-area-inset-top));right:13%;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe6,#f3e6a8 60%,#d9c77c);box-shadow:0 0 40px 10px rgba(255,240,170,.35),0 0 120px 40px rgba(255,240,170,.14);animation:floaty 7s ease-in-out infinite}
+.off .moon::before,.off .moon::after{content:"";position:absolute;border-radius:50%;background:rgba(150,130,60,.25)}
+.off .moon::before{width:16px;height:16px;left:15px;top:20px}.off .moon::after{width:10px;height:10px;left:42px;top:40px}
 .shoot{position:absolute;top:14%;left:78%;width:90px;height:2px;background:linear-gradient(90deg,#fff,transparent);opacity:0;transform:rotate(-35deg);animation:shoot 8s 2s infinite}
 .shoot.s2{top:30%;left:45%;animation-delay:5.5s;animation-duration:11s}
 @keyframes shoot{0%{opacity:0;transform:translate(0,0) rotate(-35deg)}3%{opacity:1}12%{opacity:0;transform:translate(-280px,196px) rotate(-35deg)}100%{opacity:0}}
@@ -321,8 +321,14 @@ a{color:var(--accent)}
 #histWrap #histList{padding-top:6px}
 #histEmpty{padding:10px 4px}
 /* ---- guía: instalar app ---- */
-.istep{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.55;color:var(--muted)}
-.istep i{width:26px;height:26px;border-radius:50%;flex:none;background:var(--navy);color:#FFD54A;display:flex;align-items:center;justify-content:center;font:800 13px 'Sora',sans-serif;font-style:normal;margin-top:1px}
+.istep{display:flex;gap:12px;align-items:center;font-size:14px;line-height:1.5;color:var(--ink);background:var(--card);border-radius:16px;padding:10px 12px;box-shadow:0 1px 2px rgba(11,18,64,.06)}
+.istep>span{flex:1;min-width:0}
+.sico{width:46px;height:46px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#EEF1FF,#E1E7FF);color:#2547C8;border:1px solid var(--line)}
+[data-theme=dark] .sico{background:linear-gradient(135deg,#1B2670,#26358F);color:#FFD54A;border-color:#303E8C}
+.panelbox.plat{gap:10px}
+.plath{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.plath .pico{width:36px;height:36px;border-radius:12px;background:var(--navy);color:#FFD54A;display:flex;align-items:center;justify-content:center;flex:none}
+.istep i{width:28px;height:28px;border-radius:50%;flex:none;background:var(--navy);color:#FFD54A;display:flex;align-items:center;justify-content:center;font:800 13px 'Sora',sans-serif;font-style:normal;margin-top:1px}
 [data-theme=dark] .istep i{background:#2B3A9A}
 .mine{display:inline-block;margin-left:8px;font:800 11px 'Plus Jakarta Sans',sans-serif;background:var(--gold);color:#0F1B5C;border-radius:999px;padding:2px 9px;vertical-align:middle}
 .panelbox .inote{font-size:13px;background:var(--card);border-radius:12px;padding:10px 12px}
@@ -393,3 +399,12 @@ a{color:var(--accent)}
 .offclock.cd{background:rgba(245,184,0,.22);color:#fff;font-weight:700;font-size:14px}
 .off .moon{right:5%}
 #off[data-sc="desierto"] .sunball{right:5%}
+
+/* ---- mascotas: burbuja y chispas al tocar ---- */
+.bubble{position:fixed;z-index:130;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border-radius:16px;padding:8px 14px;font:700 13.5px 'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none;animation:bubin 2s ease forwards}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+@keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.5)}12%{opacity:1;transform:translate(-50%,-100%) scale(1.05)}18%{transform:translate(-50%,-100%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-125%) scale(1)}}
+.spark{position:fixed;z-index:129;pointer-events:none;font:800 18px 'Sora',sans-serif;color:#FFD54A;text-shadow:0 2px 6px rgba(0,0,0,.35);animation:spark .9s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes spark{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.3) rotate(var(--rot))}}
+.mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
+.istep>.sico{flex:none;width:46px}

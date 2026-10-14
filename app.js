@@ -18,8 +18,10 @@
       doChange: 'Hacer cambio', pickTitle: '¿Con quién haces el cambio?', pickSub: 'Ya copiamos tu mensaje. Elige a quién escribirle: el chat se abre con tu monto y tus datos.',
       offH: 'Estamos descansando 🌙', offP: 'Dólar PesoPro está apagado por ahora. Volvemos pronto con la cotización al día. Entra al grupo para enterarte primero.', offClock: 'Hora en Argentina',
       offH_noche: 'Estamos descansando', offH_ciudad: 'La ciudad duerme, nosotros también', offH_atardecer: 'Cerramos por hoy', offH_desierto: 'Siesta bajo el sol',
+      usdWantLbl: '…o los dólares que quieres recibir (USD)',
       opensIn: 'Abrimos en {x}', hoursInfo: 'Horario de atención · {a} – {b}',
       sellHero: 'Pesos → Dólares', sellLbl: 'Cotización de hoy (pesos por USD)', arsAmtLbl: 'Pesos que quieres cambiar (ARS)', arsLiveTxt: 'Recibirás ≈ {v}',
+      arsPayTxt: 'Pagarás ≈ {v}',
       arsText2: 'Esta es la cotización de hoy. No se cobra comisión. Escríbele a un administrador para confirmar el precio antes de enviar.',
       alertPhoneHelp: 'Elige tu país y escribe tu número sin el 0 inicial.', instGuide: 'Ver paso a paso', gApp: 'Instalar app', footTag: 'Cambios de divisas entre Ecuador y Argentina, con administradores verificados.',
       ap_intro: 'Instala Dólar PesoPro gratis en la pantalla de inicio: se abre a pantalla completa, como una app, casi no ocupa espacio y siempre muestra la cotización al día.', mine: 'Tu dispositivo',
@@ -89,8 +91,10 @@
       doChange: 'Start exchange', pickTitle: 'Who do you exchange with?', pickSub: 'Your message is copied. Pick who to write to: the chat opens with your amount and details.',
       offH: 'We are resting', offP: 'Dólar PesoPro is switched off for now. We will be back soon with an up-to-date rate. Join the group to hear first.', offClock: 'Argentina time',
       offH_noche: 'We are resting', offH_ciudad: 'The city sleeps, and so do we', offH_atardecer: 'We are closed for today', offH_desierto: 'Siesta under the sun',
+      usdWantLbl: '…or the dollars you want to receive (USD)',
       opensIn: 'We open in {x}', hoursInfo: 'Opening hours · {a} – {b}',
       sellHero: 'Pesos → Dollars', sellLbl: 'Today’s rate (pesos per USD)', arsAmtLbl: 'Pesos you want to exchange (ARS)', arsLiveTxt: 'You will receive ≈ {v}',
+      arsPayTxt: 'You will pay ≈ {v}',
       arsText2: 'This is today’s rate. No fee is charged. Message an administrator to confirm the price before sending.',
       alertPhoneHelp: 'Pick your country and type your number without the leading 0.', instGuide: 'See step by step', gApp: 'Install app', footTag: 'Currency exchange between Ecuador and Argentina, with verified administrators.',
       ap_intro: 'Install Dólar PesoPro for free on your home screen: it opens full screen like an app, takes almost no space and always shows the latest rate.', mine: 'Your device',
@@ -165,7 +169,7 @@
     lang: 'es', theme: 'light',
     cfg: Object.assign({}, DEFAULTS), historyRaw: [], online: false, live: false, firstCfg: true,
     amount: '100', mode: 'incluida', op: 'cambio', manual: null, dir: 'usd', gtab: 'como', faq: -1,
-    holder: '', bank: '', alias: '', shown: 0, target: null, copied: false, admin: false, alerts: [], alSent: 0, arsAmount: '', startedN: 0, stats: {}
+    holder: '', bank: '', alias: '', shown: 0, target: null, copied: false, admin: false, alerts: [], alSent: 0, arsAmount: '', usdWant: '', arsLast: 'ars', startedN: 0, stats: {}
   };
   var reduce = false;   // las animaciones se ven siempre (en muchos celulares 'reducir movimiento' viene activado y las apagaba)
   var t = function (k, v) {
@@ -249,12 +253,17 @@
     var ok = amt > 0 && amt >= c.minUsd && net > 0;
     return { rate: rate, official: c.rate, useM: useM, amt: amt, fee: fee, feeLabel: feeLabel, net: net, pay: pay, ok: ok, receive: ok ? net * rate : 0 };
   }
+  function arsPair() {
+    var r = S.cfg.rateSell; if (!(r > 0)) return { p: 0, u: 0 };
+    if (S.arsLast === 'usd') { var u = num(S.usdWant); return { p: u * r, u: u }; }
+    var p = num(S.arsAmount); return { p: p, u: p / r };
+  }
   function message(k) {
     var OPN = { cambio: 'un cambio', transaccion: 'una transacción', giro: 'un giro' }, op = OPN[S.op] || OPN.cambio;
     var L = ['Hola, quiero hacer ' + op + ' con Dólar PesoPro.', ''];
     if (S.dir === 'ars') {
-      var sc = S.cfg, aa = num(S.arsAmount);
-      if (sc.rateSell > 0 && aa > 0) L = ['Hola, quiero hacer ' + op + ' de pesos a dólares con Dólar PesoPro.', 'Cambio: ' + ars(aa), 'Cotización: ' + ars(sc.rateSell), 'Recibiré ≈ ' + usd(aa / sc.rateSell)];
+      var sc = S.cfg, pr = arsPair();
+      if (sc.rateSell > 0 && pr.p > 0) L = ['Hola, quiero hacer ' + op + ' de pesos a dólares con Dólar PesoPro.', 'Cambio: ' + ars(pr.p), 'Cotización: ' + ars(sc.rateSell), 'Recibiré ≈ ' + usd(pr.u)];
       else L = ['Hola, quiero hacer ' + op + ' de pesos a dólares con Dólar PesoPro.', '¿Me indican la cotización del momento?'];
     } else if (k.ok) {
       L.push('Envío: ' + usd(k.amt) + ' (comisión ' + (S.mode === 'incluida' ? 'incluida' : 'aparte') + ')');
@@ -322,15 +331,33 @@
       f.appendChild(w);
     })(i);
   }
+  var IC = {
+    share: '<path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/>',
+    addhome: '<rect x="3" y="3" width="18" height="18" rx="4.5"/><path d="M12 8v8M8 12h8"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>',
+    chrome: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 8.5h8.2M8.9 14l-4.1-7.1M15.1 14l-4.1 7.1"/>',
+    dots: '<circle cx="12" cy="5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
+    install: '<rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7.5v7"/><path d="M9 11.8l3 3 3-3"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    pc: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+    phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M11 18.5h2"/>'
+  };
+  function ico(k, w) { return '<svg aria-hidden="true" width="' + (w || 24) + '" height="' + (w || 24) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + IC[k] + '</svg>'; }
   function fillApp(g) {
     g.textContent = '';
     g.appendChild(el('p', 'sub', t('ap_intro')));
     var order = OS === 'android' ? ['and', 'ios', 'pc'] : OS === 'desktop' ? ['pc', 'ios', 'and'] : ['ios', 'and', 'pc'];
     var mineKey = OS === 'android' ? 'and' : OS === 'ios' ? 'ios' : 'pc';
+    var ICONS = { ios: ['compass', 'share', 'addhome', 'check'], and: ['chrome', 'dots', 'install', 'check'], pc: ['pc'] };
     order.forEach(function (k) {
-      var x = el('div', 'panelbox'), h = el('b', null, t('ap_' + k + '_t')); if (k === mineKey) h.appendChild(el('span', 'mine', t('mine'))); x.appendChild(h);
+      var x = el('div', 'panelbox plat'), hd = el('div', 'plath'), pi = el('span', 'pico'); pi.innerHTML = ico(k === 'pc' ? 'pc' : 'phone', 20);
+      hd.appendChild(pi); hd.appendChild(el('b', null, t('ap_' + k + '_t'))); if (k === mineKey) hd.appendChild(el('span', 'mine', t('mine'))); x.appendChild(hd);
       var n = k === 'pc' ? 1 : 4;
-      for (var i = 1; i <= n; i++) { var r = el('div', 'istep'); if (k !== 'pc') r.appendChild(el('i', null, String(i))); r.appendChild(el('span', null, t('ap_' + k + '_' + i))); x.appendChild(r); }
+      for (var i = 1; i <= n; i++) {
+        var r = el('div', 'istep'); if (k !== 'pc') r.appendChild(el('i', null, String(i)));
+        r.appendChild(el('span', null, t('ap_' + k + '_' + i)));
+        var ic = el('span', 'sico'); ic.innerHTML = ico(ICONS[k][i - 1]); r.appendChild(ic); x.appendChild(r);
+      }
       if (k !== 'pc') x.appendChild(el('div', 'inote', t('ap_' + k + '_n')));
       g.appendChild(x);
     });
@@ -422,7 +449,11 @@
     var usdOn = S.dir === 'usd';
     $('#sellBox').hidden = !(c.rateSell > 0); setText('#arsTxt', t(c.rateSell > 0 ? 'arsText2' : 'arsText'));
     if (c.rateSell > 0) {
-      setText('#sellShow', ars(c.rateSell)); var aa = num(S.arsAmount), al = $('#arsLive'); al.hidden = !(aa > 0); if (aa > 0) al.textContent = t('arsLiveTxt', { v: usd(aa / c.rateSell) });
+      setText('#sellShow', ars(c.rateSell)); var pr = arsPair(), al = $('#arsLive'); al.hidden = !(pr.p > 0);
+      if (pr.p > 0) al.textContent = S.arsLast === 'usd' ? t('arsPayTxt', { v: ars(pr.p) }) : t('arsLiveTxt', { v: usd(pr.u) });
+      var ia = $('#arsAmount'), iu = $('#usdWant');
+      if (S.arsLast === 'usd' && document.activeElement !== ia) ia.value = pr.p > 0 ? inN(Math.round(pr.p * 100) / 100) : '';
+      if (S.arsLast === 'ars' && document.activeElement !== iu) iu.value = pr.u > 0 ? inN(Math.round(pr.u * 100) / 100) : '';
     }
     $('#usdPane').style.display = usdOn ? 'flex' : 'none'; $('#arsPane').hidden = usdOn;
     $('#dirTabs').classList.toggle('b', !usdOn);
@@ -480,7 +511,10 @@
   /* ---------- eventos ---------- */
   var amountEl = $('#amount'), rateEl = $('#rate');
   bindClean(amountEl); bindClean(rateEl); bindClean($('#alTarget')); bindClean($('#arsAmount'));
-  $('#arsAmount').addEventListener('input', function (e) { S.arsAmount = e.target.value; update(); });
+  bindClean($('#usdWant'));
+  $('#arsAmount').addEventListener('input', function (e) { S.arsAmount = e.target.value; S.arsLast = 'ars'; update(); });
+  $('#usdWant').addEventListener('input', function (e) { S.usdWant = e.target.value; S.arsLast = 'usd'; update(); });
+  $('#usdWant').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.blur(); });
   $('#arsAmount').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.blur(); });
   $('#histToggle').addEventListener('click', function () { var w = $('#histWrap'), o = !w.classList.contains('open'); w.classList.toggle('open', o); this.setAttribute('aria-expanded', o ? 'true' : 'false'); });
   amountEl.addEventListener('input', function () { S.amount = amountEl.value; update(); });
@@ -490,7 +524,24 @@
   rateEl.addEventListener('input', function () { S.manual = rateEl.value; update(); });
   $('#rateReset').addEventListener('click', function () { S.manual = null; rateEl.value = inN(S.cfg.rate); update(); });
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
-  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }); });
+  var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
+  function burst(node, talk) {
+    var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, g = ['$', '₱', '✦', '$', '₱'];
+    for (var i = 0; i < 10; i++) {
+      var sp = document.createElement('span'), a = (Math.PI * 2 * i) / 10 + Math.random() * 0.5, d = 46 + Math.random() * 40;
+      sp.className = 'spark'; sp.textContent = g[i % g.length]; sp.style.cssText = 'left:' + cx + 'px;top:' + cy + 'px;--dx:' + (Math.cos(a) * d).toFixed(0) + 'px;--dy:' + (Math.sin(a) * d - 20).toFixed(0) + 'px;--rot:' + ((Math.random() * 140) - 70).toFixed(0) + 'deg;color:' + (i % 3 ? '#FFD54A' : '#fff');
+      document.body.appendChild(sp); setTimeout((function (n) { return function () { if (n.parentNode) n.parentNode.removeChild(n); }; })(sp), 950);
+    }
+    if (talk) {
+      var nm = (node.getAttribute('alt') || '').split(',')[0].trim(), L = SAY[nm] || SAY.Justo, b = document.createElement('div');
+      b.className = 'bubble'; b.textContent = L[Math.floor(Math.random() * L.length)];
+      var bx = Math.max(90, Math.min(innerWidth - 90, cx)); b.style.cssText = 'left:' + bx + 'px;top:' + (r.top - 8) + 'px';
+      document.body.appendChild(b); setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2100);
+    }
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+  }
+  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); burst(m, true); }); });
+  $$('.avatar').forEach(function (m) { m.addEventListener('pointerdown', function () { m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); setTimeout(function () { m.classList.remove('tap'); }, 650); burst(m, false); }); });
   $$('#dirTabs button').forEach(function (b) { b.addEventListener('click', function () { S.dir = b.getAttribute('data-dir'); update(); }); });
   $$('#gtabs .chip').forEach(function (b) { b.addEventListener('click', function () { S.gtab = b.getAttribute('data-g'); setGuideTab(); }); });
   function applyTheme(next) {
