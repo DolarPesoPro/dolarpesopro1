@@ -6,13 +6,27 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
+  /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
+  var VER = '20261015a';
+  var VERBAD = (function () {
+    var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
+    try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
+    if (hv !== VER) bad.push('index.html (' + (hv || 'viejo') + ')');
+    if (cv !== VER) bad.push('style.css (' + (cv || 'viejo') + ')');
+    return bad;
+  })();
+  if (VERBAD.length && !/[?&]r=/.test(location.search)) { try { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'r=' + Date.now() + location.hash); } catch (e) {} }
+
   var PHONES = { justo: '5492216960939', boris: '5492216976823' };
   var DEFAULTS = { rate: 1580, prev: 0, updatedAt: 0, allowManual: true, feeFixed: 1.5, feeThreshold: 60, feePct: 2.5,
-    minUsd: 3, rateSell: 0, online: true, announcement: '', hoursOn: false, hoursFrom: '09:00', hoursTo: '22:00' };
+    minUsd: 3, rateSell: 0, online: true, announcement: '', hoursOn: false, hoursFrom: '09:00', hoursTo: '22:00', offReason: '' };
 
   /* ---------- textos ---------- */
   var I18N = {
     es: {
+      offChipR: 'Fuera de línea · {r}', revTitle: 'Lo que dicen nuestros clientes', revSub: 'Opiniones de personas que ya cambiaron con nosotros.', revHint: 'Desliza para ver más →',
+      notifyBtn: 'Avísame cuando abran', notifyHelp: 'Escribe tu WhatsApp y te avisamos apenas estemos en línea.', nfSave: 'Guardar mi número',
+      nfOk: '¡Listo! Te escribimos por WhatsApp apenas abramos.', nfBad: 'Revisa tu número: elige tu país y escríbelo sin el 0 inicial.', nfErr: 'No pudimos guardarlo. Intenta de nuevo en un momento.', nfPreview: 'Vista previa: aquí no se guarda nada.',
       loading: 'Cargando cotización…', tagline: 'CAMBIOS DE DIVISAS · ECUADOR A ARGENTINA', rateToday: 'DÓLAR HOY',
       offTitle: 'Fuera de línea', offSub: 'Por ahora no estamos atendiendo. Volvemos pronto: sigue el grupo de WhatsApp para enterarte.', offChip: 'Fuera de línea · volvemos pronto', onChip: 'Atendiendo ahora', liveClosed: 'FUERA DE LÍNEA', offHero: 'Volvemos pronto',
       doChange: 'Hacer cambio', pickTitle: '¿Con quién haces el cambio?', pickSub: 'Ya copiamos tu mensaje. Elige a quién escribirle: el chat se abre con tu monto y tus datos.',
@@ -169,7 +183,7 @@
     lang: 'es', theme: 'light',
     cfg: Object.assign({}, DEFAULTS), historyRaw: [], online: false, live: false, firstCfg: true,
     amount: '100', mode: 'incluida', op: 'cambio', manual: null, dir: 'usd', gtab: 'como', faq: -1,
-    holder: '', bank: '', alias: '', shown: 0, target: null, copied: false, admin: false, alerts: [], alSent: 0, arsAmount: '', usdWant: '', arsLast: 'ars', startedN: 0, stats: {}
+    holder: '', bank: '', alias: '', shown: 0, target: null, copied: false, admin: false, alerts: [], alSent: 0, arsAmount: '', usdWant: '', arsLast: 'ars', startedN: 0, stats: {}, reviews: [], waiters: [], nfSent: 0, rulesBad: {}, rvStars: 5
   };
   var reduce = false;   // las animaciones se ven siempre (en muchos celulares 'reducir movimiento' viene activado y las apagaba)
   var t = function (k, v) {
@@ -217,7 +231,8 @@
       feeThreshold: numOr(v.feeThreshold, 0) > 0 ? v.feeThreshold : DEFAULTS.feeThreshold, feePct: Math.max(0, numOr(v.feePct, DEFAULTS.feePct)),
       minUsd: Math.max(0, numOr(v.minUsd, DEFAULTS.minUsd)), rateSell: numOr(v.rateSell, 0) > 0 ? v.rateSell : 0, online: v.online !== false, announcement: typeof v.announcement === 'string' ? v.announcement : '',
       hoursOn: v.hoursOn === true, hoursFrom: typeof v.hoursFrom === 'string' ? v.hoursFrom : DEFAULTS.hoursFrom,
-      hoursTo: typeof v.hoursTo === 'string' ? v.hoursTo : DEFAULTS.hoursTo
+      hoursTo: typeof v.hoursTo === 'string' ? v.hoursTo : DEFAULTS.hoursTo,
+      offReason: typeof v.offReason === 'string' ? v.offReason.slice(0, 120) : ''
     };
   }
   function histList() {
@@ -237,6 +252,7 @@
         S.firstCfg = false; update(); if (S.admin) refreshPanel(); maybeInitialToast();
       }, function () {});
       db.ref('history').on('value', function (s) { S.historyRaw = s.val() || []; update(); }, function () {});
+      db.ref('reviews').on('value', function (s) { S.reviews = revList(s.val()); S.rulesBad.reviews = false; renderReviews(); if (S.admin) { renderRvAdmin(); renderRules(); } }, function () { S.rulesBad.reviews = true; if (S.admin) renderRules(); });
       auth.onAuthStateChanged(function (u) {
         if (u && u.email === window.ADMIN_EMAIL) mountPanel(); else unmountPanel();
       });
@@ -441,7 +457,7 @@
     var an = (c.announcement || '').trim(); $('#ann').hidden = !an; if (an) setText('#annTxt', an);
     /* horario */
     var chip = $('#hoursChip'), a = toMin(c.hoursFrom), b = toMin(c.hoursTo);
-    if (fbOk && S.live && !c.online) { chip.hidden = false; $('#hoursDot').className = 'dot off'; setText('#hoursTxt', t('offChip')); }
+    if (fbOk && S.live && !c.online) { chip.hidden = false; $('#hoursDot').className = 'dot off'; setText('#hoursTxt', c.offReason ? t('offChipR', { r: c.offReason }) : t('offChip')); }
     else if (c.hoursOn && a != null && b != null) { chip.hidden = false; $('#hoursDot').className = 'dot g'; setText('#hoursTxt', t('open', { a: c.hoursFrom, b: c.hoursTo })); }
     else if (fbOk && S.live) { chip.hidden = false; $('#hoursDot').className = 'dot g'; setText('#hoursTxt', t('onChip')); }
     else chip.hidden = true;
@@ -485,7 +501,7 @@
     /* mensaje + enlaces */
     var msg = message(k); var mb = $('#msgbox'); if (mb.value !== msg) mb.value = msg;
     $$('[data-wa]').forEach(function (x) { x.href = 'https://wa.me/' + PHONES[x.getAttribute('data-wa')] + '?text=' + encodeURIComponent(msg); });
-    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar');
+    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar'); $('#stCopy').classList.toggle('ok', S.copied);
     /* guía (se redibuja si cambia el idioma o las comisiones) */
     var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct + '|' + OS;
     if (gk !== guideKey) { guideKey = gk; renderGuide(); setGuideTab(); }
@@ -503,6 +519,7 @@
     var ic = $('#installCard');
     if (standalone || OS === 'desktop') ic.hidden = true;
     else { ic.hidden = false; setText('#instTxt', t(OS === 'ios' ? 'instIos' : 'instAndroid')); $('#instBtn').hidden = !(OS === 'android' && S.dip); }
+    $('#revCard').hidden = locked || !S.reviews.length;
     applyLock(locked);
     $('#sticky').classList.toggle('show', S.splashDone === true && !locked);
     syncOff();
@@ -525,6 +542,15 @@
   $('#rateReset').addEventListener('click', function () { S.manual = null; rateEl.value = inN(S.cfg.rate); update(); });
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
+  function say(node, text) {
+    var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, b = document.createElement('div');
+    b.className = 'bubble'; b.textContent = text; b.style.cssText = 'left:0;top:' + Math.max(52, r.top - 8) + 'px;visibility:hidden';
+    document.body.appendChild(b);
+    var w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
+    b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
+    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2100);
+  }
+  function hop(m) { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }
   function burst(node, talk) {
     var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, g = ['$', '₱', '✦', '$', '₱'];
     for (var i = 0; i < 10; i++) {
@@ -532,15 +558,23 @@
       sp.className = 'spark'; sp.textContent = g[i % g.length]; sp.style.cssText = 'left:' + cx + 'px;top:' + cy + 'px;--dx:' + (Math.cos(a) * d).toFixed(0) + 'px;--dy:' + (Math.sin(a) * d - 20).toFixed(0) + 'px;--rot:' + ((Math.random() * 140) - 70).toFixed(0) + 'deg;color:' + (i % 3 ? '#FFD54A' : '#fff');
       document.body.appendChild(sp); setTimeout((function (n) { return function () { if (n.parentNode) n.parentNode.removeChild(n); }; })(sp), 950);
     }
-    if (talk) {
-      var nm = (node.getAttribute('alt') || '').split(',')[0].trim(), L = SAY[nm] || SAY.Justo, b = document.createElement('div');
-      b.className = 'bubble'; b.textContent = L[Math.floor(Math.random() * L.length)];
-      var bx = Math.max(90, Math.min(innerWidth - 90, cx)); b.style.cssText = 'left:' + bx + 'px;top:' + (r.top - 8) + 'px';
-      document.body.appendChild(b); setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2100);
-    }
+    if (talk) { var nm = (node.getAttribute('alt') || '').split(',')[0].trim(), L = SAY[nm] || SAY.Justo; say(node, L[Math.floor(Math.random() * L.length)]); }
     try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
   }
-  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); burst(m, true); }); });
+  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { stopChat(); hop(m); burst(m, true); }); });
+  /* Al llegar a Justo y Boris (sección de marca) conversan solos, una vez por visita */
+  var CHAT = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
+  function stopChat() { chatT.forEach(clearTimeout); chatT = []; }
+  function playChat() {
+    var now = Date.now(), minis = $$('.mini'); if (now - lastChat < 30000 || minis.length < 2) return; lastChat = now; stopChat();
+    CHAT.forEach(function (l, i) { chatT.push(setTimeout(function () { var m = minis[l[0]]; hop(m); burst(m, false); say(m, l[1]); }, 700 + i * 2400)); });
+  }
+  if ('IntersectionObserver' in window && $('.brand')) {
+    new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
+  }
+  /* Los que duermen en la pantalla de apagado también responden al toque */
+  var ZZ = ['Zzz… cinco minutitos más 😴', 'Zzz… ya volvemos 🌙'];
+  $$('.sl img').forEach(function (m, i) { m.addEventListener('click', function () { hop(m); say(m, ZZ[i % 2]); }); });
   $$('.avatar').forEach(function (m) { m.addEventListener('pointerdown', function () { m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); setTimeout(function () { m.classList.remove('tap'); }, 650); burst(m, false); }); });
   $$('#dirTabs button').forEach(function (b) { b.addEventListener('click', function () { S.dir = b.getAttribute('data-dir'); update(); }); });
   $$('#gtabs .chip').forEach(function (b) { b.addEventListener('click', function () { S.gtab = b.getAttribute('data-g'); setGuideTab(); }); });
@@ -616,6 +650,67 @@
       notifyAdmin(target, phone); S.alSent++; msg.textContent = t('alertOk'); msg.style.color = 'var(--green)'; $('#alTarget').value = ''; $('#alPhone').value = '';
     }).catch(function () { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; });
   });
+
+  /* ---------- Avísame cuando abran ---------- */
+  function normPhone(cc, raw) {
+    var nat = String(raw || '').replace(/\D/g, '').replace(/^0+/, '');
+    if (nat.indexOf(cc) === 0 && nat.length > cc.length + 6) nat = nat.slice(cc.length);
+    else if (cc === '549' && nat.indexOf('54') === 0 && nat.length > 9) nat = nat.replace(/^549?/, '');
+    return { nat: nat, phone: cc + nat, ok: nat.length >= 7 && nat.length <= 11 };
+  }
+  function notifyAdminOpen(phone) {
+    var topic = window.NTFY_TOPIC; if (!topic) return;
+    try {
+      fetch('https://ntfy.sh/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        topic: topic, title: 'Cliente espera que abras', message: '+' + phone + ' pidió que le avises cuando estemos en línea.',
+        priority: 3, tags: ['bell'], click: 'https://wa.me/' + phone }) }).catch(function () {});
+    } catch (e) {}
+  }
+  function nfSay(k, kind) { var m = $('#nfMsg'); m.textContent = t(k); m.className = 'nfmsg' + (kind ? ' ' + kind : ''); }
+  $('#offNotifyBtn').addEventListener('click', function () {
+    var f = $('#offNotifyForm'); f.hidden = !f.hidden; this.setAttribute('aria-expanded', f.hidden ? 'false' : 'true');
+    if (!f.hidden) setTimeout(function () { $('#nfPhone').focus(); }, 60);
+  });
+  $('#nfPhone').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#nfSave').click(); });
+  $('#nfSave').addEventListener('click', function () {
+    var np = normPhone($('#nfCc').value, $('#nfPhone').value), btn = this;
+    if (!np.ok || S.nfSent >= 3) { nfSay('nfBad', 'err'); return; }
+    if (S.admin) { nfSay('nfPreview'); return; }
+    if (!db) { nfSay('nfErr', 'err'); return; }
+    btn.disabled = true;
+    db.ref('notifyOpen').push({ phone: np.phone, at: firebase.database.ServerValue.TIMESTAMP }).then(function () {
+      S.nfSent++; notifyAdminOpen(np.phone); nfSay('nfOk', 'ok'); $('#nfPhone').value = ''; $('#offNotifyForm').hidden = true; $('#offNotifyBtn').setAttribute('aria-expanded', 'false');
+    }).catch(function () { nfSay('nfErr', 'err'); }).then(function () { btn.disabled = false; });
+  });
+
+  /* ---------- Reseñas ---------- */
+  function revList(v) {
+    v = v || {};
+    return Object.keys(v).map(function (k) {
+      var x = v[k] || {};
+      return { id: k, name: String(x.name || ''), place: String(x.place || ''), text: String(x.text || ''), stars: Math.max(1, Math.min(5, Math.round(+x.stars || 5))), at: +x.at || 0 };
+    }).filter(function (x) { return x.name && x.text; }).sort(function (a, b) { return b.at - a.at; });
+  }
+  function renderReviews() {
+    var box = $('#revList'); if (!box) return; box.textContent = '';
+    S.reviews.slice(0, 10).forEach(function (r) {
+      var c = el('div', 'rev'), h = el('div', 'rh'), w = el('div', 'who'), st = el('div', 'st');
+      c.setAttribute('role', 'listitem');
+      h.appendChild(el('span', 'ini', r.name.trim().charAt(0).toUpperCase()));
+      w.appendChild(el('b', null, r.name)); if (r.place) w.appendChild(el('small', null, r.place));
+      h.appendChild(w); c.appendChild(h);
+      st.setAttribute('aria-label', r.stars + ' de 5 estrellas');
+      for (var i = 1; i <= 5; i++) st.appendChild(el('i', i <= r.stars ? null : 'dim', '★'));
+      c.appendChild(st); c.appendChild(el('p', null, '“' + r.text + '”')); box.appendChild(c);
+    });
+    $('#revHint').hidden = S.reviews.length < 2;
+    $('#revCard').hidden = isLocked() || !S.reviews.length;
+  }
+
+  /* ---------- Teclado abierto: la barra inferior se esconde para no tapar el formulario ---------- */
+  var kbT = null;
+  document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { clearTimeout(kbT); document.body.classList.add('kb'); } });
+  document.addEventListener('focusout', function () { clearTimeout(kbT); kbT = setTimeout(function () { document.body.classList.remove('kb'); }, 150); });
 
   /* ---------- Hacer cambio (elige administrador) ---------- */
   function setSheet2(o) { $('#sheet2').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) $('#pick').scrollTop = 0; }
@@ -696,6 +791,7 @@
       var c = S.cfg, hh = $('#offHours'), a = toMin(c.hoursFrom), b = toMin(c.hoursTo), ov = $('#off'), sc = sceneNow();
       if (ov.getAttribute('data-sc') !== sc) { ov.setAttribute('data-sc', sc); if (sc === 'ciudad') buildCity(); }
       setText('#offEmb', EMB[sc]); setText('#offH', t('offH_' + sc));
+      var rsn = (c.offReason || '').trim(), rn = $('#offReason'); rn.hidden = !rsn; if (rsn) setText('#offReason', rsn);
       if (c.hoursOn && a != null && b != null) {
         var n = arMinutes(), open = a <= b ? (n >= a && n < b) : (n >= a || n < b);
         hh.hidden = false; setText('#offHours', open ? t('hoursInfo', { a: c.hoursFrom, b: c.hoursTo }) : '⏰ ' + t('opensIn', { x: fmtDur((a - n + 1440) % 1440) }) + ' · ' + c.hoursFrom);
@@ -721,7 +817,7 @@
     if (/unauthorized-domain/.test(c)) return 'Falta autorizar este dominio en Firebase → Authentication → Configuración.';
     if (/too-many/.test(c)) return 'Demasiados intentos. Espera unos minutos.';
     if (/network/.test(c)) return 'Sin conexión. Intenta de nuevo.';
-    if (/PERMISSION_DENIED|permission/i.test((e && e.message) || '') || /permission/.test(c)) return 'Sin permiso: vuelve a entrar con tu clave.';
+    if (/PERMISSION_DENIED|permission/i.test((e && e.message) || '') || /permission/.test(c)) return 'Sin permiso. Vuelve a entrar con tu clave; si ya lo hiciste, falta publicar las reglas nuevas de Firebase (archivo firebase.rules.json).';
     return 'No se pudo completar (' + (c || 'error') + ').';
   }
   function login(ids) {
@@ -779,14 +875,17 @@
     pa('aConfirmNo').addEventListener('click', hideConfirm);
     pa('aConfirmYes').addEventListener('click', function () { hideConfirm(); doEngine(false); });
     pa('aEngine').addEventListener('click', function () {
-      if (S.cfg.online) { var cf = pa('aConfirm'); if (cf.hidden) { cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
+      if (S.cfg.online) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
       doEngine(true);
     });
     function doEngine(turnOn) {
       var btn = pa('aEngine');
       btn.classList.remove('crank'); void btn.offsetWidth; btn.classList.add('crank'); setTimeout(function () { btn.classList.remove('crank'); }, 650);
       try { if (navigator.vibrate) navigator.vibrate(turnOn ? [30, 40, 70] : 25); } catch (e) {}
-      run(db.ref('config').update({ online: turnOn, onlineAt: firebase.database.ServerValue.TIMESTAMP }), turnOn ? 'En línea' : 'Fuera de línea');
+      var upd = { online: turnOn, onlineAt: firebase.database.ServerValue.TIMESTAMP }, extra = '';
+      if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
+      else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
+      run(db.ref('config').update(upd), (turnOn ? 'En línea' : 'Fuera de línea') + extra, turnOn ? [] : ['aReason']);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
@@ -796,7 +895,7 @@
     function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function (e) { msgA(errMsg(e), true); }); }
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
-    S.stRef = db.ref('stats').orderByKey().limitToLast(7); S.stRef.on('value', function (s) { S.stats = s.val() || {}; renderStats(); }, function () {});
+    S.stRef = db.ref('stats').orderByKey().limitToLast(7); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
     pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
     pa('aHoursOn').addEventListener('click', function () { run(db.ref('config/hoursOn').set(!S.cfg.hoursOn), 'Horario actualizado'); });
     pa('aHoursBtn').addEventListener('click', function () {
@@ -804,15 +903,74 @@
       run(db.ref('config').update({ hoursFrom: pa('aFrom').value, hoursTo: pa('aTo').value }), 'Horario guardado', ['aFrom', 'aTo']);
     });
     pa('aPassBtn').addEventListener('click', function () {
-      var np = pa('aNewPass').value; if (np.length < 6) { msgA('La clave debe tener al menos 6 caracteres.', true); return; }
+      var np = pa('aNewPass').value; if (np.length < 10) { msgA('La clave debe tener al menos 10 caracteres.', true); return; }
       msgA('Guardando…');
-      auth.currentUser.updatePassword(np).then(function () { pa('aNewPass').value = ''; msgA('Clave cambiada ✓ Úsala la próxima vez.'); })
+      auth.currentUser.updatePassword(np).then(function () { pa('aNewPass').value = ''; pa('aNewPass').type = 'password'; passHint(); msgA('Clave cambiada ✓ Úsala la próxima vez. Guárdala en un lugar seguro.'); })
         .catch(function (e) { msgA(/recent/.test(e.code || '') ? 'Sal y vuelve a entrar, luego repite.' : errMsg(e), true); });
     });
     pa('aOut').addEventListener('click', function () { auth.signOut(); });
     S.alRef = db.ref('alerts'); S.alRef.on('value', function (s) {
-      var v = s.val() || {}; S.alerts = Object.keys(v).map(function (k) { return { id: k, phone: v[k].phone, target: v[k].target, at: v[k].at }; }); renderAlerts();
-    }, function () {});
+      var v = s.val() || {}; S.alerts = Object.keys(v).map(function (k) { return { id: k, phone: v[k].phone, target: v[k].target, at: v[k].at }; }); S.rulesBad.alerts = false; renderAlerts(); renderRules();
+    }, function () { S.rulesBad.alerts = true; renderRules(); });
+    /* --- motivo al apagar --- */
+    ['Volvemos a las 9:00', 'Feriado', 'Descanso', 'Actualizando cotización', 'Volvemos en 1 hora'].forEach(function (r) {
+      var b = el('button', 'chip', r); b.type = 'button';
+      b.addEventListener('click', function () { var i = pa('aReason'); i.value = r; i.dataset.dirty = '1'; i.focus(); });
+      pa('aReasonChips').appendChild(b);
+    });
+    pa('aReason').addEventListener('input', function (e) { e.target.dataset.dirty = '1'; });
+    pa('aReasonBtn').addEventListener('click', function () {
+      var v = pa('aReason').value.trim().slice(0, 120);
+      run(db.ref('config/offReason').set(v || null), v ? 'Motivo guardado' : 'Motivo quitado', ['aReason']);
+    });
+    /* --- compartir cotización por WhatsApp --- */
+    pa('aShareRate').addEventListener('click', function () {
+      var c = S.cfg, url = location.href.split('#')[0].split('?')[0];
+      var txt = '💵 Dólar hoy en Dólar PesoPro: ' + ars(c.rate) + ' por USD' + (c.rateSell > 0 ? '\n🔁 Pesos → dólares: ' + ars(c.rateSell) : '') + '\nCalcula tu envío aquí: ' + url;
+      window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+    });
+    /* --- clientes que esperan que abramos --- */
+    S.noRef = db.ref('notifyOpen'); S.noRef.on('value', function (s) {
+      var v = s.val() || {}, map = {};
+      Object.keys(v).forEach(function (k) { var x = v[k] || {}, ph = String(x.phone || ''); if (!ph) return; var m = map[ph] || (map[ph] = { phone: ph, at: x.at || 0, ids: [] }); m.ids.push(k); if ((x.at || 0) < m.at) m.at = x.at || 0; });
+      S.waiters = Object.keys(map).map(function (k) { return map[k]; }).sort(function (a, b) { return a.at - b.at; });
+      S.rulesBad.notifyOpen = false; renderWaiters(); renderRules();
+    }, function () { S.rulesBad.notifyOpen = true; renderRules(); });
+    pa('aWaitersClear').addEventListener('click', function () {
+      var u = {}; S.waiters.forEach(function (w) { w.ids.forEach(function (id) { u[id] = null; }); });
+      db.ref('notifyOpen').update(u).catch(function (e) { msgA(errMsg(e), true); });
+    });
+    /* --- reseñas --- */
+    var sp = pa('aRvStars');
+    for (var si = 1; si <= 5; si++) (function (n) {
+      var b = el('button', null, '★'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-label', n + (n === 1 ? ' estrella' : ' estrellas'));
+      b.addEventListener('click', function () { S.rvStars = n; paintRvStars(); }); sp.appendChild(b);
+    })(si);
+    function paintRvStars() { Array.prototype.forEach.call(sp.children, function (b, i) { b.classList.toggle('on', i < S.rvStars); b.setAttribute('aria-checked', i + 1 === S.rvStars ? 'true' : 'false'); }); }
+    paintRvStars();
+    pa('aRvAdd').addEventListener('click', function () {
+      var name = pa('aRvName').value.trim(), place = pa('aRvPlace').value.trim(), text = pa('aRvText').value.trim();
+      if (!name || !text) { msgA('Escribe el nombre y la opinión del cliente.', true); return; }
+      var o = { name: name.slice(0, 40), text: text.slice(0, 300), stars: S.rvStars, at: firebase.database.ServerValue.TIMESTAMP }; if (place) o.place = place.slice(0, 40);
+      msgA('Publicando…');
+      db.ref('reviews').push(o).then(function () {
+        ['aRvName', 'aRvPlace', 'aRvText'].forEach(function (id) { pa(id).value = ''; }); S.rvStars = 5; paintRvStars(); msgA('Reseña publicada ✓ Ya la ven los clientes.');
+      }).catch(function (e) { msgA(errMsg(e), true); });
+    });
+    /* --- clave: ayuda y generador --- */
+    function passHint() {
+      var n = pa('aNewPass').value.length;
+      pa('aPassHint').textContent = n === 0 ? 'Usa 14 o más caracteres. Evita fechas, nombres y “pro123”.' : n < 10 ? 'Muy corta: faltan ' + (10 - n) + ' caracteres.' : n < 14 ? 'Aceptable. Mejor si llega a 14 o más.' : 'Buena clave ✓';
+    }
+    S.passHint = passHint;
+    pa('aNewPass').addEventListener('input', passHint); passHint();
+    pa('aGen').addEventListener('click', function () {
+      var al = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789', a = new Uint32Array(16), out = '';
+      (window.crypto || window.msCrypto).getRandomValues(a);
+      for (var i = 0; i < 16; i++) { out += al.charAt(a[i] % al.length); if (i % 4 === 3 && i < 15) out += '-'; }
+      pa('aNewPass').type = 'text'; pa('aNewPass').value = out; passHint();
+      msgA('Clave generada. Cópiala y guárdala en un lugar seguro ANTES de tocar “Cambiar clave”.');
+    });
     refreshPanel();
     setTimeout(function () { slot.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   }
@@ -820,13 +978,15 @@
     if (!S.admin) return; S.admin = false; S.preview = false; update();
     if (S.alRef) { S.alRef.off(); S.alRef = null; }
     if (S.stRef) { S.stRef.off(); S.stRef = null; }
+    if (S.noRef) { S.noRef.off(); S.noRef = null; }
+    S.waiters = [];
     slot.textContent = '';
   }
   function refreshPanel() {
     if (!S.admin || !pa('aRate')) return; var c = S.cfg;
     function fill(id, v) { var n = pa(id); if (n && !n.dataset.dirty && document.activeElement !== n) n.value = v; }
     fill('aRate', inN(c.rate)); fill('aMin', inN(c.minUsd)); fill('aSell', c.rateSell > 0 ? inN(c.rateSell) : '');
-    fill('aAnn', c.announcement); fill('aFrom', c.hoursFrom); fill('aTo', c.hoursTo);
+    fill('aAnn', c.announcement); fill('aFrom', c.hoursFrom); fill('aTo', c.hoursTo); fill('aReason', c.offReason);
     pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursOn);
     pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', c.hoursOn ? 'true' : 'false');
     pa('aManualHelp').textContent = c.allowManual ? 'Activado: cada cliente puede ajustar la cotización en su propio cálculo.' : 'Desactivado: los clientes solo ven la cotización oficial.';
@@ -834,7 +994,38 @@
     pa('aEngineTitle').textContent = on ? 'EN LÍNEA' : 'FUERA DE LÍNEA'; pa('aPeek').hidden = on;
     pa('aEngineSub').textContent = on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
     pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (on ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
-    renderAlerts();
+    renderAlerts(); renderWaiters(); renderRvAdmin(); renderRules();
+  }
+  function esc(x) { return String(x).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); }
+  function renderRules() {
+    if (!S.admin || !pa('aRules')) return;
+    var bad = Object.keys(S.rulesBad).filter(function (k) { return S.rulesBad[k]; }), parts = [], box = pa('aRules');
+    if (VERBAD.length) parts.push('<b>⚠ Archivos con versión distinta:</b> ' + esc(VERBAD.join(', ')) + '. Sube TODOS los archivos juntos a GitHub y recarga la página (en el celular, ciérrala y vuelve a abrirla).');
+    if (bad.length) parts.push('<b>⚠ Falta publicar las reglas nuevas</b> (' + esc(bad.join(', ')) + '): Firebase → Realtime Database → Reglas → pega el contenido de firebase.rules.json → Publicar.');
+    if (!parts.length) parts.push('✔ <b>Todo al día:</b> los archivos tienen la misma versión y las reglas de Firebase responden.');
+    box.innerHTML = parts.join('<br>'); box.hidden = false;
+  }
+  function renderWaiters() {
+    if (!S.admin || !pa('aWaiters')) return; var box = pa('aWaiters'); box.textContent = '';
+    pa('aWaitersEmpty').hidden = S.waiters.length > 0; pa('aWaitersClear').hidden = S.waiters.length < 2;
+    var url = location.href.split('#')[0].split('?')[0];
+    S.waiters.forEach(function (w) {
+      var row = el('div', 'alrow'), info = el('div', 'nm', '+' + w.phone + (w.at ? ' · ' + relTime(w.at) : '')), b = el('div', 'b'), a = el('a', null, 'Avisar');
+      a.style.cssText = 'background:#0F7A40;color:#fff'; a.target = '_blank'; a.rel = 'noopener';
+      a.href = 'https://wa.me/' + w.phone + '?text=' + encodeURIComponent('¡Hola! Ya estamos en línea en Dólar PesoPro 🟢 El dólar está en ' + ars(S.cfg.rate) + '. ¿Quieres cambiar ahora? ' + url);
+      var x = el('button', null, 'Listo'); x.type = 'button'; x.style.cssText = 'background:var(--card);color:var(--ink);border:2px solid var(--fline)';
+      x.addEventListener('click', function () { var u = {}; w.ids.forEach(function (id) { u[id] = null; }); db.ref('notifyOpen').update(u).catch(function (e) { msgA(errMsg(e), true); }); });
+      b.appendChild(a); b.appendChild(x); row.appendChild(info); row.appendChild(b); box.appendChild(row);
+    });
+  }
+  function renderRvAdmin() {
+    if (!S.admin || !pa('aRvList')) return; var box = pa('aRvList'); box.textContent = ''; pa('aRvEmpty').hidden = S.reviews.length > 0;
+    S.reviews.forEach(function (r) {
+      var row = el('div', 'alrow'), info = el('div', 'nm', '★'.repeat(r.stars) + ' · ' + r.name + (r.place ? ' (' + r.place + ')' : '') + ': “' + (r.text.length > 70 ? r.text.slice(0, 70) + '…' : r.text) + '”'), b = el('div', 'b');
+      var x = el('button', null, 'Borrar'); x.type = 'button'; x.style.cssText = 'background:var(--card);color:var(--ink);border:2px solid var(--fline)';
+      x.addEventListener('click', function () { db.ref('reviews/' + r.id).remove().catch(function (e) { msgA(errMsg(e), true); }); });
+      b.appendChild(x); row.appendChild(info); row.appendChild(b); box.appendChild(row);
+    });
   }
   function renderStats() {
     if (!S.admin || !pa('aStStarted')) return;

@@ -2,21 +2,27 @@
   "rules": {
     ".read": false,
     ".write": false,
+
     "config": {
       ".read": true,
-      ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'"
+      ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
+      "offReason": {
+        ".validate": "newData.isString() && newData.val().length <= 120"
+      }
     },
+
     "history": {
       ".read": true,
       ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'"
     },
+
     "alerts": {
       ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
       "$id": {
         ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (!data.exists() && newData.exists())",
         ".validate": "newData.hasChildren(['phone','target','at'])",
         "phone": {
-          ".validate": "newData.isString() && newData.val().length >= 8 && newData.val().length <= 20"
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9]{8,15}$/)"
         },
         "target": {
           ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 100000"
@@ -29,12 +35,56 @@
         }
       }
     },
+
+    "notifyOpen": {
+      ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
+      "$id": {
+        ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (!data.exists() && newData.exists())",
+        ".validate": "newData.hasChildren(['phone','at'])",
+        "phone": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9]{8,15}$/)"
+        },
+        "at": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "reviews": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
+        ".validate": "newData.hasChildren(['name','text','stars','at'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+        },
+        "place": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "text": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 300"
+        },
+        "stars": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5"
+        },
+        "at": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
     "stats": {
       ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
       "$day": {
         ".validate": "$day.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)",
         "started": {
-          ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app' || (newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1)",
+          ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1)",
           ".validate": "newData.isNumber() && newData.val() >= 0"
         },
         "done": {

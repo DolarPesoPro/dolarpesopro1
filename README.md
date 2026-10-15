@@ -1,57 +1,60 @@
 # Dólar PesoPro · Calculadora en tiempo real
 
-Sitio estático (HTML + CSS + JS) para **GitHub Pages**. Cotización, avisos, estado en línea y clave de administrador
-viven en **Firebase** (plan gratuito): cuando cambias algo en el panel, todos lo ven al instante.
+Sitio estático (HTML + CSS + JS) para **GitHub Pages**. Cotización, avisos, estado en línea, reseñas y clave de
+administrador viven en **Firebase** (plan gratuito): cuando cambias algo en el panel, todos lo ven al instante.
 
 ## Archivos
 | Archivo | Para qué sirve |
 |---|---|
-| `index.html`, `style.css`, `app.js` | La página |
-| `firebase-config.js` | Tus datos de Firebase (+ opcional `NTFY_TOPIC` para avisos al celular) |
-| `firebase.rules.json` | Reglas de seguridad (**cambiaron: pégalas de nuevo en Firebase → Realtime Database → Reglas → Publicar**, para el contador de operaciones) |
+| `index.html`, `style.css`, `app.js` | La página. **Se suben siempre los tres juntos.** |
+| `firebase-config.js` | Tus datos de Firebase (+ `NTFY_TOPIC` para avisos al celular) |
+| `firebase.rules.json` | Reglas de seguridad. **Cambiaron:** pégalas en Firebase → Realtime Database → Reglas → Publicar |
 | `manifest.webmanifest`, `assets/` | Íconos, logo, mascotas, QR |
 
-## Instalación (igual que antes)
-1. Firebase: Realtime Database + reglas de `firebase.rules.json` + Authentication (correo/contraseña) con el usuario `admin@dolarpesopro.app`.
-2. Copia tus valores en `firebase-config.js`.
-3. Sube **todo el contenido** (con la carpeta `assets`) a un repositorio público de GitHub y activa Pages.
-4. Firebase → Authentication → Dominios autorizados → agrega `TU_USUARIO.github.io`.
+## Actualizar el sitio (importante)
+1. Sube **todos** los archivos al repositorio (reemplazando los anteriores) y espera 1–2 minutos a que Pages publique.
+2. Publica las reglas nuevas de `firebase.rules.json` en Firebase.
+3. Entra al panel: arriba hay una caja que dice **“✔ Todo al día”** o te dice qué falta (archivos de versiones distintas o reglas sin publicar).
+4. En el celular, si ves textos raros como `doChange` o íconos gigantes, es un archivo viejo guardado en caché: cierra el navegador (en WhatsApp, cierra la vista) y ábrelo de nuevo. Los archivos llevan `?v=` para evitarlo.
 
 ## Panel de administrador
-Candado 🔒 al final de la página o `#admin`. Ahí tienes:
-- **Botón de arranque (arriba):** un toque = EN LÍNEA (verde) / FUERA DE LÍNEA. Fuera de línea, los clientes ven una pantalla completa de "apagado" (animación de pantalla que se apaga + paisaje nocturno) y no pueden usar nada. Tú, con la sesión de administrador abierta, sigues viendo todo normal; el enlace "Ver pantalla de clientes" te muestra lo que ven ellos. Si la página está apagada y quieres entrar al panel, toca el candado pequeño de la esquina de la pantalla de apagado.
-1. Cotización oficial (−10, −5, +5, +10) → Publicar. Si hay clientes esperando ese precio, te lo avisa.
-- **Apagar pide confirmación** (encender no).
-- **Contador del día** (solo tú): cambios iniciados (toques de clientes en *Hacer cambio*) y concretados (botón +1 que tocas tú).
-2. Cotización pesos → dólares (opcional): si la escribes, los clientes la ven en la tarjeta y en la pestaña *Pesos → Dólares* con cálculo rápido.
+Candado 🔒 al final de la página o `#admin`.
+- **Botón de arranque:** un toque = EN LÍNEA / FUERA DE LÍNEA. Apagar pide confirmación.
+- **Motivo al apagar (nuevo):** escribe o elige “Feriado”, “Volvemos a las 9:00”… Lo ven los clientes en la pantalla de apagado y en la etiqueta de arriba. Al tocar “Sí, apagar” se guarda lo que esté escrito.
+- **Contador del día:** cambios iniciados y concretados (+1 / −1).
+1. Cotización oficial → Publicar. Nuevo: **Enviar cotización por WhatsApp (al grupo)** abre WhatsApp con el mensaje listo.
+2. Cotización pesos → dólares (opcional).
 3. Permitir o bloquear que el cliente modifique la cotización.
 4. Monto mínimo para calcular. *(Las comisiones son fijas en el código.)*
 5. Aviso para clientes.
-6. Horario de atención: con horario activo, la pantalla de apagado muestra “Abrimos en 2 h 15 min”.
-7. Clientes que pidieron aviso, con botón de WhatsApp.
-8. Cambiar clave (mínimo 6 caracteres).
+6. Horario de atención (cuenta regresiva “Abrimos en…”).
+7. Avisos de cotización pedidos por clientes.
+8. **Esperan que abramos (nuevo):** clientes que tocaron “Avísame cuando abran”. Al encender, te avisa cuántos hay; cada uno tiene botón **Avisar** (abre su WhatsApp) y **Listo**.
+9. **Reseñas de clientes (nuevo):** nombre, ciudad (opcional), estrellas y opinión. Aparecen al instante en la página como tarjetas deslizables. Carga solo opiniones reales y con permiso del cliente.
+10. Cambiar clave (mínimo 10 caracteres) con botón **Generar clave larga**.
 
 ## Pantalla de apagado
-El paisaje cambia solo según la hora de Argentina: 06–17 desierto, 17–20 atardecer, 20–24 ciudad nocturna, 00–06 noche estrellada. El logo y el emoji se adaptan. En el panel, *Ver pantalla de clientes* → *Cambiar escena* para previsualizar.
+Paisaje según la hora de Argentina (06–17 desierto, 17–20 atardecer, 20–24 ciudad, 00–06 noche). Muestra el motivo, la hora,
+la cuenta regresiva si hay horario, el botón **Avísame cuando abran** y a Justo y Boris durmiendo (tócalos).
+
+## Mascotas
+Al llegar a la sección “Justo y Boris” conversan solos (una vez por visita). También hablan al tocarlos.
+
+## Modo oscuro
+Los tonos de texto están al inicio de `style.css`, en `:root[data-theme=dark]` (`--ink`, `--muted`, `--accent`). Súbelos o bájalos a gusto.
 
 ## Avisos al celular de Justo (opcional, gratis)
-0. El tema ya está configurado en `firebase-config.js` (`pesopro-justo-im6zas834chdzq`).
-1. Instala la app **ntfy** (Android/iPhone) en el teléfono de Justo.
-2. Toca “+” y suscríbete exactamente a ese tema.
-Cada vez que un cliente pida un aviso de cotización, a Justo le llega una notificación con un toque directo al WhatsApp del cliente.
-
-## Botón "Hacer cambio"
-Junto a "Copiar" (en el mensaje y en la barra inferior) hay un botón **Hacer cambio**: copia el mensaje y deja elegir con quién abrir el chat (Justo o Boris). El botón **Cómo funciona** (junto a "Calcula tu envío") abre la guía, los pasos y las preguntas.
-
-## Horas
-Todas las horas se muestran en formato 24 h (y el selector del panel también).
+Instala **ntfy** en el teléfono de Justo y suscríbete al tema de `firebase-config.js`. Llegan avisos cuando un cliente pide
+una cotización o pide que le avisen al abrir, con un toque directo a su WhatsApp.
 
 ## Seguridad
-- Lo que protege los datos son las reglas de Firebase. `pro123` es fácil de adivinar: cámbiala desde el panel (punto 7).
-- El nombre del tema de ntfy es público en el código: usa uno largo y poco obvio.
+- Lo que protege los datos son las reglas de Firebase. Cambia `pro123` por una clave larga (punto 10 del panel).
+- En Firebase → Authentication → Configuración → Acciones del usuario, desactiva **“Permitir crear cuentas”** (nadie más necesita registrarse).
+- Los avisos de cotización y de apertura los puede crear cualquiera (solo el administrador los lee). Si algún día ves spam, usa “Borrar”.
+- El tema de ntfy es público en el código: usa uno largo y poco obvio.
 
 ## Si algo falla
-- "SIN CONEXIÓN" / "DEMOSTRACIÓN": revisa `firebase-config.js`.
-- "Clave incorrecta": el usuario debe existir en Authentication.
-- "Sin permiso": reglas sin publicar o correo distinto.
+- “SIN CONEXIÓN” / “DEMOSTRACIÓN”: revisa `firebase-config.js`.
+- “Clave incorrecta”: el usuario debe existir en Authentication.
+- “Sin permiso”: reglas sin publicar o correo distinto.
 - Probar en tu PC: `python3 -m http.server 8000` y abre `http://localhost:8000` (agrega `localhost` a dominios autorizados).
