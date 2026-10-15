@@ -2,20 +2,37 @@
   "rules": {
     ".read": false,
     ".write": false,
-
     "config": {
+      ".read": "(auth != null && auth.token.email == 'admin@dolarpesopro.app')",
+      ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app')"
+    },
+    "status": {
       ".read": true,
-      ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
+      ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app')",
+      "online": {
+        ".validate": "newData.isBoolean()"
+      },
+      "hoursOn": {
+        ".validate": "newData.isBoolean()"
+      },
+      "fromMs": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 86400000"
+      },
+      "toMs": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 86400000"
+      },
       "offReason": {
         ".validate": "newData.isString() && newData.val().length <= 120"
       }
     },
-
-    "history": {
-      ".read": true,
-      ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'"
+    "live": {
+      ".read": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (root.child('status/online').val() === true && (root.child('status/hoursOn').val() !== true || (root.child('status/fromMs').val() <= root.child('status/toMs').val() ? (((now - 10800000) % 86400000) >= root.child('status/fromMs').val() && ((now - 10800000) % 86400000) < root.child('status/toMs').val()) : (((now - 10800000) % 86400000) >= root.child('status/fromMs').val() || ((now - 10800000) % 86400000) < root.child('status/toMs').val()))))",
+      ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app')"
     },
-
+    "history": {
+      ".read": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (root.child('status/online').val() === true && (root.child('status/hoursOn').val() !== true || (root.child('status/fromMs').val() <= root.child('status/toMs').val() ? (((now - 10800000) % 86400000) >= root.child('status/fromMs').val() && ((now - 10800000) % 86400000) < root.child('status/toMs').val()) : (((now - 10800000) % 86400000) >= root.child('status/fromMs').val() || ((now - 10800000) % 86400000) < root.child('status/toMs').val()))))",
+      ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app')"
+    },
     "alerts": {
       ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
       "$id": {
@@ -35,7 +52,6 @@
         }
       }
     },
-
     "notifyOpen": {
       ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
       "$id": {
@@ -52,7 +68,6 @@
         }
       }
     },
-
     "reviews": {
       ".read": true,
       "$id": {
@@ -78,7 +93,6 @@
         }
       }
     },
-
     "stats": {
       ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
       "$day": {

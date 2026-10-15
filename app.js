@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261015a';
+  var VER = '20261016a';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -240,18 +240,61 @@
     if (!Array.isArray(h)) h = h ? Object.keys(h).map(function (k) { return h[k]; }) : [];
     return h.filter(function (x) { return x && typeof x.rate === 'number'; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
   }
+  /* ---------- estado en línea: el SERVIDOR decide (reglas de Firebase) ----------
+     status = público (en línea, motivo, horario). live + history = solo se entregan si está encendido. */
+  function schedOpen(c) {
+    if (!c.hoursOn) return true;
+    var a = toMin(c.hoursFrom), b = toMin(c.hoursTo); if (a == null || b == null) return true;
+    if (a === b) return false;
+    var n = arMinutes(); return a < b ? (n >= a && n < b) : (n >= a || n < b);
+  }
+  function rebuildCfg() {
+    var raw = Object.assign({}, S.stRaw || {}, S.liveOk ? (S.liveRaw || {}) : {});
+    var c = readCfg(raw); c.master = c.online; c.online = c.master && schedOpen(c); S.cfg = c;
+  }
+  function dropLive() {
+    try { if (S.liveRef) S.liveRef.off(); if (S.histRef) S.histRef.off(); } catch (e) {}
+    S.liveRef = S.histRef = null; S.liveOk = false; S.liveRaw = {}; S.historyRaw = [];
+    rebuildCfg(); update();
+  }
+  function attachLive() {
+    if (!db) return;
+    var want = !!(S.live && (S.admin || S.cfg.online));
+    if (want && !S.liveRef && !S.liveWait) {
+      var lr = db.ref('live'), hr = db.ref('history'); S.liveRef = lr; S.histRef = hr;
+      lr.on('value', function (s) {
+        var old = S.liveOk ? S.cfg.rate : null; S.liveRaw = s.val() || {}; S.liveOk = true; rebuildCfg();
+        if (old != null && old !== S.cfg.rate) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); liveToast(old); }
+        update(); if (S.admin) refreshPanel(); maybeInitialToast();
+      }, function () { dropLive(); S.liveWait = true; setTimeout(function () { S.liveWait = false; attachLive(); }, 6000); });
+      hr.on('value', function (s) { S.historyRaw = s.val() || []; update(); }, function () {});
+    } else if (!want && S.liveRef) dropLive();
+  }
+  /* Migración única: copia el antiguo nodo "config" a status + live (la hace el administrador al entrar). */
+  function migrateOld() {
+    if (!db || S.migrating || S.stExists || !S.live) return; S.migrating = true;
+    db.ref('config').once('value').then(function (s) {
+      var v = s.val() || {}, up = {}, hf = typeof v.hoursFrom === 'string' ? v.hoursFrom : '09:00', ht = typeof v.hoursTo === 'string' ? v.hoursTo : '22:00';
+      up['status/online'] = v.online !== false; up['status/onlineAt'] = firebase.database.ServerValue.TIMESTAMP;
+      up['status/hoursOn'] = v.hoursOn === true; up['status/hoursFrom'] = hf; up['status/hoursTo'] = ht;
+      up['status/fromMs'] = (toMin(hf) || 0) * 60000; up['status/toMs'] = (toMin(ht) || 0) * 60000;
+      if (typeof v.offReason === 'string' && v.offReason) up['status/offReason'] = v.offReason;
+      ['rate', 'prev', 'updatedAt', 'allowManual', 'minUsd', 'rateSell', 'announcement'].forEach(function (k) { if (v[k] !== undefined && v[k] !== null) up['live/' + k] = v[k]; });
+      up['config'] = null;
+      return db.ref().update(up);
+    }).then(function () { msgA('Datos migrados al sistema protegido ✓'); }).catch(function (e) { S.migrating = false; msgA(errMsg(e), true); });
+  }
+
   if (fbOk) {
     try {
       firebase.initializeApp(window.FIREBASE_CONFIG);
       db = firebase.database(); auth = firebase.auth();
       auth.setPersistence(firebase.auth.Auth.Persistence.NONE).catch(function () {});   // la sesión de admin no se guarda en el dispositivo
       db.ref('.info/connected').on('value', function (s) { S.online = !!s.val(); update(); });
-      db.ref('config').on('value', function (s) {
-        var old = S.cfg.rate; S.cfg = readCfg(s.val()); S.live = true;
-        if (!S.firstCfg && old !== S.cfg.rate) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); liveToast(old); }
-        S.firstCfg = false; update(); if (S.admin) refreshPanel(); maybeInitialToast();
+      db.ref('status').on('value', function (s) {
+        S.stRaw = s.val() || {}; S.stExists = s.exists(); S.live = true; rebuildCfg(); attachLive(); update();
+        if (S.admin) { migrateOld(); refreshPanel(); } maybeInitialToast();
       }, function () {});
-      db.ref('history').on('value', function (s) { S.historyRaw = s.val() || []; update(); }, function () {});
       db.ref('reviews').on('value', function (s) { S.reviews = revList(s.val()); S.rulesBad.reviews = false; renderReviews(); if (S.admin) { renderRvAdmin(); renderRules(); } }, function () { S.rulesBad.reviews = true; if (S.admin) renderRules(); });
       auth.onAuthStateChanged(function (u) {
         if (u && u.email === window.ADMIN_EMAIL) mountPanel(); else unmountPanel();
@@ -434,7 +477,7 @@
   function update() {
     var c = S.cfg, k = calc(); S.lastCalc = k; var locked = isLocked();
     /* cotización */
-    setText('#officialBig', locked ? '$ ·····' : ars(c.rate));
+    setText('#officialBig', (locked || (fbOk && S.live && !S.liveOk && !S.admin)) ? '$ ·····' : ars(c.rate));
     var tr = $('#trend');
     if (c.prev > 0 && c.prev !== c.rate && S.live && !locked) { var df = c.rate - c.prev; tr.textContent = (df > 0 ? '▲ +' : '▼ −') + fmtN(Math.abs(df)); } else tr.textContent = '';
     setText('#updTxt', locked ? t('offHero') : (c.updatedAt ? t('upd', { d: whenTxt(c.updatedAt) }) : t('updNone')));
@@ -839,7 +882,7 @@
   function pa(id) { return slot.querySelector('#' + id); }
   function msgA(txt, bad) { var m = pa('aMsg'); if (!m) return; m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
   function mountPanel() {
-    if (S.admin) return; S.admin = true; gate.hidden = true; update();
+    if (S.admin) return; S.admin = true; gate.hidden = true; update(); S.liveWait = false; attachLive(); migrateOld();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
     ['aFrom', 'aTo'].forEach(function (id) { var sel = pa(id); for (var m = 0; m < 1440; m += 15) { var v = (m / 60 < 10 ? '0' : '') + Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + (m % 60), o = el('option', null, v); o.value = v; sel.appendChild(o); } });
     pa('aPeek').addEventListener('click', function () { S.preview = true; update(); });
@@ -860,22 +903,22 @@
       var cur = S.cfg.rate, prev = cur !== v ? cur : S.cfg.prev, now = Date.now();
       var items = [{ rate: v, at: now }].concat(histList().map(function (x) { return { rate: x.rate, at: x.at || 0 }; })).slice(0, 20);
       msgA('Publicando…');
-      db.ref().update({ 'config/rate': v, 'config/prev': prev, 'config/updatedAt': firebase.database.ServerValue.TIMESTAMP, 'history': items })
-        .then(function () { return db.ref('config/rate').once('value'); })
+      db.ref().update({ 'live/rate': v, 'live/prev': prev, 'live/updatedAt': firebase.database.ServerValue.TIMESTAMP, 'history': items })
+        .then(function () { return db.ref('live/rate').once('value'); })
         .then(function (s) { delete pa('aRate').dataset.dirty; var hits = S.alerts.filter(function (x) { return s.val() >= x.target; }).length; msgA('Publicada ✓ Confirmado en el servidor: ' + ars(s.val()) + '. Los clientes ya la ven.' + (hits ? ' 🔔 ' + hits + ' cliente(s) esperaban este precio: avísales en el punto 7.' : '')); refreshPanel(); })
         .catch(function (e) { msgA(errMsg(e), true); });
     });
-    pa('aManual').addEventListener('click', function () { run(db.ref('config/allowManual').set(!S.cfg.allowManual), 'Permiso actualizado'); });
+    pa('aManual').addEventListener('click', function () { run(db.ref('live/allowManual').set(!S.cfg.allowManual), 'Permiso actualizado'); });
     pa('aMinBtn').addEventListener('click', function () {
       var mn = num(pa('aMin').value); if (mn > 100000) { msgA('Revisa el valor.', true); return; }
-      run(db.ref('config/minUsd').set(mn), 'Mínimo guardado', ['aMin']);
+      run(db.ref('live/minUsd').set(mn), 'Mínimo guardado', ['aMin']);
     });
     var cfTimer = null;
     function hideConfirm() { clearTimeout(cfTimer); pa('aConfirm').hidden = true; }
     pa('aConfirmNo').addEventListener('click', hideConfirm);
     pa('aConfirmYes').addEventListener('click', function () { hideConfirm(); doEngine(false); });
     pa('aEngine').addEventListener('click', function () {
-      if (S.cfg.online) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
+      if (S.cfg.master) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
       doEngine(true);
     });
     function doEngine(turnOn) {
@@ -885,22 +928,27 @@
       var upd = { online: turnOn, onlineAt: firebase.database.ServerValue.TIMESTAMP }, extra = '';
       if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
-      run(db.ref('config').update(upd), (turnOn ? 'En línea' : 'Fuera de línea') + extra, turnOn ? [] : ['aReason']);
+      run(db.ref('status').update(upd), (turnOn ? 'En línea' : 'Fuera de línea') + extra, turnOn ? [] : ['aReason']);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
-      run(db.ref('config/rateSell').set(v), 'Cotización pesos → dólares guardada', ['aSell']);
+      run(db.ref('live/rateSell').set(v), 'Cotización pesos → dólares guardada', ['aSell']);
     });
-    pa('aSellOff').addEventListener('click', function () { pa('aSell').value = ''; delete pa('aSell').dataset.dirty; run(db.ref('config/rateSell').remove(), 'Cotización pesos → dólares quitada'); });
+    pa('aSellOff').addEventListener('click', function () { pa('aSell').value = ''; delete pa('aSell').dataset.dirty; run(db.ref('live/rateSell').remove(), 'Cotización pesos → dólares quitada'); });
     function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function (e) { msgA(errMsg(e), true); }); }
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
-    S.stRef = db.ref('stats').orderByKey().limitToLast(7); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
-    pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
-    pa('aHoursOn').addEventListener('click', function () { run(db.ref('config/hoursOn').set(!S.cfg.hoursOn), 'Horario actualizado'); });
+    S.stRef = db.ref('stats').orderByKey().limitToLast(14); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
+    pa('aAnnBtn').addEventListener('click', function () { run(db.ref('live/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
+    pa('aHoursOn').addEventListener('click', function () {
+      var turnOn = !S.cfg.hoursOn, a = toMin(S.cfg.hoursFrom), b = toMin(S.cfg.hoursTo);
+      if (turnOn && (a == null || b == null || a === b)) { msgA('Primero elige y guarda dos horas distintas.', true); return; }
+      run(db.ref('status').update({ hoursOn: turnOn, fromMs: (a || 0) * 60000, toMs: (b || 0) * 60000 }), turnOn ? 'Encendido automático ACTIVADO (abre y cierra solo, a la hora de Argentina)' : 'Encendido automático desactivado: manda solo el botón de arranque');
+    });
     pa('aHoursBtn').addEventListener('click', function () {
       if (toMin(pa('aFrom').value) == null || toMin(pa('aTo').value) == null) { msgA('Elige las dos horas.', true); return; }
-      run(db.ref('config').update({ hoursFrom: pa('aFrom').value, hoursTo: pa('aTo').value }), 'Horario guardado', ['aFrom', 'aTo']);
+      var fa = toMin(pa('aFrom').value), fb = toMin(pa('aTo').value); if (fa === fb) { msgA('Las dos horas no pueden ser iguales.', true); return; }
+      run(db.ref('status').update({ hoursFrom: pa('aFrom').value, hoursTo: pa('aTo').value, fromMs: fa * 60000, toMs: fb * 60000 }), 'Horario guardado', ['aFrom', 'aTo']);
     });
     pa('aPassBtn').addEventListener('click', function () {
       var np = pa('aNewPass').value; if (np.length < 10) { msgA('La clave debe tener al menos 10 caracteres.', true); return; }
@@ -921,8 +969,10 @@
     pa('aReason').addEventListener('input', function (e) { e.target.dataset.dirty = '1'; });
     pa('aReasonBtn').addEventListener('click', function () {
       var v = pa('aReason').value.trim().slice(0, 120);
-      run(db.ref('config/offReason').set(v || null), v ? 'Motivo guardado' : 'Motivo quitado', ['aReason']);
+      run(db.ref('status/offReason').set(v || null), v ? 'Motivo guardado' : 'Motivo quitado', ['aReason']);
     });
+    /* --- resumen semanal por WhatsApp --- */
+    pa('aWeekShare').addEventListener('click', function () { if (S.weekMsg) window.open('https://wa.me/?text=' + encodeURIComponent(S.weekMsg), '_blank'); });
     /* --- compartir cotización por WhatsApp --- */
     pa('aShareRate').addEventListener('click', function () {
       var c = S.cfg, url = location.href.split('#')[0].split('?')[0];
@@ -975,7 +1025,7 @@
     setTimeout(function () { slot.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   }
   function unmountPanel() {
-    if (!S.admin) return; S.admin = false; S.preview = false; update();
+    if (!S.admin) return; S.admin = false; S.preview = false; update(); attachLive();
     if (S.alRef) { S.alRef.off(); S.alRef = null; }
     if (S.stRef) { S.stRef.off(); S.stRef = null; }
     if (S.noRef) { S.noRef.off(); S.noRef = null; }
@@ -990,10 +1040,10 @@
     pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursOn);
     pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', c.hoursOn ? 'true' : 'false');
     pa('aManualHelp').textContent = c.allowManual ? 'Activado: cada cliente puede ajustar la cotización en su propio cálculo.' : 'Desactivado: los clientes solo ven la cotización oficial.';
-    var on = c.online; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
+    var on = c.master; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
     pa('aEngineTitle').textContent = on ? 'EN LÍNEA' : 'FUERA DE LÍNEA'; pa('aPeek').hidden = on;
-    pa('aEngineSub').textContent = on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
-    pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (on ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
+    pa('aEngineSub').textContent = (on && !c.online) ? 'Interruptor encendido, pero los clientes ven apagado por el horario automático (abres a las ' + c.hoursFrom + '). Toca el botón para apagar del todo.' : on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
+    pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (c.online ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
     renderAlerts(); renderWaiters(); renderRvAdmin(); renderRules();
   }
   function esc(x) { return String(x).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); }
@@ -1027,12 +1077,25 @@
       b.appendChild(x); row.appendChild(info); row.appendChild(b); box.appendChild(row);
     });
   }
+  function weekKeys(off) { var ks = []; for (var i = 6; i >= 0; i--) ks.push(dayKey(new Date(Date.now() - (i + off) * 86400000))); return ks; }
+  function sumWeek(ks) { var s = 0, d = 0, best = null; ks.forEach(function (k) { var x = S.stats[k] || {}, dn = x.done || 0; s += x.started || 0; d += dn; if (dn > 0 && (!best || dn > best.v)) best = { k: k, v: dn }; }); return { s: s, d: d, best: best }; }
+  function dayName(k) { try { return new Date(k + 'T12:00:00Z').toLocaleDateString('es', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); } catch (e) { return k.slice(5); } }
   function renderStats() {
     if (!S.admin || !pa('aStStarted')) return;
-    var today = S.stats[dayKey()] || {}, st = 0, dn = 0, days = Object.keys(S.stats);
+    var today = S.stats[dayKey()] || {};
     pa('aStStarted').textContent = today.started || 0; pa('aStDone').textContent = today.done || 0;
-    days.forEach(function (k) { st += S.stats[k].started || 0; dn += S.stats[k].done || 0; });
-    pa('aStWeek').textContent = 'Últimos ' + Math.max(1, days.length) + ' día(s) con actividad: ' + st + ' iniciados · ' + dn + ' concretados. “Iniciados” cuenta los toques de los clientes en Hacer cambio.';
+    pa('aStWeek').textContent = '“Iniciados” cuenta los toques de los clientes en Hacer cambio.';
+    var ks = weekKeys(0), cur = sumWeek(ks), prv = sumWeek(weekKeys(7)), mx = 1, bars = pa('aWeekBars'); bars.textContent = '';
+    ks.forEach(function (k) { mx = Math.max(mx, (S.stats[k] || {}).started || 0); });
+    ks.forEach(function (k) {
+      var x = S.stats[k] || {}, st = x.started || 0, dn = x.done || 0, row = el('div', 'wk'), tr = el('i'), u = el('u');
+      tr.style.width = Math.max(st ? 8 : 2, st / mx * 100) + '%'; u.style.width = (st ? Math.min(100, dn / st * 100) : 0) + '%'; tr.appendChild(u);
+      row.appendChild(el('span', null, dayName(k))); row.appendChild(tr); row.appendChild(el('b', null, st + '/' + dn)); bars.appendChild(row);
+    });
+    var pct = cur.s ? Math.round(cur.d / cur.s * 100) : 0, cmp = prv.d ? (cur.d >= prv.d ? '▲ +' : '▼ −') + Math.abs(Math.round((cur.d - prv.d) / prv.d * 100)) + '% vs semana anterior (' + prv.d + ')' : 'sin semana anterior para comparar';
+    var best = cur.best ? dayName(cur.best.k) + ' (' + cur.best.v + ')' : '—';
+    pa('aWeekTxt').textContent = 'Últimos 7 días: ' + cur.s + ' iniciados · ' + cur.d + ' concretados (' + pct + '%) · Mejor día: ' + best + ' · ' + cmp + '. Barra: iniciados / parte concretada.';
+    S.weekMsg = '📊 Resumen semanal · Dólar PesoPro\n• Cambios iniciados: ' + cur.s + '\n• Concretados: ' + cur.d + ' (' + pct + '%)\n• Mejor día: ' + best + '\n• ' + cmp.charAt(0).toUpperCase() + cmp.slice(1);
   }
   function renderAlerts() {
     if (!S.admin || !pa('aAlerts')) return; var box = pa('aAlerts'); box.textContent = '';
@@ -1075,6 +1138,7 @@
 
   /* ---------- arranque ---------- */
   applyStatic(); update();
-  setInterval(update, 20000);
+  setInterval(function () { rebuildCfg(); attachLive(); update(); }, 20000);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && db) { try { db.goOnline(); } catch (e) {} rebuildCfg(); attachLive(); update(); } });
   setTimeout(function () { S.splashDone = true; $('#splash').classList.add('hide'); update(); setTimeout(maybeInitialToast, 500); }, 1500);
 })();

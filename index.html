@@ -6,7 +6,7 @@
 <title>Dólar PesoPro · Calculadora</title>
 <meta name="description" content="Cambia dólares y pesos entre Ecuador y Argentina. Calcula cuánto recibes al instante.">
 <meta name="theme-color" content="#0F1B5C">
-<meta name="pp-version" content="20261015a">
+<meta name="pp-version" content="20261016a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261015a">
+<link rel="stylesheet" href="style.css?v=20261016a">
 </head>
 <body>
 
@@ -361,6 +361,7 @@
       <div class="two"><button type="button" class="btn gold" id="aStPlus">+1 concretado</button><button type="button" class="btn ghost" id="aStMinus" aria-label="Restar uno">−1</button></div>
       <div class="sub" style="font-size:12px" id="aStWeek"></div>
     </div>
+    <div class="fg" id="aWeekBox"><b>📊 Resumen semanal</b><div id="aWeekBars"></div><div class="sub" style="font-size:12px" id="aWeekTxt"></div><button type="button" class="btn ghost" id="aWeekShare">Enviarme el resumen por WhatsApp</button></div>
 
     <div class="live" id="aLive"></div>
     <div class="live" id="aRules" hidden></div>
@@ -389,9 +390,9 @@
     <hr>
     <div class="fg"><label class="lbl" for="aAnn"><b style="color:var(--ink)">5. Aviso para los clientes</b> (vacío lo oculta)</label><input id="aAnn" class="field sm" type="text" autocomplete="off" placeholder="Ej: Hoy atendemos hasta las 20:00"><button type="button" class="btn gold" id="aAnnBtn">Guardar aviso</button></div>
     <hr>
-    <div class="fg"><div class="srow"><b>6. Mostrar horario de atención</b><button type="button" class="sw" id="aHoursOn" role="switch" aria-label="Mostrar horario"><i></i></button></div>
+    <div class="fg"><div class="srow"><b>6. Encendido automático (horario)</b><button type="button" class="sw" id="aHoursOn" role="switch" aria-label="Encendido automático"><i></i></button></div>
       <div class="two"><div class="fg"><label class="lbl" for="aFrom">Desde</label><select id="aFrom" class="field sm"></select></div><div class="fg"><label class="lbl" for="aTo">Hasta</label><select id="aTo" class="field sm"></select></div></div>
-      <div class="sub" style="font-size:12px">Hora de Argentina. Con horario activo, la pantalla de apagado muestra la cuenta regresiva “Abrimos en…”. Lo que abre o bloquea el servicio es el botón de arranque de arriba.</div>
+      <div class="sub" style="font-size:12px">Hora de Argentina. <b>Activado:</b> el servicio abre y cierra solo en ese horario (y se bloquea en el servidor, aunque la página esté abierta). <b>Desactivado:</b> manda solo el botón de arranque. El botón de arriba siempre es el interruptor principal: si está apagado, nunca abre.</div>
       <button type="button" class="btn gold" id="aHoursBtn">Guardar horario</button></div>
     <hr>
     <div class="fg"><b>7. Avisos de cotización pedidos por clientes</b><div id="aAlerts" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aAlertsEmpty">Aún no hay avisos pedidos.</div></div>
@@ -415,10 +416,10 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261015a"></script>
+<script src="firebase-config.js?v=20261016a"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-<script src="app.js?v=20261015a"></script>
+<script src="app.js?v=20261016a"></script>
 </body>
 </html>

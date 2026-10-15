@@ -1,4 +1,4 @@
-:root{--v:"20261015a";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261016a";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -403,7 +403,7 @@ a{color:var(--accent)}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261015a ================= */
+/* ================= v20261016a ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -460,3 +460,9 @@ textarea.field{min-height:96px;font:500 16px/1.5 'Plus Jakarta Sans',sans-serif;
 .offcontent>.logowrap{margin-top:auto}
 .offcontent>#offMsg{margin-bottom:auto}
 [data-theme=dark] .chip.on{background:#3A2A9A;border-color:var(--accent);color:#fff}
+
+/* resumen semanal */
+.wk{display:grid;grid-template-columns:34px 1fr 46px;align-items:center;gap:8px;margin:5px 0;font-size:12px;color:var(--muted);font-weight:700;text-transform:capitalize}
+.wk i{display:block;height:10px;border-radius:6px;background:var(--line);position:relative;overflow:hidden}
+.wk u{position:absolute;left:0;top:0;bottom:0;background:#2B4FD8;border-radius:6px}
+.wk b{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}

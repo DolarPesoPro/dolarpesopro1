@@ -3,6 +3,12 @@
 Sitio estático (HTML + CSS + JS) para **GitHub Pages**. Cotización, avisos, estado en línea, reseñas y clave de
 administrador viven en **Firebase** (plan gratuito): cuando cambias algo en el panel, todos lo ven al instante.
 
+## Novedades (versión 20261016a)
+- **Apagado real:** la cotización vive en `live` e `history`, y Firebase solo los entrega si el servicio está encendido. Apagas y todos los dispositivos se bloquean al instante, y nadie puede leer el precio (ni con la consola).
+- **Encendido automático:** punto 6 del panel. Activado = abre y cierra solo en el horario (hora de Argentina), aplicado por el servidor. El botón de arranque sigue siendo el interruptor principal.
+- **Resumen semanal:** debajo del contador del día, con barras por día, % concretados, mejor día, comparación con la semana anterior y botón para enviarlo por WhatsApp.
+- **Migración automática:** la primera vez que entres al panel, tus datos antiguos (`config`) se copian solos al sistema nuevo y se borra el nodo viejo.
+
 ## Archivos
 | Archivo | Para qué sirve |
 |---|---|
