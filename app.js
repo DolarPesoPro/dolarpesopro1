@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261015d';
+  var VER = '20261016b';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -252,6 +252,17 @@
     if (!Array.isArray(h)) h = h ? Object.keys(h).map(function (k) { return h[k]; }) : [];
     return h.filter(function (x) { return x && typeof x.rate === 'number'; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
   }
+
+  /* ojito para ver la clave */
+  var EYE_SVG = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><line class="slash" x1="3" y1="3" x2="21" y2="21"/></svg>';
+  function addEye(inp) {
+    if (!inp || inp.dataset.eye) return; inp.dataset.eye = '1';
+    var w = document.createElement('div'); w.className = 'pw'; inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'eye'; b.innerHTML = EYE_SVG; b.setAttribute('aria-label', 'Mostrar clave'); b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () { var show = inp.type === 'password'; inp.type = show ? 'text' : 'password'; b.classList.toggle('on', show); b.setAttribute('aria-pressed', show ? 'true' : 'false'); b.setAttribute('aria-label', show ? 'Ocultar clave' : 'Mostrar clave'); inp.focus(); });
+    w.appendChild(b);
+  }
+  function resetEye(inp) { if (!inp) return; inp.type = 'password'; var b = inp.parentNode && inp.parentNode.querySelector('.eye'); if (b) { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); } }
 
   /* ---------- estado público: encendido / apagado / horario automático ---------- */
   var cfgRef = null, histRef = null;
@@ -914,7 +925,7 @@
     if (!auth) { gm.textContent = 'Falta conectar Firebase (revisa el README).'; return; }
     if (!pw) { gm.textContent = 'Escribe la clave.'; return; }
     $(ids.btn).disabled = true; gm.textContent = '';
-    auth.signInWithEmailAndPassword(window.ADMIN_EMAIL, pw).then(function () { $(ids.pass).value = ''; })
+    auth.signInWithEmailAndPassword(window.ADMIN_EMAIL, pw).then(function () { $(ids.pass).value = ''; resetEye($(ids.pass)); })
       .catch(function (e) { gm.textContent = errMsg(e); }).then(function () { $(ids.btn).disabled = false; });
   }
   var OFFIDS = { pass: '#offPass', btn: '#offPassBtn', msg: '#offMsg' };
@@ -929,10 +940,11 @@
   function mountPanel() {
     if (S.admin) return; S.admin = true; gate.hidden = true; update();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
+    addEye(pa('aNewPass'));
     ['aFrom', 'aTo'].forEach(function (id) { var sel = pa(id); for (var m = 0; m < 1440; m += 15) { var v = (m / 60 < 10 ? '0' : '') + Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + (m % 60), o = el('option', null, v); o.value = v; sel.appendChild(o); } });
     pa('aPeek').addEventListener('click', function () { S.preview = true; update(); });
     $$('input[inputmode="decimal"]', slot).forEach(function (i) { bindClean(i); i.addEventListener('input', function () { i.dataset.dirty = '1'; }); });
-    ['aAnn', 'aFrom', 'aTo'].forEach(function (id) { pa(id).addEventListener('input', function (e) { e.target.dataset.dirty = '1'; }); });
+    ['aAnn', 'aFrom', 'aTo'].forEach(function (id) { ['input', 'change'].forEach(function (ev) { pa(id).addEventListener(ev, function (e) { e.target.dataset.dirty = '1'; }); }); });
     var st = pa('aSteps');
     [-10, -5, 5, 10].forEach(function (d) {
       var b = el('button', 'chip', (d > 0 ? '+' : '−') + Math.abs(d)); b.type = 'button';
@@ -1012,10 +1024,18 @@
     pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
     pa('aHoursOn').addEventListener('click', function () { run(db.ref('config/hoursOn').set(!S.cfg.hoursOn), 'Horario actualizado'); });
     pa('aHoursBtn').addEventListener('click', function () {
-      if (toMin(pa('aFrom').value) == null || toMin(pa('aTo').value) == null) { msgA('Elige las dos horas.', true); return; }
-      var hu = { 'config/hoursFrom': pa('aFrom').value, 'config/hoursTo': pa('aTo').value }, so = stFull({ hoursFrom: pa('aFrom').value, hoursTo: pa('aTo').value });
+      var from = pa('aFrom').value, to = pa('aTo').value;
+      if (toMin(from) == null || toMin(to) == null) { msgA('Elige las dos horas.', true); return; }
+      if (from === to) { msgA('Las dos horas no pueden ser iguales.', true); return; }
+      var hu = { 'config/hoursFrom': from, 'config/hoursTo': to }, so = stFull({ hoursFrom: from, hoursTo: to });
       Object.keys(so).forEach(function (k) { hu['status/' + k] = so[k]; });
-      run(db.ref().update(hu), 'Horario guardado', ['aFrom', 'aTo']);
+      msgA('Guardando…');
+      db.ref().update(hu).then(function () { return db.ref('status').once('value'); }).then(function (s) {
+        var v = s.val() || {};
+        if (v.hoursFrom === from && v.hoursTo === to) { delete pa('aFrom').dataset.dirty; delete pa('aTo').dataset.dirty; msgA('Horario guardado ✓ Confirmado en el servidor: de ' + from + ' a ' + to + ' (hora de Argentina).'); }
+        else msgA('El servidor devolvió ' + (v.hoursFrom || '?') + ' a ' + (v.hoursTo || '?') + ' en vez de ' + from + ' a ' + to + '. Avísame y lo revisamos.', true);
+        refreshPanel();
+      }).catch(function (e) { msgA(errMsg(e), true); });
     });
     pa('aPassBtn').addEventListener('click', function () {
       var np = pa('aNewPass').value; if (np.length < 10) { msgA('La clave debe tener al menos 10 caracteres.', true); return; }
@@ -1191,6 +1211,8 @@
   }
 
   /* ---------- arranque ---------- */
+  addEye($('#pass')); addEye($('#offPass'));
+  try { $('#splash').setAttribute('data-scene', sceneNow()); } catch (e) {}
   applyStatic(); update();
   setTimeout(update, 9500);
   var rb = $('#sbRetry'); if (rb) rb.addEventListener('click', function () { S.t0 = Date.now(); if (S.resync) S.resync(); syncData(); update(); setTimeout(update, 9500); });
