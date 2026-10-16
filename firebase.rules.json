@@ -3,14 +3,14 @@
     ".read": false,
     ".write": false,
     "config": {
-      ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app' || !root.child('status').exists() || root.child('status/mode').val() == 'on' || (root.child('status/mode').val() == 'auto' && ((root.child('status/fromMin').val() <= root.child('status/toMin').val() && ((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() && ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()) || (root.child('status/fromMin').val() > root.child('status/toMin').val() && (((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() || ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()))))",
+      ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app' || !root.child('status').exists() || (root.child('status/mode').val() == 'on' && (root.child('status/auto').val() != true || ((root.child('status/fromMin').val() <= root.child('status/toMin').val() && ((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() && ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()) || (root.child('status/fromMin').val() > root.child('status/toMin').val() && (((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() || ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()))))) || (root.child('status/mode').val() == 'auto' && ((root.child('status/fromMin').val() <= root.child('status/toMin').val() && ((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() && ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()) || (root.child('status/fromMin').val() > root.child('status/toMin').val() && (((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() || ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()))))",
       ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'",
       "offReason": {
         ".validate": "newData.isString() && newData.val().length <= 120"
       }
     },
     "history": {
-      ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app' || !root.child('status').exists() || root.child('status/mode').val() == 'on' || (root.child('status/mode').val() == 'auto' && ((root.child('status/fromMin').val() <= root.child('status/toMin').val() && ((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() && ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()) || (root.child('status/fromMin').val() > root.child('status/toMin').val() && (((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() || ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()))))",
+      ".read": "auth != null && auth.token.email == 'admin@dolarpesopro.app' || !root.child('status').exists() || (root.child('status/mode').val() == 'on' && (root.child('status/auto').val() != true || ((root.child('status/fromMin').val() <= root.child('status/toMin').val() && ((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() && ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()) || (root.child('status/fromMin').val() > root.child('status/toMin').val() && (((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() || ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()))))) || (root.child('status/mode').val() == 'auto' && ((root.child('status/fromMin').val() <= root.child('status/toMin').val() && ((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() && ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()) || (root.child('status/fromMin').val() > root.child('status/toMin').val() && (((now + 75600000) % 86400000) / 60000 >= root.child('status/fromMin').val() || ((now + 75600000) % 86400000) / 60000 < root.child('status/toMin').val()))))",
       ".write": "auth != null && auth.token.email == 'admin@dolarpesopro.app'"
     },
     "alerts": {
@@ -117,6 +117,40 @@
       },
       "$other": {
         ".validate": false
+      },
+      "auto": {
+        ".validate": "newData.isBoolean()"
+      }
+    },
+    "inquiries": {
+      ".read": "(auth != null && auth.token.email == 'admin@dolarpesopro.app')",
+      "$id": {
+        ".write": "(auth != null && auth.token.email == 'admin@dolarpesopro.app') || (!data.exists() && newData.exists())",
+        ".validate": "$id.matches(/^[-A-Za-z0-9_]{1,40}$/) && newData.hasChildren(['who','at','st'])",
+        "who": {
+          ".validate": "newData.isString() && (newData.val() == 'justo' || newData.val() == 'boris')"
+        },
+        "at": {
+          ".validate": "newData.isNumber()"
+        },
+        "st": {
+          ".validate": "newData.isString() && (newData.val() == 'pending' || (((auth != null && auth.token.email == 'admin@dolarpesopro.app')) && (newData.val() == 'done' || newData.val() == 'lost')))"
+        },
+        "usd": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000000"
+        },
+        "rate": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 100000"
+        },
+        "op": {
+          ".validate": "newData.isString() && newData.val().length <= 12"
+        },
+        "doneAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     }
   }

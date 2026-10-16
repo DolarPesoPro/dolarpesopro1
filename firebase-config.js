@@ -16,3 +16,7 @@ window.ADMIN_EMAIL = "admin@dolarpesopro.app";
 // suscríbete a un nombre secreto y largo (ej: "pesopro-justo-x7k29q") y escríbelo aquí.
 // Déjalo vacío ("") para desactivar.
 window.NTFY_TOPIC = "pesopro-justo-im6zas834chdzq";
+
+// Google Analytics 4 (opcional). Pega aquí tu ID de medición, que empieza con "G-" (ej: "G-AB12CD34EF").
+// Déjalo vacío ("") para no usar Analytics. Nunca cuenta al administrador.
+window.GA_ID = "";

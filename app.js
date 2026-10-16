@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261016c';
+  var VER = '20261016d';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -271,20 +271,23 @@
   function schedOpen(st) { var a = toMin(st.hoursFrom), b = toMin(st.hoursTo); if (a == null || b == null) return false; var n = srvMin(); return a <= b ? (n >= a && n < b) : (n >= a || n < b); }
   function applyStatus() {
     var st = S.status;
-    if (!st || !st.mode) { S.open = S.cfg.online !== false; return; }
-    S.open = st.mode === 'on' || (st.mode === 'auto' && schedOpen(st));
+    if (!st || !st.mode) { S.master = true; S.auto = false; S.open = S.cfg.online !== false; return; }
+    S.master = st.mode !== 'off'; S.auto = st.auto === true || st.mode === 'auto';      // 'auto' viejo = encendido + horario
+    S.open = S.master && (!S.auto || schedOpen(st));
     if (S.denied && !S.admin) S.open = false;
     S.cfg.online = S.open; S.cfg.offReason = typeof st.offReason === 'string' ? st.offReason.slice(0, 120) : '';
     if (st.hoursFrom && st.hoursTo) { S.cfg.hoursFrom = st.hoursFrom; S.cfg.hoursTo = st.hoursTo; }
-    S.cfg.hoursRaw = S.cfg.hoursOn; if (st.mode === 'auto') S.cfg.hoursOn = true;
+    S.cfg.hoursRaw = S.cfg.hoursOn; if (S.auto) S.cfg.hoursOn = true;
   }
   function stFull(over) {
-    var c = S.cfg, st = S.status || {}, o = Object.assign({ mode: st.mode || (c.online ? 'on' : 'off'), offReason: st.offReason || '', hoursFrom: c.hoursFrom, hoursTo: c.hoursTo }, over || {});
+    var c = S.cfg, st = S.status || {}, o = Object.assign({ mode: S.master === false ? 'off' : 'on', auto: !!S.auto, offReason: st.offReason || '', hoursFrom: c.hoursFrom, hoursTo: c.hoursTo }, over || {});
+    if (o.mode === 'auto') { o.mode = 'on'; o.auto = true; }
     o.fromMin = toMin(o.hoursFrom) || 0; o.toMin = toMin(o.hoursTo) || 0; o.offReason = o.offReason || null; o.onlineAt = firebase.database.ServerValue.TIMESTAMP; return o;
   }
   /* escritura mínima del estado: solo toca lo necesario (no pisa horarios con valores viejos) */
   function stMin(over) {
-    var st = S.status || {}, o = Object.assign({}, over || {}); o.onlineAt = firebase.database.ServerValue.TIMESTAMP;
+    var st = S.status || {}, o = Object.assign({ mode: S.master === false ? 'off' : 'on', auto: !!S.auto }, over || {}); if (o.mode === 'auto') { o.mode = 'on'; o.auto = true; }
+    o.onlineAt = firebase.database.ServerValue.TIMESTAMP;
     if (typeof st.fromMin !== 'number' || typeof st.toMin !== 'number') { var f = stFull(over); o.fromMin = f.fromMin; o.toMin = f.toMin; o.hoursFrom = f.hoursFrom; o.hoursTo = f.hoursTo; }
     return o;
   }
@@ -686,6 +689,30 @@
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
   }
   /* Los que duermen en la pantalla de apagado también responden al toque */
+  /* Mientras está apagado, las mascotas hablan dormidas y de vez en cuando pasan rodando por la pantalla */
+  var OFFTALK = [['Zzz… ¿ya abrimos? 🥱', 'Soñé con dólares 💭', 'Cinco minutitos más… 😴', 'Shhh… el dólar duerme 🤫'], ['Zzz… ¡mi cotización! 💤', 'Estoy descansando, ¿eh? 😎', 'Volvemos enseguida ⏳', 'Zzz… dame un cafecito ☕']];
+  var STROLL = { justo: ['¡Solo estiro las piernas! 🚶', '¿Quién apagó la luz? 🔦', 'Boludeando un ratito 😜'], boris: ['Estoy de paseo, ya volvemos 😎', '¡Qué silencio! 🦗', 'Revisando que todo esté en orden 🔍'] };
+  function strollOff(ov) {
+    if (S.strolling) return; S.strolling = true;
+    var who = Math.random() < 0.5 ? 'justo' : 'boris', L = STROLL[who], w = document.createElement('div'), im = document.createElement('img');
+    w.className = 'stroll'; im.src = 'assets/' + who + '.jpg'; im.alt = ''; w.appendChild(im); ov.appendChild(w);
+    var W = ov.clientWidth || innerWidth, mid = Math.round(W / 2 - 34), fin = function () { if (w.parentNode) w.parentNode.removeChild(w); S.strolling = false; };
+    if (!w.animate) { fin(); return; }
+    var a1 = w.animate([{ transform: 'translateX(-90px) rotate(0deg)' }, { transform: 'translateX(' + mid + 'px) rotate(540deg)' }], { duration: 2600, easing: 'ease-out', fill: 'forwards' });
+    a1.onfinish = function () {
+      say(w, L[Math.floor(Math.random() * L.length)]); burst(w, false);
+      setTimeout(function () {
+        var a2 = w.animate([{ transform: 'translateX(' + mid + 'px) rotate(540deg)' }, { transform: 'translateX(' + (W + 90) + 'px) rotate(1080deg)' }], { duration: 2600, easing: 'ease-in', fill: 'forwards' });
+        a2.onfinish = fin;
+      }, 2300);
+    };
+  }
+  function offAmbient() {
+    var ov = $('#off'); if (!ov || ov.hidden || ov.classList.contains('boot') || document.hidden) return;
+    var sl = $$('.sl img'); if (Math.random() < 0.5 && sl.length) { var i = Math.floor(Math.random() * sl.length), L = OFFTALK[i % 2]; hop(sl[i]); say(sl[i], L[Math.floor(Math.random() * L.length)]); return; }
+    strollOff(ov);
+  }
+  setInterval(function () { if (Math.random() < 0.75) offAmbient(); }, 9000);
   var ZZ = ['Zzz… cinco minutitos más 😴', 'Zzz… ya volvemos 🌙'];
   $$('.sl img').forEach(function (m, i) { m.addEventListener('click', function () { hop(m); say(m, ZZ[i % 2]); }); });
   $$('.avatar').forEach(function (m) { m.addEventListener('pointerdown', function () { m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); setTimeout(function () { m.classList.remove('tap'); }, 650); burst(m, false); }); });
@@ -763,6 +790,7 @@
     var target = num($('#alTarget').value), phone = cc + nat, msg = $('#alMsg');
     if (!(target > 0 && target < 100000) || nat.length < 7 || nat.length > 11 || S.alSent >= 3) { msg.textContent = t('alertBad'); msg.style.color = '#E5484D'; return; }
     if (!db) { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; return; }
+    track('alert_request');
     db.ref('alerts').push({ phone: phone, target: target, at: firebase.database.ServerValue.TIMESTAMP }).then(function () {
       notifyAdmin(target, phone); S.alSent++; msg.textContent = t('alertOk'); msg.style.color = 'var(--green)'; $('#alTarget').value = ''; $('#alPhone').value = '';
     }).catch(function () { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; });
@@ -839,7 +867,27 @@
     if (!db || S.admin || S.startedN >= 5) return; S.startedN++;
     try { db.ref('stats/' + dayKey() + '/started').transaction(function (v) { return (typeof v === 'number' ? v : 0) + 1; }).catch(function () {}); } catch (e) {}
   }
-  function doChange() { doCopy(); countStart(); setSheet2(true); }
+  /* ---------- Analytics (opcional) y registro de consultas por WhatsApp ---------- */
+  function track(name, params) { try { if (window.gtag && !S.admin) window.gtag('event', name, params || {}); } catch (e) {} }
+  function initGA() {
+    var id = window.GA_ID; if (!id || !/^G-[A-Z0-9]{4,}$/.test(id) || navigator.doNotTrack === '1' || location.hash === '#admin' || window.__gaOn) return; window.__gaOn = true;
+    window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date()); window.gtag('config', id, { anonymize_ip: true, send_page_view: true });
+    var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id; document.head.appendChild(s);
+  }
+  var inqLast = {};
+  function logInquiry(who) {
+    track('whatsapp_click', { who: who, op: S.op });
+    if (!db || S.admin || S.preview || !PHONES[who]) return;
+    var now = Date.now(); if (inqLast[who] && now - inqLast[who] < 60000) return; inqLast[who] = now;
+    var k = S.lastCalc || {}, o = { who: who, at: firebase.database.ServerValue.TIMESTAMP, st: 'pending', op: String(S.op || 'cambio').slice(0, 12) };
+    if (k.ok && isFinite(k.amt) && isFinite(k.rate)) { o.usd = Math.round(k.amt * 100) / 100; o.rate = Math.round(k.rate * 100) / 100; }
+    try { db.ref('inquiries').push(o).catch(function () {}); } catch (e) {}
+  }
+  document.addEventListener('click', function (e) { var w = e.target.closest && e.target.closest('[data-wa]'); if (w) logInquiry(w.getAttribute('data-wa')); });
+  setTimeout(initGA, 2500);
+
+  function doChange() { track('hacer_cambio', { amount: Math.round(num(S.amount) || 0) }); doCopy(); countStart(); setSheet2(true); }
   $('#changeBtn').addEventListener('click', doChange);
   $('#stChange').addEventListener('click', doChange);
   $('#sheet2Close').addEventListener('click', function () { setSheet2(false); });
@@ -956,7 +1004,7 @@
   function pa(id) { return slot.querySelector('#' + id); }
   function msgA(txt, bad) { var m = pa('aMsg'); if (!m) return; m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
   function mountPanel() {
-    if (S.admin) return; S.admin = true; gate.hidden = true; update();
+    if (S.admin) return; S.admin = true; if (window.GA_ID) window['ga-disable-' + window.GA_ID] = true; gate.hidden = true; update();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
     addEye(pa('aNewPass'));
     ['aFrom', 'aTo'].forEach(function (id) { var sel = pa(id); for (var m = 0; m < 1440; m += 15) { var v = (m / 60 < 10 ? '0' : '') + Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + (m % 60), o = el('option', null, v); o.value = v; sel.appendChild(o); } });
@@ -993,17 +1041,17 @@
     pa('aConfirmNo').addEventListener('click', hideConfirm);
     pa('aConfirmYes').addEventListener('click', function () { hideConfirm(); doEngine(false); });
     pa('aEngine').addEventListener('click', function () {
-      if (S.cfg.online) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
+      if (S.master !== false) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
       doEngine(true);
     });
     function doEngine(turnOn) {
       var btn = pa('aEngine');
       btn.classList.remove('crank'); void btn.offsetWidth; btn.classList.add('crank'); setTimeout(function () { btn.classList.remove('crank'); }, 650);
       try { if (navigator.vibrate) navigator.vibrate(turnOn ? [30, 40, 70] : 25); } catch (e) {}
-      var upd = stMin({ mode: turnOn ? 'on' : 'off' }), extra = '', wasAuto = !!(S.status && S.status.mode === 'auto');
+      var upd = stMin({ mode: turnOn ? 'on' : 'off' }), extra = '', wasAuto = !!S.auto;
       if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
-      run(db.ref('status').update(upd), (turnOn ? 'En línea' : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el encendido automático se desactivó; vuelve a activarlo cuando quieras)' : '')) + extra, turnOn ? [] : ['aReason']);
+      run(db.ref('status').update(upd), (turnOn ? (wasAuto ? 'Encendido: ahora abre y cierra según el horario' : 'En línea') : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el horario automático queda en pausa hasta que enciendas)' : '')) + extra, turnOn ? [] : ['aReason']);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
@@ -1013,11 +1061,37 @@
     function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function (e) { msgA(errMsg(e), true); }); }
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
+    /* --- consultas por WhatsApp: confirmar si se dio o no --- */
+    function inqRender() {
+      var box = pa('aInqList'); if (!box) return; box.textContent = '';
+      var all = S.inq || [], wk = all.filter(function (x) { return x.at >= srvNow() - 7 * 86400000; }), dn = wk.filter(function (x) { return x.st === 'done'; }).length, ls = wk.filter(function (x) { return x.st === 'lost'; }).length, pd = wk.length - dn - ls;
+      var today = all.filter(function (x) { return dayKey(new Date(x.at)) === dayKey(new Date(srvNow())); }), td = today.filter(function (x) { return x.st === 'done'; }).length;
+      pa('aInqSum').innerHTML = '<b>Hoy:</b> ' + today.length + ' consulta(s) · ' + td + ' concretada(s)<br><b>Últimos 7 días:</b> ' + wk.length + ' consultas · ' + dn + ' concretadas (' + (wk.length ? Math.round(dn / wk.length * 100) : 0) + '%) · ' + ls + ' no se dieron · ' + pd + ' pendientes';
+      pa('aInqEmpty').hidden = all.length > 0;
+      all.slice(0, 25).forEach(function (x) {
+        var who = x.who === 'boris' ? 'Boris 😎' : 'Justo 🤠', det = (typeof x.usd === 'number' ? fmtN(x.usd) + ' USD' : 'sin monto') + (typeof x.rate === 'number' ? ' · ' + ars(x.rate) : '') + ' · ' + relTime(x.at);
+        var row = el('div', 'alrow' + (x.st === 'done' ? ' hit' : '')), info = el('div', 'nm', (x.st === 'done' ? '✔ ' : x.st === 'lost' ? '✖ ' : '⏳ ') + who + ' · ' + det), b = el('div', 'b');
+        function btn(txt, st, css) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css; z.addEventListener('click', function () { inqSet(x, st); }); b.appendChild(z); }
+        if (x.st === 'pending') { btn('Se dio', 'done', 'background:#0F7A40;color:#fff'); btn('No', 'lost', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)'); }
+        else btn('Deshacer', 'pending', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)');
+        row.appendChild(info); row.appendChild(b); box.appendChild(row);
+      });
+    }
+    function inqSet(x, st) {
+      db.ref('inquiries/' + x.id).update({ st: st, doneAt: st === 'done' ? firebase.database.ServerValue.TIMESTAMP : null }).then(function () {
+        if (st === 'done' && x.st !== 'done') bumpDone(1); else if (x.st === 'done' && st !== 'done') bumpDone(-1);
+      }).catch(function (e) { msgA(errMsg(e), true); });
+    }
+    S.inqRef = db.ref('inquiries').orderByKey().limitToLast(80);
+    S.inqRef.on('value', function (s) {
+      var v = s.val() || {}; S.inq = Object.keys(v).map(function (k) { var q = v[k] || {}; return { id: k, who: q.who, at: q.at || 0, st: q.st || 'pending', usd: q.usd, rate: q.rate, op: q.op }; }).sort(function (p, q) { return q.at - p.at; });
+      S.rulesBad.inquiries = false; inqRender(); renderRules();
+    }, function () { S.rulesBad.inquiries = true; renderRules(); });
+    S.inqRender = inqRender;
     pa('aAuto').addEventListener('click', function () {
-      var st = S.status || {};
-      if (st.mode === 'auto') { run(db.ref('status').update(stMin({ mode: S.cfg.online ? 'on' : 'off' })), 'Encendido automático DESACTIVADO: ahora decides tú con el botón'); return; }
-      if (toMin(S.cfg.hoursFrom) == null || toMin(S.cfg.hoursTo) == null) { msgA('Primero guarda el horario (punto 6).', true); return; }
-      run(db.ref('status').update(stMin({ mode: 'auto' })), 'Encendido automático ACTIVADO: abre y cierra solo según el horario');
+      var turnOn = !S.auto, fa = toMin(S.cfg.hoursFrom), fb = toMin(S.cfg.hoursTo);
+      if (turnOn && (fa == null || fb == null || fa === fb)) { msgA('Primero guarda el horario (punto 6) con dos horas distintas.', true); return; }
+      run(db.ref('status').update(stMin({ auto: turnOn })), turnOn ? 'Encendido automático ACTIVADO: abre y cierra solo según el horario (mientras el botón principal esté encendido)' : 'Encendido automático DESACTIVADO: manda solo el botón principal');
     });
     function weekText() {
       var base = new Date(srvNow() - 10800000), lines = [], st = 0, dn = 0, pst = 0, pdn = 0, best = null, i;
@@ -1132,6 +1206,7 @@
     if (S.alRef) { S.alRef.off(); S.alRef = null; }
     if (S.stRef) { S.stRef.off(); S.stRef = null; }
     if (S.noRef) { S.noRef.off(); S.noRef = null; }
+    if (S.inqRef) { S.inqRef.off(); S.inqRef = null; } S.inq = [];
     S.waiters = [];
     slot.textContent = '';
   }
@@ -1143,12 +1218,12 @@
     pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursRaw !== undefined ? c.hoursRaw : c.hoursOn);
     pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', (c.hoursRaw !== undefined ? c.hoursRaw : c.hoursOn) ? 'true' : 'false');
     pa('aManualHelp').textContent = c.allowManual ? 'Activado: cada cliente puede ajustar la cotización en su propio cálculo.' : 'Desactivado: los clientes solo ven la cotización oficial.';
-    var on = c.online; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
-    pa('aEngineTitle').textContent = on ? 'EN LÍNEA' : 'FUERA DE LÍNEA'; pa('aPeek').hidden = on;
-    pa('aEngineSub').textContent = on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
+    var on = c.online, mst = S.master !== false; pa('aEngineBox').classList.toggle('on', mst); pa('aEngine').setAttribute('aria-pressed', mst ? 'true' : 'false');
+    pa('aEngineTitle').textContent = !mst ? 'FUERA DE LÍNEA' : on ? 'EN LÍNEA' : 'ENCENDIDO · CERRADO POR HORARIO'; pa('aPeek').hidden = on;
+    pa('aEngineSub').textContent = !mst ? 'Apagado general: los clientes ven la pantalla de descanso. Tú sigues viendo todo normal. Toca el botón para encender.' : on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar todo.' : 'El botón está encendido, pero ahora cierra el horario automático (abres a las ' + c.hoursFrom + '). Toca el botón para apagar todo.';
     pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (on ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
-    var au = !!(S.status && S.status.mode === 'auto'); pa('aAuto').classList.toggle('on', au); pa('aAuto').setAttribute('aria-checked', au ? 'true' : 'false');
-    pa('aAutoHelp').textContent = au ? 'Automático: abre a las ' + c.hoursFrom + ' y cierra a las ' + c.hoursTo + ' (hora de Argentina). Si tocas el botón de arriba, pasa a manual.' : 'Manual: tú decides con el botón. Actívalo para que abra y cierre solo con el horario del punto 6.';
+    var au = !!S.auto; pa('aAuto').classList.toggle('on', au); pa('aAuto').setAttribute('aria-checked', au ? 'true' : 'false');
+    pa('aAutoHelp').textContent = au ? (mst ? 'Activo: abre a las ' + c.hoursFrom + ' y cierra a las ' + c.hoursTo + ' (hora de Argentina). El botón principal siempre puede apagar todo.' : 'Activo pero en pausa: el botón principal está apagado, así que no abre hasta que lo enciendas.') : 'Desactivado: abre y cierra solo cuando tú lo decides con el botón principal. Actívalo para usar el horario del punto 6.';
     renderAlerts(); renderWaiters(); renderRvAdmin(); renderRules();
   }
   function esc(x) { return String(x).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); }
