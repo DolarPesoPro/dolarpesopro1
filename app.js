@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261016a';
+  var VER = '20261015d';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -24,6 +24,12 @@
   /* ---------- textos ---------- */
   var I18N = {
     es: {
+      fContact: 'Contacto', fHours: 'Horarios', fRates: 'Sobre las cotizaciones', fWaJusto: 'Escribir a Justo (WhatsApp)', fWaBoris: 'Escribir a Boris (WhatsApp)', fGroup: 'Grupo de WhatsApp', fIg: 'Instagram @dolarpesopro_', fTop: 'Volver arriba',
+      fHoursOn: 'Todos los días de {a} a {b} (hora de Argentina).', fHoursOff: 'Sin horario fijo: atendemos cuando el indicador dice EN LÍNEA.', fShort: 'Valores de referencia. La operación se confirma con un administrador verificado.',
+      sbLoadT: 'Buscando la cotización…', sbLoadM: 'Un momento, estamos trayendo el valor actualizado.',
+      sbErrT: 'No pudimos conectar', sbErrM: 'Revisa tu internet e inténtalo de nuevo. Mientras tanto no mostramos ninguna cotización para evitar errores.',
+      sbStaleT: 'Sin conexión', sbStaleM: 'Perdiste la conexión. El valor que ves puede estar desactualizado: confírmalo por WhatsApp antes de operar.',
+      sbNoneT: 'Cotización no publicada', sbNoneM: 'Todavía no se cargó el valor de hoy. Escríbenos por WhatsApp y te lo confirmamos.', sbRetry: 'Reintentar',
       offChipR: 'Fuera de línea · {r}', revTitle: 'Lo que dicen nuestros clientes', revSub: 'Opiniones de personas que ya cambiaron con nosotros.', revHint: 'Desliza para ver más →',
       notifyBtn: 'Avísame cuando abran', notifyHelp: 'Escribe tu WhatsApp y te avisamos apenas estemos en línea.', nfSave: 'Guardar mi número',
       nfOk: '¡Listo! Te escribimos por WhatsApp apenas abramos.', nfBad: 'Revisa tu número: elige tu país y escríbelo sin el 0 inicial.', nfErr: 'No pudimos guardarlo. Intenta de nuevo en un momento.', nfPreview: 'Vista previa: aquí no se guarda nada.',
@@ -100,6 +106,12 @@
       f6q: '¿Y si quiero cambiar pesos a dólares?', f6a: 'No se cobra comisión. Escríbele a un administrador para acordar la cotización en el momento.'
     },
     en: {
+      fContact: 'Contact', fHours: 'Hours', fRates: 'About the rates', fWaJusto: 'Message Justo (WhatsApp)', fWaBoris: 'Message Boris (WhatsApp)', fGroup: 'WhatsApp group', fIg: 'Instagram @dolarpesopro_', fTop: 'Back to top',
+      fHoursOn: 'Every day from {a} to {b} (Argentina time).', fHoursOff: 'No fixed schedule: we are available when the indicator says ONLINE.', fShort: 'Reference values. Transfers are confirmed by a verified administrator.',
+      sbLoadT: 'Fetching the rate…', sbLoadM: 'One moment, we are loading the latest value.',
+      sbErrT: 'We could not connect', sbErrM: 'Check your internet and try again. Meanwhile no rate is shown, to avoid mistakes.',
+      sbStaleT: 'You are offline', sbStaleM: 'The connection dropped. The value shown may be out of date: confirm it on WhatsApp before transferring.',
+      sbNoneT: 'Rate not published yet', sbNoneM: 'Today\'s value has not been set. Message us on WhatsApp and we will confirm it.', sbRetry: 'Try again',
       loading: 'Loading rate…', tagline: 'CURRENCY EXCHANGE · ECUADOR TO ARGENTINA', rateToday: 'DOLLAR TODAY',
       offTitle: 'Offline', offSub: 'We are not available right now. Back soon: follow the WhatsApp group to stay in the loop.', offChip: 'Offline · back soon', onChip: 'Available now', liveClosed: 'OFFLINE', offHero: 'Back soon',
       doChange: 'Start exchange', pickTitle: 'Who do you exchange with?', pickSub: 'Your message is copied. Pick who to write to: the chat opens with your amount and details.',
@@ -226,7 +238,7 @@
   function readCfg(v) {
     v = v || {};
     return {
-      rate: numOr(v.rate, 0) > 0 ? v.rate : DEFAULTS.rate, prev: numOr(v.prev, 0), updatedAt: numOr(v.updatedAt, 0),
+      rate: numOr(v.rate, 0) > 0 ? v.rate : DEFAULTS.rate, hasRate: numOr(v.rate, 0) > 0, prev: numOr(v.prev, 0), updatedAt: numOr(v.updatedAt, 0),
       allowManual: v.allowManual !== false, feeFixed: Math.max(0, numOr(v.feeFixed, DEFAULTS.feeFixed)),
       feeThreshold: numOr(v.feeThreshold, 0) > 0 ? v.feeThreshold : DEFAULTS.feeThreshold, feePct: Math.max(0, numOr(v.feePct, DEFAULTS.feePct)),
       minUsd: Math.max(0, numOr(v.minUsd, DEFAULTS.minUsd)), rateSell: numOr(v.rateSell, 0) > 0 ? v.rateSell : 0, online: v.online !== false, announcement: typeof v.announcement === 'string' ? v.announcement : '',
@@ -240,64 +252,60 @@
     if (!Array.isArray(h)) h = h ? Object.keys(h).map(function (k) { return h[k]; }) : [];
     return h.filter(function (x) { return x && typeof x.rate === 'number'; }).sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
   }
-  /* ---------- estado en línea: el SERVIDOR decide (reglas de Firebase) ----------
-     status = público (en línea, motivo, horario). live + history = solo se entregan si está encendido. */
-  function schedOpen(c) {
-    if (!c.hoursOn) return true;
-    var a = toMin(c.hoursFrom), b = toMin(c.hoursTo); if (a == null || b == null) return true;
-    if (a === b) return false;
-    var n = arMinutes(); return a < b ? (n >= a && n < b) : (n >= a || n < b);
-  }
-  function rebuildCfg() {
-    var raw = Object.assign({}, S.stRaw || {}, S.liveOk ? (S.liveRaw || {}) : {});
-    var c = readCfg(raw); c.master = c.online; c.online = c.master && schedOpen(c); S.cfg = c;
-  }
-  function dropLive() {
-    try { if (S.liveRef) S.liveRef.off(); if (S.histRef) S.histRef.off(); } catch (e) {}
-    S.liveRef = S.histRef = null; S.liveOk = false; S.liveRaw = {}; S.historyRaw = [];
-    rebuildCfg(); update();
-  }
-  function attachLive() {
-    if (!db) return;
-    var want = !!(S.live && (S.admin || S.cfg.online));
-    if (want && !S.liveRef && !S.liveWait) {
-      var lr = db.ref('live'), hr = db.ref('history'); S.liveRef = lr; S.histRef = hr;
-      lr.on('value', function (s) {
-        var old = S.liveOk ? S.cfg.rate : null; S.liveRaw = s.val() || {}; S.liveOk = true; rebuildCfg();
-        if (old != null && old !== S.cfg.rate) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); liveToast(old); }
-        update(); if (S.admin) refreshPanel(); maybeInitialToast();
-      }, function () { dropLive(); S.liveWait = true; setTimeout(function () { S.liveWait = false; attachLive(); }, 6000); });
-      hr.on('value', function (s) { S.historyRaw = s.val() || []; update(); }, function () {});
-    } else if (!want && S.liveRef) dropLive();
-  }
-  /* Migración única: copia el antiguo nodo "config" a status + live (la hace el administrador al entrar). */
-  function migrateOld() {
-    if (!db || S.migrating || S.stExists || !S.live) return; S.migrating = true;
-    db.ref('config').once('value').then(function (s) {
-      var v = s.val() || {}, up = {}, hf = typeof v.hoursFrom === 'string' ? v.hoursFrom : '09:00', ht = typeof v.hoursTo === 'string' ? v.hoursTo : '22:00';
-      up['status/online'] = v.online !== false; up['status/onlineAt'] = firebase.database.ServerValue.TIMESTAMP;
-      up['status/hoursOn'] = v.hoursOn === true; up['status/hoursFrom'] = hf; up['status/hoursTo'] = ht;
-      up['status/fromMs'] = (toMin(hf) || 0) * 60000; up['status/toMs'] = (toMin(ht) || 0) * 60000;
-      if (typeof v.offReason === 'string' && v.offReason) up['status/offReason'] = v.offReason;
-      ['rate', 'prev', 'updatedAt', 'allowManual', 'minUsd', 'rateSell', 'announcement'].forEach(function (k) { if (v[k] !== undefined && v[k] !== null) up['live/' + k] = v[k]; });
-      up['config'] = null;
-      return db.ref().update(up);
-    }).then(function () { msgA('Datos migrados al sistema protegido ✓'); }).catch(function (e) { S.migrating = false; msgA(errMsg(e), true); });
-  }
 
+  /* ---------- estado público: encendido / apagado / horario automático ---------- */
+  var cfgRef = null, histRef = null;
+  function srvNow() { return Date.now() + (S.offset || 0); }
+  function srvMin() { var d = new Date(srvNow() - 10800000); return d.getUTCHours() * 60 + d.getUTCMinutes(); }   // hora de Argentina según el reloj del servidor
+  function schedOpen(st) { var a = toMin(st.hoursFrom), b = toMin(st.hoursTo); if (a == null || b == null) return false; var n = srvMin(); return a <= b ? (n >= a && n < b) : (n >= a || n < b); }
+  function applyStatus() {
+    var st = S.status;
+    if (!st || !st.mode) { S.open = S.cfg.online !== false; return; }
+    S.open = st.mode === 'on' || (st.mode === 'auto' && schedOpen(st));
+    if (S.denied && !S.admin) S.open = false;
+    S.cfg.online = S.open; S.cfg.offReason = typeof st.offReason === 'string' ? st.offReason.slice(0, 120) : '';
+    if (st.hoursFrom && st.hoursTo) { S.cfg.hoursFrom = st.hoursFrom; S.cfg.hoursTo = st.hoursTo; }
+    if (st.mode === 'auto') S.cfg.hoursOn = true;
+  }
+  function stFull(over) {
+    var c = S.cfg, st = S.status || {}, o = Object.assign({ mode: st.mode || (c.online ? 'on' : 'off'), offReason: st.offReason || '', hoursFrom: c.hoursFrom, hoursTo: c.hoursTo }, over || {});
+    o.fromMin = toMin(o.hoursFrom) || 0; o.toMin = toMin(o.hoursTo) || 0; o.offReason = o.offReason || null; o.onlineAt = firebase.database.ServerValue.TIMESTAMP; return o;
+  }
+  function cfgCb(s) {
+    var old = S.cfg.rate; S.cfg = readCfg(s.val()); S.denied = false; applyStatus();
+    if (!S.firstCfg && old !== S.cfg.rate && S.open) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); liveToast(old); }
+    S.firstCfg = false; S.live = true; update(); if (S.admin) refreshPanel(); maybeInitialToast();
+  }
+  function attachData() {
+    if (!db || cfgRef) return;
+    cfgRef = db.ref('config'); cfgRef.on('value', cfgCb, function () { cfgRef = null; S.denied = true; S.live = true; applyStatus(); update(); });
+    histRef = db.ref('history'); histRef.on('value', function (s) { S.historyRaw = s.val() || []; update(); }, function () { histRef = null; });
+  }
+  function detachData() {   // apagado: se corta la lectura y se borra lo que el dispositivo tenía en memoria
+    if (cfgRef) { cfgRef.off(); cfgRef = null; } if (histRef) { histRef.off(); histRef = null; }
+    S.cfg = readCfg(null); S.historyRaw = []; S.firstCfg = true; applyStatus();
+  }
+  function syncData() { if (!db) return; if (S.admin || S.open) attachData(); else detachData(); }
   if (fbOk) {
     try {
       firebase.initializeApp(window.FIREBASE_CONFIG);
       db = firebase.database(); auth = firebase.auth();
       auth.setPersistence(firebase.auth.Auth.Persistence.NONE).catch(function () {});   // la sesión de admin no se guarda en el dispositivo
       db.ref('.info/connected').on('value', function (s) { S.online = !!s.val(); update(); });
-      db.ref('status').on('value', function (s) {
-        S.stRaw = s.val() || {}; S.stExists = s.exists(); S.live = true; rebuildCfg(); attachLive(); update();
-        if (S.admin) { migrateOld(); refreshPanel(); } maybeInitialToast();
-      }, function () {});
+      db.ref('.info/serverTimeOffset').on('value', function (s) { S.offset = s.val() || 0; applyStatus(); update(); });
+      var stRefP = db.ref('status');
+      function stCb(s) {
+        var was = S.open; S.status = s.val(); applyStatus();
+        if (S.open && was === false && !S.admin) S.live = false;     // reabre: espera la cotización real antes de mostrarla
+        if (!S.open) S.live = true;
+        syncData(); update(); if (S.admin) refreshPanel();
+      }
+      stRefP.on('value', stCb, function () {});
+      S.resync = function () { try { db.goOnline(); } catch (e) {} stRefP.once('value', stCb).catch(function () {}); };
       db.ref('reviews').on('value', function (s) { S.reviews = revList(s.val()); S.rulesBad.reviews = false; renderReviews(); if (S.admin) { renderRvAdmin(); renderRules(); } }, function () { S.rulesBad.reviews = true; if (S.admin) renderRules(); });
       auth.onAuthStateChanged(function (u) {
         if (u && u.email === window.ADMIN_EMAIL) mountPanel(); else unmountPanel();
+        syncData();
       });
     } catch (e) { fbOk = false; db = null; auth = null; }
   }
@@ -309,7 +317,7 @@
     var fee = amt < c.feeThreshold ? c.feeFixed : amt * c.feePct / 100;
     var feeLabel = amt < c.feeThreshold ? t('feeFixedLbl', { n: fmtN(c.feeFixed) }) : t('feePctLbl', { n: fmtN(c.feePct) });
     var net = incl ? amt - fee : amt, pay = incl ? amt : amt + fee;
-    var ok = amt > 0 && amt >= c.minUsd && net > 0;
+    var ok = amt > 0 && amt >= c.minUsd && net > 0 && amt <= 10000000 && isFinite(amt * rate);
     return { rate: rate, official: c.rate, useM: useM, amt: amt, fee: fee, feeLabel: feeLabel, net: net, pay: pay, ok: ok, receive: ok ? net * rate : 0 };
   }
   function arsPair() {
@@ -474,10 +482,43 @@
     $('#histCard').hidden = locked;
     if (locked) { var tt = $('#toast'); tt.classList.remove('show'); }
   }
+  S.t0 = Date.now();
+  var SB = {
+    load: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.55"/></svg>',
+    err: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 4-2.4M22 8.8a15 15 0 0 0-8.5-4.7M5 12.9a10 10 0 0 1 3.2-2M19 12.9a10 10 0 0 0-3.7-2.3M8.5 16.4a5 5 0 0 1 7 0M12 20h.01M2 2l20 20"/></svg>',
+    none: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+  };
+  function renderState() {
+    var box = $('#sbox'); if (!box) return;
+    var k = '', waited = Date.now() - S.t0 > 9000;
+    if (fbOk && !isLocked()) {
+      if (!S.live) k = waited ? 'err' : 'load';
+      else if (!S.online && waited) k = 'stale';
+      else if (S.open !== false && !S.cfg.hasRate) k = 'none';
+    }
+    if (!k) { box.hidden = true; return; }
+    if (box.getAttribute('data-k') !== k) {
+      box.setAttribute('data-k', k);
+      $('#sbIco').innerHTML = SB[k === 'stale' ? 'err' : k];
+      var p = { load: 'sbLoad', err: 'sbErr', stale: 'sbStale', none: 'sbNone' }[k];
+      $('#sbTitle').textContent = t(p + 'T'); $('#sbMsg').textContent = t(p + 'M');
+      $('#sbRetry').hidden = (k === 'load' || k === 'none'); $('#sbSkl').hidden = (k !== 'load');
+    }
+    box.hidden = false;
+  }
+  function renderFoot() {
+    var c = S.cfg; if (!$('#fHoursTxt')) return;
+    setText('#fHoursTxt', c.hoursOn ? t('fHoursOn', { a: c.hoursFrom, b: c.hoursTo }) : t('fHoursOff'));
+    var live = fbOk && S.live, on = live && c.online;
+    $('#fDot').className = 'dot ' + (on ? 'g' : 'off');
+    setText('#fNow', !fbOk ? '' : (!live ? t('loading') : (on ? t('onChip') : t('offChip'))));
+  }
   function update() {
     var c = S.cfg, k = calc(); S.lastCalc = k; var locked = isLocked();
+    var mask = locked || (fbOk && (!S.live || !c.hasRate));
+    renderState(); renderFoot();
     /* cotización */
-    setText('#officialBig', (locked || (fbOk && S.live && !S.liveOk && !S.admin)) ? '$ ·····' : ars(c.rate));
+    setText('#officialBig', mask ? '$ ·····' : ars(c.rate)); if ($('#calc')) $('#calc').classList.toggle('dim', mask && !locked);
     var tr = $('#trend');
     if (c.prev > 0 && c.prev !== c.rate && S.live && !locked) { var df = c.rate - c.prev; tr.textContent = (df > 0 ? '▲ +' : '▼ −') + fmtN(Math.abs(df)); } else tr.textContent = '';
     setText('#updTxt', locked ? t('offHero') : (c.updatedAt ? t('upd', { d: whenTxt(c.updatedAt) }) : t('updNone')));
@@ -674,12 +715,16 @@
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); S.dip = e; update(); });
   $('#instBtn').addEventListener('click', function () { if (S.dip) { S.dip.prompt(); S.dip = null; update(); } });
   /* Notificación al celular de Justo (app gratuita ntfy). Se activa poniendo window.NTFY_TOPIC en firebase-config.js */
+  function ntfyOk(kind) {   // evita avisos repetidos: máximo uno por tipo cada 60 s en este dispositivo
+    try { var k = 'pp_ntfy_' + kind, last = +localStorage.getItem(k) || 0; if (Date.now() - last < 60000) return false; localStorage.setItem(k, String(Date.now())); } catch (e) {}
+    return true;
+  }
   function notifyAdmin(target, phone) {
-    var topic = window.NTFY_TOPIC; if (!topic) return;
+    var topic = window.NTFY_TOPIC; if (!topic || !ntfyOk('alert')) return;
     try {
       fetch('https://ntfy.sh/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        topic: topic, title: 'Nueva alerta de cotización', message: '+' + phone + ' quiere cambiar a ' + ars(target) + '. Dólar ahora: ' + ars(S.cfg.rate),
-        priority: 4, tags: ['bell', 'moneybag'], click: 'https://wa.me/' + phone }) }).catch(function () {});
+        topic: topic, title: 'Nueva alerta de cotización', message: 'Un cliente pidió aviso a ' + ars(target) + '. Abre el panel para ver quién.',
+        priority: 4, tags: ['bell', 'moneybag'], click: location.origin + location.pathname + '#admin' }) }).catch(function () {});
     } catch (e) {}
   }
   $('#alBtn').addEventListener('click', function () {
@@ -702,11 +747,11 @@
     return { nat: nat, phone: cc + nat, ok: nat.length >= 7 && nat.length <= 11 };
   }
   function notifyAdminOpen(phone) {
-    var topic = window.NTFY_TOPIC; if (!topic) return;
+    var topic = window.NTFY_TOPIC; if (!topic || !ntfyOk('open')) return;
     try {
       fetch('https://ntfy.sh/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        topic: topic, title: 'Cliente espera que abras', message: '+' + phone + ' pidió que le avises cuando estemos en línea.',
-        priority: 3, tags: ['bell'], click: 'https://wa.me/' + phone }) }).catch(function () {});
+        topic: topic, title: 'Cliente espera que abras', message: 'Un cliente espera que abras. Abre el panel para ver quién.',
+        priority: 3, tags: ['bell'], click: location.origin + location.pathname + '#admin' }) }).catch(function () {});
     } catch (e) {}
   }
   function nfSay(k, kind) { var m = $('#nfMsg'); m.textContent = t(k); m.className = 'nfmsg' + (kind ? ' ' + kind : ''); }
@@ -882,7 +927,7 @@
   function pa(id) { return slot.querySelector('#' + id); }
   function msgA(txt, bad) { var m = pa('aMsg'); if (!m) return; m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
   function mountPanel() {
-    if (S.admin) return; S.admin = true; gate.hidden = true; update(); S.liveWait = false; attachLive(); migrateOld();
+    if (S.admin) return; S.admin = true; gate.hidden = true; update();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
     ['aFrom', 'aTo'].forEach(function (id) { var sel = pa(id); for (var m = 0; m < 1440; m += 15) { var v = (m / 60 < 10 ? '0' : '') + Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + (m % 60), o = el('option', null, v); o.value = v; sel.appendChild(o); } });
     pa('aPeek').addEventListener('click', function () { S.preview = true; update(); });
@@ -903,52 +948,74 @@
       var cur = S.cfg.rate, prev = cur !== v ? cur : S.cfg.prev, now = Date.now();
       var items = [{ rate: v, at: now }].concat(histList().map(function (x) { return { rate: x.rate, at: x.at || 0 }; })).slice(0, 20);
       msgA('Publicando…');
-      db.ref().update({ 'live/rate': v, 'live/prev': prev, 'live/updatedAt': firebase.database.ServerValue.TIMESTAMP, 'history': items })
-        .then(function () { return db.ref('live/rate').once('value'); })
+      db.ref().update({ 'config/rate': v, 'config/prev': prev, 'config/updatedAt': firebase.database.ServerValue.TIMESTAMP, 'history': items })
+        .then(function () { return db.ref('config/rate').once('value'); })
         .then(function (s) { delete pa('aRate').dataset.dirty; var hits = S.alerts.filter(function (x) { return s.val() >= x.target; }).length; msgA('Publicada ✓ Confirmado en el servidor: ' + ars(s.val()) + '. Los clientes ya la ven.' + (hits ? ' 🔔 ' + hits + ' cliente(s) esperaban este precio: avísales en el punto 7.' : '')); refreshPanel(); })
         .catch(function (e) { msgA(errMsg(e), true); });
     });
-    pa('aManual').addEventListener('click', function () { run(db.ref('live/allowManual').set(!S.cfg.allowManual), 'Permiso actualizado'); });
+    pa('aManual').addEventListener('click', function () { run(db.ref('config/allowManual').set(!S.cfg.allowManual), 'Permiso actualizado'); });
     pa('aMinBtn').addEventListener('click', function () {
       var mn = num(pa('aMin').value); if (mn > 100000) { msgA('Revisa el valor.', true); return; }
-      run(db.ref('live/minUsd').set(mn), 'Mínimo guardado', ['aMin']);
+      run(db.ref('config/minUsd').set(mn), 'Mínimo guardado', ['aMin']);
     });
     var cfTimer = null;
     function hideConfirm() { clearTimeout(cfTimer); pa('aConfirm').hidden = true; }
     pa('aConfirmNo').addEventListener('click', hideConfirm);
     pa('aConfirmYes').addEventListener('click', function () { hideConfirm(); doEngine(false); });
     pa('aEngine').addEventListener('click', function () {
-      if (S.cfg.master) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
+      if (S.cfg.online) { var cf = pa('aConfirm'); if (cf.hidden) { var rr0 = pa('aReason').value.trim(); pa('aConfirmReason').textContent = rr0 ? 'Los clientes verán el motivo: «' + rr0 + '»' : 'Sin motivo. Si quieres, escríbelo abajo en “Motivo al apagar” antes de apagar.'; cf.hidden = false; clearTimeout(cfTimer); cfTimer = setTimeout(hideConfirm, 8000); cf.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } else hideConfirm(); return; }
       doEngine(true);
     });
     function doEngine(turnOn) {
       var btn = pa('aEngine');
       btn.classList.remove('crank'); void btn.offsetWidth; btn.classList.add('crank'); setTimeout(function () { btn.classList.remove('crank'); }, 650);
       try { if (navigator.vibrate) navigator.vibrate(turnOn ? [30, 40, 70] : 25); } catch (e) {}
-      var upd = { online: turnOn, onlineAt: firebase.database.ServerValue.TIMESTAMP }, extra = '';
+      var upd = stFull({ mode: turnOn ? 'on' : 'off' }), extra = '';
       if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
       run(db.ref('status').update(upd), (turnOn ? 'En línea' : 'Fuera de línea') + extra, turnOn ? [] : ['aReason']);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
-      run(db.ref('live/rateSell').set(v), 'Cotización pesos → dólares guardada', ['aSell']);
+      run(db.ref('config/rateSell').set(v), 'Cotización pesos → dólares guardada', ['aSell']);
     });
-    pa('aSellOff').addEventListener('click', function () { pa('aSell').value = ''; delete pa('aSell').dataset.dirty; run(db.ref('live/rateSell').remove(), 'Cotización pesos → dólares quitada'); });
+    pa('aSellOff').addEventListener('click', function () { pa('aSell').value = ''; delete pa('aSell').dataset.dirty; run(db.ref('config/rateSell').remove(), 'Cotización pesos → dólares quitada'); });
     function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function (e) { msgA(errMsg(e), true); }); }
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
-    S.stRef = db.ref('stats').orderByKey().limitToLast(14); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
-    pa('aAnnBtn').addEventListener('click', function () { run(db.ref('live/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
-    pa('aHoursOn').addEventListener('click', function () {
-      var turnOn = !S.cfg.hoursOn, a = toMin(S.cfg.hoursFrom), b = toMin(S.cfg.hoursTo);
-      if (turnOn && (a == null || b == null || a === b)) { msgA('Primero elige y guarda dos horas distintas.', true); return; }
-      run(db.ref('status').update({ hoursOn: turnOn, fromMs: (a || 0) * 60000, toMs: (b || 0) * 60000 }), turnOn ? 'Encendido automático ACTIVADO (abre y cierra solo, a la hora de Argentina)' : 'Encendido automático desactivado: manda solo el botón de arranque');
+    pa('aAuto').addEventListener('click', function () {
+      var st = S.status || {};
+      if (st.mode === 'auto') { run(db.ref('status').update(stFull({ mode: S.cfg.online ? 'on' : 'off' })), 'Modo manual: ahora decides tú con el botón'); return; }
+      if (toMin(S.cfg.hoursFrom) == null || toMin(S.cfg.hoursTo) == null) { msgA('Primero guarda el horario (punto 6).', true); return; }
+      run(db.ref('status').update(stFull({ mode: 'auto' })), 'Encendido automático activado: abre y cierra solo según el horario');
     });
+    function weekText() {
+      var base = new Date(srvNow() - 10800000), lines = [], st = 0, dn = 0, pst = 0, pdn = 0, best = null, i;
+      function key(n) { return new Date(base.getTime() - n * 86400000).toISOString().slice(0, 10); }
+      function dm(k) { return k.slice(8) + '/' + k.slice(5, 7); }
+      for (i = 6; i >= 0; i--) { var k = key(i), x = S.stats[k] || {}, a = x.started || 0, b = x.done || 0; st += a; dn += b; if (!best || b > best.b || (b === best.b && a > best.a)) best = { k: k, a: a, b: b }; lines.push(dm(k) + ': ' + a + ' iniciados · ' + b + ' concretados'); }
+      for (i = 7; i <= 13; i++) { var y = S.stats[key(i)] || {}; pst += y.started || 0; pdn += y.done || 0; }
+      var rates = histList().filter(function (h) { return (h.at || 0) >= srvNow() - 7 * 86400000; }).map(function (h) { return h.rate; });
+      function diff(n, p) { return p ? (n >= p ? '▲ +' : '▼ −') + Math.abs(Math.round((n - p) / p * 100)) + '% vs semana anterior' : 'sin semana anterior para comparar'; }
+      var out = '📊 Resumen semanal · Dólar PesoPro\n' + lines.join('\n') + '\n\nTotal: ' + st + ' iniciados · ' + dn + ' concretados (' + (st ? Math.round(dn / st * 100) : 0) + '%)\nIniciados: ' + diff(st, pst) + '\nConcretados: ' + diff(dn, pdn);
+      if (best && (best.a || best.b)) out += '\nMejor día: ' + dm(best.k) + ' (' + best.b + ' concretados)';
+      if (rates.length) out += '\nCotización: mín ' + ars(Math.min.apply(null, rates)) + ' · máx ' + ars(Math.max.apply(null, rates)) + ' · ' + rates.length + ' cambio(s)';
+      return out;
+    }
+    pa('aWeekBtn').addEventListener('click', function () {
+      var bx = pa('aWeekBox'), open = bx.hidden; bx.hidden = !open; pa('aWeekAct').hidden = !open;
+      if (open) bx.textContent = weekText();
+    });
+    pa('aWeekWa').addEventListener('click', function () { window.open('https://wa.me/?text=' + encodeURIComponent(weekText()), '_blank'); });
+    pa('aWeekCopy').addEventListener('click', function () { var tx = weekText(); try { navigator.clipboard.writeText(tx).then(function () { msgA('Resumen copiado ✓'); }); } catch (e) { msgA('No se pudo copiar.', true); } });
+    S.stRef = db.ref('stats').orderByKey().limitToLast(14); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
+    pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
+    pa('aHoursOn').addEventListener('click', function () { run(db.ref('config/hoursOn').set(!S.cfg.hoursOn), 'Horario actualizado'); });
     pa('aHoursBtn').addEventListener('click', function () {
       if (toMin(pa('aFrom').value) == null || toMin(pa('aTo').value) == null) { msgA('Elige las dos horas.', true); return; }
-      var fa = toMin(pa('aFrom').value), fb = toMin(pa('aTo').value); if (fa === fb) { msgA('Las dos horas no pueden ser iguales.', true); return; }
-      run(db.ref('status').update({ hoursFrom: pa('aFrom').value, hoursTo: pa('aTo').value, fromMs: fa * 60000, toMs: fb * 60000 }), 'Horario guardado', ['aFrom', 'aTo']);
+      var hu = { 'config/hoursFrom': pa('aFrom').value, 'config/hoursTo': pa('aTo').value }, so = stFull({ hoursFrom: pa('aFrom').value, hoursTo: pa('aTo').value });
+      Object.keys(so).forEach(function (k) { hu['status/' + k] = so[k]; });
+      run(db.ref().update(hu), 'Horario guardado', ['aFrom', 'aTo']);
     });
     pa('aPassBtn').addEventListener('click', function () {
       var np = pa('aNewPass').value; if (np.length < 10) { msgA('La clave debe tener al menos 10 caracteres.', true); return; }
@@ -969,10 +1036,8 @@
     pa('aReason').addEventListener('input', function (e) { e.target.dataset.dirty = '1'; });
     pa('aReasonBtn').addEventListener('click', function () {
       var v = pa('aReason').value.trim().slice(0, 120);
-      run(db.ref('status/offReason').set(v || null), v ? 'Motivo guardado' : 'Motivo quitado', ['aReason']);
+      run(db.ref('status').update(stFull({ offReason: v })), v ? 'Motivo guardado' : 'Motivo quitado', ['aReason']);
     });
-    /* --- resumen semanal por WhatsApp --- */
-    pa('aWeekShare').addEventListener('click', function () { if (S.weekMsg) window.open('https://wa.me/?text=' + encodeURIComponent(S.weekMsg), '_blank'); });
     /* --- compartir cotización por WhatsApp --- */
     pa('aShareRate').addEventListener('click', function () {
       var c = S.cfg, url = location.href.split('#')[0].split('?')[0];
@@ -1025,7 +1090,7 @@
     setTimeout(function () { slot.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   }
   function unmountPanel() {
-    if (!S.admin) return; S.admin = false; S.preview = false; update(); attachLive();
+    if (!S.admin) return; S.admin = false; S.preview = false; update();
     if (S.alRef) { S.alRef.off(); S.alRef = null; }
     if (S.stRef) { S.stRef.off(); S.stRef = null; }
     if (S.noRef) { S.noRef.off(); S.noRef = null; }
@@ -1040,10 +1105,12 @@
     pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursOn);
     pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', c.hoursOn ? 'true' : 'false');
     pa('aManualHelp').textContent = c.allowManual ? 'Activado: cada cliente puede ajustar la cotización en su propio cálculo.' : 'Desactivado: los clientes solo ven la cotización oficial.';
-    var on = c.master; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
+    var on = c.online; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
     pa('aEngineTitle').textContent = on ? 'EN LÍNEA' : 'FUERA DE LÍNEA'; pa('aPeek').hidden = on;
-    pa('aEngineSub').textContent = (on && !c.online) ? 'Interruptor encendido, pero los clientes ven apagado por el horario automático (abres a las ' + c.hoursFrom + '). Toca el botón para apagar del todo.' : on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
-    pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (c.online ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
+    pa('aEngineSub').textContent = on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar.' : 'Los clientes ven la pantalla apagada. Tú sigues viendo todo normal. Toca el botón para arrancar.';
+    pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (on ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
+    var au = !!(S.status && S.status.mode === 'auto'); pa('aAuto').classList.toggle('on', au); pa('aAuto').setAttribute('aria-checked', au ? 'true' : 'false');
+    pa('aAutoHelp').textContent = au ? 'Automático: abre a las ' + c.hoursFrom + ' y cierra a las ' + c.hoursTo + ' (hora de Argentina). Si tocas el botón de arriba, pasa a manual.' : 'Manual: tú decides con el botón. Actívalo para que abra y cierre solo con el horario del punto 6.';
     renderAlerts(); renderWaiters(); renderRvAdmin(); renderRules();
   }
   function esc(x) { return String(x).replace(/[&<>"']/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]; }); }
@@ -1077,25 +1144,12 @@
       b.appendChild(x); row.appendChild(info); row.appendChild(b); box.appendChild(row);
     });
   }
-  function weekKeys(off) { var ks = []; for (var i = 6; i >= 0; i--) ks.push(dayKey(new Date(Date.now() - (i + off) * 86400000))); return ks; }
-  function sumWeek(ks) { var s = 0, d = 0, best = null; ks.forEach(function (k) { var x = S.stats[k] || {}, dn = x.done || 0; s += x.started || 0; d += dn; if (dn > 0 && (!best || dn > best.v)) best = { k: k, v: dn }; }); return { s: s, d: d, best: best }; }
-  function dayName(k) { try { return new Date(k + 'T12:00:00Z').toLocaleDateString('es', { weekday: 'short', timeZone: 'UTC' }).replace('.', ''); } catch (e) { return k.slice(5); } }
   function renderStats() {
     if (!S.admin || !pa('aStStarted')) return;
-    var today = S.stats[dayKey()] || {};
+    var today = S.stats[dayKey()] || {}, st = 0, dn = 0, days = Object.keys(S.stats);
     pa('aStStarted').textContent = today.started || 0; pa('aStDone').textContent = today.done || 0;
-    pa('aStWeek').textContent = '“Iniciados” cuenta los toques de los clientes en Hacer cambio.';
-    var ks = weekKeys(0), cur = sumWeek(ks), prv = sumWeek(weekKeys(7)), mx = 1, bars = pa('aWeekBars'); bars.textContent = '';
-    ks.forEach(function (k) { mx = Math.max(mx, (S.stats[k] || {}).started || 0); });
-    ks.forEach(function (k) {
-      var x = S.stats[k] || {}, st = x.started || 0, dn = x.done || 0, row = el('div', 'wk'), tr = el('i'), u = el('u');
-      tr.style.width = Math.max(st ? 8 : 2, st / mx * 100) + '%'; u.style.width = (st ? Math.min(100, dn / st * 100) : 0) + '%'; tr.appendChild(u);
-      row.appendChild(el('span', null, dayName(k))); row.appendChild(tr); row.appendChild(el('b', null, st + '/' + dn)); bars.appendChild(row);
-    });
-    var pct = cur.s ? Math.round(cur.d / cur.s * 100) : 0, cmp = prv.d ? (cur.d >= prv.d ? '▲ +' : '▼ −') + Math.abs(Math.round((cur.d - prv.d) / prv.d * 100)) + '% vs semana anterior (' + prv.d + ')' : 'sin semana anterior para comparar';
-    var best = cur.best ? dayName(cur.best.k) + ' (' + cur.best.v + ')' : '—';
-    pa('aWeekTxt').textContent = 'Últimos 7 días: ' + cur.s + ' iniciados · ' + cur.d + ' concretados (' + pct + '%) · Mejor día: ' + best + ' · ' + cmp + '. Barra: iniciados / parte concretada.';
-    S.weekMsg = '📊 Resumen semanal · Dólar PesoPro\n• Cambios iniciados: ' + cur.s + '\n• Concretados: ' + cur.d + ' (' + pct + '%)\n• Mejor día: ' + best + '\n• ' + cmp.charAt(0).toUpperCase() + cmp.slice(1);
+    days.forEach(function (k) { st += S.stats[k].started || 0; dn += S.stats[k].done || 0; });
+    pa('aStWeek').textContent = 'Últimos ' + Math.max(1, days.length) + ' día(s) con actividad: ' + st + ' iniciados · ' + dn + ' concretados. “Iniciados” cuenta los toques de los clientes en Hacer cambio.';
   }
   function renderAlerts() {
     if (!S.admin || !pa('aAlerts')) return; var box = pa('aAlerts'); box.textContent = '';
@@ -1138,7 +1192,14 @@
 
   /* ---------- arranque ---------- */
   applyStatic(); update();
-  setInterval(function () { rebuildCfg(); attachLive(); update(); }, 20000);
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && db) { try { db.goOnline(); } catch (e) {} rebuildCfg(); attachLive(); update(); } });
+  setTimeout(update, 9500);
+  var rb = $('#sbRetry'); if (rb) rb.addEventListener('click', function () { S.t0 = Date.now(); if (S.resync) S.resync(); syncData(); update(); setTimeout(update, 9500); });
+  var tf = $('#topFoot'); if (tf) tf.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  function tick() { if (S.denied && !S.admin) S.denied = false; applyStatus(); syncData(); update(); }
+  setInterval(tick, 15000);
+  setInterval(function () { if (S.resync) S.resync(); }, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { if (S.resync) S.resync(); tick(); } });
+  window.addEventListener('pageshow', function () { if (S.resync) S.resync(); tick(); });
+  window.addEventListener('online', function () { if (S.resync) S.resync(); });
   setTimeout(function () { S.splashDone = true; $('#splash').classList.add('hide'); update(); setTimeout(maybeInitialToast, 500); }, 1500);
 })();

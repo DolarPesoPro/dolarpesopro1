@@ -3,12 +3,6 @@
 Sitio estático (HTML + CSS + JS) para **GitHub Pages**. Cotización, avisos, estado en línea, reseñas y clave de
 administrador viven en **Firebase** (plan gratuito): cuando cambias algo en el panel, todos lo ven al instante.
 
-## Novedades (versión 20261016a)
-- **Apagado real:** la cotización vive en `live` e `history`, y Firebase solo los entrega si el servicio está encendido. Apagas y todos los dispositivos se bloquean al instante, y nadie puede leer el precio (ni con la consola).
-- **Encendido automático:** punto 6 del panel. Activado = abre y cierra solo en el horario (hora de Argentina), aplicado por el servidor. El botón de arranque sigue siendo el interruptor principal.
-- **Resumen semanal:** debajo del contador del día, con barras por día, % concretados, mejor día, comparación con la semana anterior y botón para enviarlo por WhatsApp.
-- **Migración automática:** la primera vez que entres al panel, tus datos antiguos (`config`) se copian solos al sistema nuevo y se borra el nodo viejo.
-
 ## Archivos
 | Archivo | Para qué sirve |
 |---|---|
@@ -64,3 +58,15 @@ una cotización o pide que le avisen al abrir, con un toque directo a su WhatsAp
 - “Clave incorrecta”: el usuario debe existir en Authentication.
 - “Sin permiso”: reglas sin publicar o correo distinto.
 - Probar en tu PC: `python3 -m http.server 8000` y abre `http://localhost:8000` (agrega `localhost` a dominios autorizados).
+
+## Novedades (apagado real + automático + resumen)
+- **Apagado real:** al apagar, Firebase deja de entregar la cotización y el historial a cualquier cliente (las reglas lo bloquean en el servidor). Los dispositivos abiertos se bloquean al instante y borran lo que tenían en memoria.
+- **Encendido automático:** interruptor “Encendido automático por horario” en el panel. Usa el horario del punto 6 (hora de Argentina). El botón grande pasa a modo manual cuando lo tocas.
+- **Resumen semanal:** en el contador del día, botón “Resumen semanal” → Enviar por WhatsApp o Copiar.
+- **Orden de actualización:** 1) sube los archivos, 2) publica `firebase.rules.json`, 3) entra al panel, guarda el horario y toca el botón de encendido una vez para crear el nodo `status`.
+- **Avisos ntfy:** ya no incluyen el teléfono del cliente. Cambia `NTFY_TOPIC` por uno nuevo (el anterior ya estuvo público).
+
+## Pie de página y estados
+- **Pie:** secciones plegables (Contacto, Horarios, Sobre las cotizaciones) para no recargar la pantalla. El horario sale solo del que guardes en el panel y muestra si estás en línea ahora.
+- **Estados:** *cargando* (con animación), *sin conexión* (nunca cargó: no se muestra ninguna cotización), *conexión perdida* (aviso de valor posible desactualizado), *cotización no publicada* (calculadora atenuada). El servicio cerrado sigue usando la pantalla de apagado.
+- Las imágenes van dentro de la carpeta `assets/`.
