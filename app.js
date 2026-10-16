@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261016b';
+  var VER = '20261016c';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -276,11 +276,17 @@
     if (S.denied && !S.admin) S.open = false;
     S.cfg.online = S.open; S.cfg.offReason = typeof st.offReason === 'string' ? st.offReason.slice(0, 120) : '';
     if (st.hoursFrom && st.hoursTo) { S.cfg.hoursFrom = st.hoursFrom; S.cfg.hoursTo = st.hoursTo; }
-    if (st.mode === 'auto') S.cfg.hoursOn = true;
+    S.cfg.hoursRaw = S.cfg.hoursOn; if (st.mode === 'auto') S.cfg.hoursOn = true;
   }
   function stFull(over) {
     var c = S.cfg, st = S.status || {}, o = Object.assign({ mode: st.mode || (c.online ? 'on' : 'off'), offReason: st.offReason || '', hoursFrom: c.hoursFrom, hoursTo: c.hoursTo }, over || {});
     o.fromMin = toMin(o.hoursFrom) || 0; o.toMin = toMin(o.hoursTo) || 0; o.offReason = o.offReason || null; o.onlineAt = firebase.database.ServerValue.TIMESTAMP; return o;
+  }
+  /* escritura mínima del estado: solo toca lo necesario (no pisa horarios con valores viejos) */
+  function stMin(over) {
+    var st = S.status || {}, o = Object.assign({}, over || {}); o.onlineAt = firebase.database.ServerValue.TIMESTAMP;
+    if (typeof st.fromMin !== 'number' || typeof st.toMin !== 'number') { var f = stFull(over); o.fromMin = f.fromMin; o.toMin = f.toMin; o.hoursFrom = f.hoursFrom; o.hoursTo = f.hoursTo; }
+    return o;
   }
   function cfgCb(s) {
     var old = S.cfg.rate; S.cfg = readCfg(s.val()); S.denied = false; applyStatus();
@@ -645,6 +651,18 @@
     b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
     setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2100);
   }
+  /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
+  var greetT = [];
+  function stopGreet() { greetT.forEach(clearTimeout); greetT = []; }
+  function greetPick() {
+    stopGreet();
+    var HELP = ['¿En qué te puedo ayudar? 💬', '¡Te atiendo yo! 👋'];
+    $$('#pick .avatar').forEach(function (m, i) {
+      var nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), L = SAY[nm] || SAY.Justo;
+      greetT.push(setTimeout(function () { hop(m); burst(m, false); say(m, L[0]); }, 650 + i * 900));
+      greetT.push(setTimeout(function () { say(m, i ? L[1] : HELP[0]); }, 650 + i * 900 + 1700));
+    });
+  }
   function hop(m) { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }
   function burst(node, talk) {
     var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, g = ['$', '₱', '✦', '$', '₱'];
@@ -812,7 +830,7 @@
   document.addEventListener('focusout', function () { clearTimeout(kbT); kbT = setTimeout(function () { document.body.classList.remove('kb'); }, 150); });
 
   /* ---------- Hacer cambio (elige administrador) ---------- */
-  function setSheet2(o) { $('#sheet2').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) $('#pick').scrollTop = 0; }
+  function setSheet2(o) { $('#sheet2').classList.toggle('open', o); document.body.style.overflow = o ? 'hidden' : ''; if (o) { $('#pick').scrollTop = 0; greetPick(); } else stopGreet(); }
   function dayKey(d) {
     try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d || new Date()); }
     catch (e) { return (d || new Date()).toISOString().slice(0, 10); }
@@ -982,10 +1000,10 @@
       var btn = pa('aEngine');
       btn.classList.remove('crank'); void btn.offsetWidth; btn.classList.add('crank'); setTimeout(function () { btn.classList.remove('crank'); }, 650);
       try { if (navigator.vibrate) navigator.vibrate(turnOn ? [30, 40, 70] : 25); } catch (e) {}
-      var upd = stFull({ mode: turnOn ? 'on' : 'off' }), extra = '';
+      var upd = stMin({ mode: turnOn ? 'on' : 'off' }), extra = '', wasAuto = !!(S.status && S.status.mode === 'auto');
       if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
-      run(db.ref('status').update(upd), (turnOn ? 'En línea' : 'Fuera de línea') + extra, turnOn ? [] : ['aReason']);
+      run(db.ref('status').update(upd), (turnOn ? 'En línea' : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el encendido automático se desactivó; vuelve a activarlo cuando quieras)' : '')) + extra, turnOn ? [] : ['aReason']);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
@@ -997,9 +1015,9 @@
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
     pa('aAuto').addEventListener('click', function () {
       var st = S.status || {};
-      if (st.mode === 'auto') { run(db.ref('status').update(stFull({ mode: S.cfg.online ? 'on' : 'off' })), 'Modo manual: ahora decides tú con el botón'); return; }
+      if (st.mode === 'auto') { run(db.ref('status').update(stMin({ mode: S.cfg.online ? 'on' : 'off' })), 'Encendido automático DESACTIVADO: ahora decides tú con el botón'); return; }
       if (toMin(S.cfg.hoursFrom) == null || toMin(S.cfg.hoursTo) == null) { msgA('Primero guarda el horario (punto 6).', true); return; }
-      run(db.ref('status').update(stFull({ mode: 'auto' })), 'Encendido automático activado: abre y cierra solo según el horario');
+      run(db.ref('status').update(stMin({ mode: 'auto' })), 'Encendido automático ACTIVADO: abre y cierra solo según el horario');
     });
     function weekText() {
       var base = new Date(srvNow() - 10800000), lines = [], st = 0, dn = 0, pst = 0, pdn = 0, best = null, i;
@@ -1022,7 +1040,7 @@
     pa('aWeekCopy').addEventListener('click', function () { var tx = weekText(); try { navigator.clipboard.writeText(tx).then(function () { msgA('Resumen copiado ✓'); }); } catch (e) { msgA('No se pudo copiar.', true); } });
     S.stRef = db.ref('stats').orderByKey().limitToLast(14); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
     pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
-    pa('aHoursOn').addEventListener('click', function () { run(db.ref('config/hoursOn').set(!S.cfg.hoursOn), 'Horario actualizado'); });
+    pa('aHoursOn').addEventListener('click', function () { var cur = S.cfg.hoursRaw !== undefined ? S.cfg.hoursRaw : S.cfg.hoursOn; run(db.ref('config/hoursOn').set(!cur), !cur ? 'Horario visible para los clientes' : 'Horario oculto (el automático, si está activo, sigue funcionando)'); });
     pa('aHoursBtn').addEventListener('click', function () {
       var from = pa('aFrom').value, to = pa('aTo').value;
       if (toMin(from) == null || toMin(to) == null) { msgA('Elige las dos horas.', true); return; }
@@ -1122,8 +1140,8 @@
     function fill(id, v) { var n = pa(id); if (n && !n.dataset.dirty && document.activeElement !== n) n.value = v; }
     fill('aRate', inN(c.rate)); fill('aMin', inN(c.minUsd)); fill('aSell', c.rateSell > 0 ? inN(c.rateSell) : '');
     fill('aAnn', c.announcement); fill('aFrom', c.hoursFrom); fill('aTo', c.hoursTo); fill('aReason', c.offReason);
-    pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursOn);
-    pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', c.hoursOn ? 'true' : 'false');
+    pa('aManual').classList.toggle('on', c.allowManual); pa('aHoursOn').classList.toggle('on', c.hoursRaw !== undefined ? c.hoursRaw : c.hoursOn);
+    pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false'); pa('aHoursOn').setAttribute('aria-checked', (c.hoursRaw !== undefined ? c.hoursRaw : c.hoursOn) ? 'true' : 'false');
     pa('aManualHelp').textContent = c.allowManual ? 'Activado: cada cliente puede ajustar la cotización en su propio cálculo.' : 'Desactivado: los clientes solo ven la cotización oficial.';
     var on = c.online; pa('aEngineBox').classList.toggle('on', on); pa('aEngine').setAttribute('aria-pressed', on ? 'true' : 'false');
     pa('aEngineTitle').textContent = on ? 'EN LÍNEA' : 'FUERA DE LÍNEA'; pa('aPeek').hidden = on;
@@ -1211,6 +1229,17 @@
   }
 
   /* ---------- arranque ---------- */
+  /* sensación de toque: iOS necesita un listener táctil para activar :active; ondas + vibración corta */
+  document.addEventListener('touchstart', function () {}, { passive: true });
+  document.addEventListener('pointerdown', function (e) {
+    var t = e.target.closest && e.target.closest('.btn,.chip,.qbtn,.closebtn,.themebtn,.stcopy,.go,.adm,summary,.linkbtn');
+    if (!t || t.disabled || t.getAttribute('aria-disabled') === 'true') return;
+    try { if (navigator.vibrate && e.pointerType !== 'mouse') navigator.vibrate(8); } catch (x) {}
+    if (!t.matches('.btn,.chip,.qbtn,.closebtn,.stcopy')) return;
+    var r = t.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, s = document.createElement('span');
+    s.className = 'rip'; s.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + (e.clientX - r.left - d / 2) + 'px;top:' + (e.clientY - r.top - d / 2) + 'px';
+    t.appendChild(s); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 600);
+  }, { passive: true });
   addEye($('#pass')); addEye($('#offPass'));
   try { $('#splash').setAttribute('data-scene', sceneNow()); } catch (e) {}
   applyStatic(); update();

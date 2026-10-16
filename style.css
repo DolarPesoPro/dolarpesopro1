@@ -1,4 +1,4 @@
-:root{--v:"20261016b";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261016c";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -403,7 +403,7 @@ a{color:var(--accent)}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261016b ================= */
+/* ================= v20261016c ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -529,3 +529,16 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,s
 .sp-pals img+img{animation-delay:.35s}
 #splashTxt::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}
 @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+
+/* sensación de toque */
+#aRvBox[hidden]{display:none!important}
+a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-touch-callout:none}
+.btn,.chip{position:relative;overflow:hidden}
+.btn,.chip,.adm,.qbtn,.closebtn,.themebtn,.linkbtn,.stcopy,.go,summary{transition:transform .12s ease,filter .12s ease,background-color .12s ease,box-shadow .12s ease}
+.btn:active,.chip:active,.qbtn:active,.closebtn:active,.themebtn:active,.stcopy:active,summary:active{transform:scale(.94);filter:brightness(.9)}
+.adm:active{transform:scale(.975);background:var(--soft);box-shadow:0 0 0 3px rgba(245,184,0,.45)}
+.adm:active .go{transform:translateX(5px)}
+.linkbtn:active{opacity:.55}
+.rip{position:absolute;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.55);transform:scale(0);opacity:1;animation:rip .55s ease-out forwards}
+.btn.gold .rip,.chip .rip,.btn.ig .rip,.btn.ghost .rip{background:rgba(15,27,92,.20)}
+@keyframes rip{to{transform:scale(1);opacity:0}}
