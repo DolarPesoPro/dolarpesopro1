@@ -40,7 +40,7 @@ a{color:var(--accent)}
 .track{width:190px;height:6px;border-radius:999px;background:rgba(255,255,255,.2);overflow:hidden}
 .bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),#F5A800);animation:loadbar 1.4s cubic-bezier(.4,0,.2,1) forwards}
 /* header */
-.head{background:var(--card);border-radius:0 0 28px 28px;padding:calc(10px + env(safe-area-inset-top)) 24px 0;box-shadow:0 10px 30px rgba(11,18,64,.1);display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;position:relative}
+.head{background:var(--card);border-radius:0 0 28px 28px;padding:calc(10px + env(safe-area-inset-top)) 24px 0;box-shadow:0 10px 30px rgba(11,18,64,.1);display:flex;flex-direction:column;align-items:center;gap:8px;overflow:visible;position:relative}
 .head .logo{width:100%;max-width:210px}
 .tag{font:600 10.5px 'Plus Jakarta Sans',sans-serif;letter-spacing:1.6px;color:var(--muted);text-align:center;padding-bottom:12px}
 .flag{width:calc(100% + 48px);height:8px;background:linear-gradient(90deg,#F5B800 0 50%,#2547C8 50% 75%,#D7263D 75% 100%)}
@@ -395,13 +395,13 @@ a{color:var(--accent)}
 #off[data-sc="desierto"] .sunball{right:5%}
 
 /* ---- mascotas: burbuja y chispas al tocar ---- */
-.bubble{position:fixed;z-index:9999;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border:1px solid rgba(15,27,92,.12);border-radius:17px;padding:10px 15px;font:800 13.5px/1.4 'Plus Jakarta Sans',sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.28);white-space:normal;width:max-content;max-width:min(270px,calc(100vw - 28px));overflow-wrap:anywhere;text-align:center;pointer-events:none;animation:bubin var(--bubble-life,4800ms) ease forwards;will-change:transform,opacity;z-index:2147483000;max-height:40vh;overflow-y:auto;overscroll-behavior:contain}
+.bubble{position:fixed!important;display:block!important;visibility:visible!important;z-index:2147483647!important;transform:translate(-50%,-100%) scale(1);opacity:1;background:#fff;color:#0F1B5C;border:2px solid #DCE2F5;border-radius:17px;padding:12px 16px;font:800 14px/1.45 'Plus Jakarta Sans',sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.3);white-space:normal;width:max-content;max-width:min(320px,calc(100vw - 32px));overflow-wrap:anywhere;text-align:center;pointer-events:none;animation:bubin var(--bubble-life,6200ms) ease forwards;will-change:transform,opacity;max-height:42vh;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
 @keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.72)}8%{opacity:1;transform:translate(-50%,-100%) scale(1.03)}13%{transform:translate(-50%,-100%) scale(1)}88%{opacity:1}100%{opacity:0;transform:translate(-50%,-112%) scale(.98)}}
 .bubble-visible{animation:bubin var(--bubble-life,4800ms) ease forwards!important}
 /* La identidad del logo se conserva; los adornos estacionales no reemplazan la marca. */
 .seasonal-halloween .logo,.seasonal-halloween .flogo,.seasonal-halloween .offlogo{position:relative}
-.seasonal-halloween .logo::after,.seasonal-halloween .flogo::after,.seasonal-halloween .offlogo::after{content:'🎃 ✦';position:absolute;right:-7px;top:-13px;z-index:4;font-size:clamp(16px,4vw,23px);filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));pointer-events:none}
+.seasonal-halloween .logo::after,.seasonal-halloween .flogo::after,.seasonal-halloween .offlogo::after{content:'🦇  🎃';position:absolute;right:-5px;top:-5px;z-index:2147483000;font-size:clamp(17px,4vw,25px);line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));pointer-events:none}
 .seasonal-halloween .badge:has(>.logoimg)::before{content:'🦇';position:absolute;left:-7px;top:-12px;z-index:4;font-size:20px;pointer-events:none}
 .seasonal-halloween .badge:has(>.logoimg){position:relative;overflow:visible}
 .spark{position:fixed;z-index:129;pointer-events:none;font:800 18px 'Sora',sans-serif;color:var(--gold);text-shadow:0 2px 6px rgba(0,0,0,.35);animation:spark .9s cubic-bezier(.2,.7,.3,1) forwards}
@@ -579,3 +579,9 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 .peek{z-index:128;max-width:44vw;pointer-events:none}
 .peek img{display:block;width:clamp(82px,22vw,142px);height:auto;max-height:28vh;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
 @media(prefers-reduced-motion:reduce){.bubble{animation-duration:4.5s;animation-iteration-count:1}.spark{animation-duration:.01ms;animation-iteration-count:1}}
+
+/* Corrección urgente Halloween + burbujas legibles en web y PWA */
+.seasonal-halloween .head .logo{position:relative;overflow:visible;outline:2px solid rgba(255,138,42,.6);box-shadow:0 0 0 5px rgba(255,138,42,.12)}
+.seasonal-halloween .head .logo::before{content:'🕸️';position:absolute;left:-8px;top:-10px;font-size:21px;z-index:2147483000;pointer-events:none}
+.seasonal-halloween .head .logo::after{content:'🎃';position:absolute;right:-7px;top:-12px;font-size:24px;z-index:2147483000;pointer-events:none}
+.seasonal-halloween .bubble{background:#fff!important;color:#101b5c!important;border-color:#ffb24a!important;text-shadow:none!important}
