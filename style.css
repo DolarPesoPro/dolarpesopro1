@@ -395,9 +395,15 @@ a{color:var(--accent)}
 #off[data-sc="desierto"] .sunball{right:5%}
 
 /* ---- mascotas: burbuja y chispas al tocar ---- */
-.bubble{position:fixed;z-index:9999;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border:1px solid rgba(15,27,92,.12);border-radius:17px;padding:10px 15px;font:800 13.5px/1.4 'Plus Jakarta Sans',sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.28);white-space:normal;width:max-content;max-width:min(270px,calc(100vw - 28px));overflow-wrap:anywhere;text-align:center;pointer-events:none;animation:bubin 2.8s ease forwards;will-change:transform,opacity}
+.bubble{position:fixed;z-index:9999;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border:1px solid rgba(15,27,92,.12);border-radius:17px;padding:10px 15px;font:800 13.5px/1.4 'Plus Jakarta Sans',sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.28);white-space:normal;width:max-content;max-width:min(270px,calc(100vw - 28px));overflow-wrap:anywhere;text-align:center;pointer-events:none;animation:bubin var(--bubble-life,4800ms) ease forwards;will-change:transform,opacity;z-index:2147483000;max-height:40vh;overflow-y:auto;overscroll-behavior:contain}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
-@keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.5)}12%{opacity:1;transform:translate(-50%,-100%) scale(1.05)}18%{transform:translate(-50%,-100%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-125%) scale(1)}}
+@keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.72)}8%{opacity:1;transform:translate(-50%,-100%) scale(1.03)}13%{transform:translate(-50%,-100%) scale(1)}88%{opacity:1}100%{opacity:0;transform:translate(-50%,-112%) scale(.98)}}
+.bubble-visible{animation:bubin var(--bubble-life,4800ms) ease forwards!important}
+/* La identidad del logo se conserva; los adornos estacionales no reemplazan la marca. */
+.seasonal-halloween .logo,.seasonal-halloween .flogo,.seasonal-halloween .offlogo{position:relative}
+.seasonal-halloween .logo::after,.seasonal-halloween .flogo::after,.seasonal-halloween .offlogo::after{content:'🎃 ✦';position:absolute;right:-7px;top:-13px;z-index:4;font-size:clamp(16px,4vw,23px);filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));pointer-events:none}
+.seasonal-halloween .badge:has(>.logoimg)::before{content:'🦇';position:absolute;left:-7px;top:-12px;z-index:4;font-size:20px;pointer-events:none}
+.seasonal-halloween .badge:has(>.logoimg){position:relative;overflow:visible}
 .spark{position:fixed;z-index:129;pointer-events:none;font:800 18px 'Sora',sans-serif;color:var(--gold);text-shadow:0 2px 6px rgba(0,0,0,.35);animation:spark .9s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes spark{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.3) rotate(var(--rot))}}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
@@ -572,4 +578,4 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 /* Burbuja accesible: animación reducida y mascotas completas en las apariciones. */
 .peek{z-index:128;max-width:44vw;pointer-events:none}
 .peek img{display:block;width:clamp(82px,22vw,142px);height:auto;max-height:28vh;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
-@media(prefers-reduced-motion:reduce){.bubble{animation-duration:.01ms;animation-iteration-count:1}.spark{animation-duration:.01ms;animation-iteration-count:1}}
+@media(prefers-reduced-motion:reduce){.bubble{animation-duration:4.5s;animation-iteration-count:1}.spark{animation-duration:.01ms;animation-iteration-count:1}}

@@ -651,13 +651,28 @@
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
   function say(node, text) {
+    if (!node || !document.body || !text) return;
+    // Crear la burbuja ya posicionada antes de iniciar la animación evita que
+    // móviles/PWA consuman parte de su duración mientras el elemento está oculto.
     var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, b = document.createElement('div');
-    b.className = 'bubble'; b.textContent = text; b.style.cssText = 'left:0;top:' + Math.max(86, r.top - 10) + 'px;visibility:hidden';
-    document.body.appendChild(b);
-    var w = b.offsetWidth, h = b.offsetHeight, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
-    var top = Math.max(h + 14, Math.min(innerHeight - 24, r.top - 10));
-    b.style.top = top + 'px'; b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
-    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2850);
+    b.className = 'bubble'; b.textContent = String(text); b.setAttribute('role', 'status'); b.setAttribute('aria-live', 'polite');
+    b.style.animation = 'none'; b.style.opacity = '1'; b.style.transform = 'translate(-50%,-100%) scale(1)';
+    b.style.left = '50%'; b.style.top = '100px'; document.body.appendChild(b);
+    var vw = document.documentElement.clientWidth || window.innerWidth, vh = document.documentElement.clientHeight || window.innerHeight;
+    b.style.maxWidth = Math.max(180, Math.min(320, vw - 24)) + 'px';
+    var w = b.getBoundingClientRect().width, h = b.getBoundingClientRect().height;
+    var bx = Math.max(w / 2 + 12, Math.min(vw - w / 2 - 12, cx));
+    // En pantallas bajas, coloca el mensaje debajo de la mascota si no cabe arriba.
+    var top = r.top - 12;
+    if (top - h < 8) top = Math.min(vh - 12, r.bottom + h + 18);
+    top = Math.max(h + 8, Math.min(vh - 8, top));
+    b.style.left = bx + 'px'; b.style.top = top + 'px';
+    b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px');
+    b.style.animation = ''; b.style.opacity = ''; b.style.transform = '';
+    b.classList.add('bubble-visible');
+    var life = Math.max(4300, Math.min(6500, 2200 + String(text).length * 42));
+    b.style.setProperty('--bubble-life', life + 'ms');
+    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, life + 250);
   }
   /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
   var greetT = [];
@@ -692,7 +707,7 @@
   $$('.mini').forEach(function (m) { m.addEventListener('click', function () { stopChat(); hop(m); burst(m, true); }); });
   /* Al llegar a Justo y Boris (sección de marca) conversan solos, una vez por visita */
   var CHAT_BASE = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
-  function brandChatLines() { var d = currentMascotTheme(), out = []; if (d && d.peeks) d.peeks.forEach(function (p, i) { (p.say || []).forEach(function (line) { out.push([i % 2, line]); }); }); return out.length ? out.sort(function(){ return Math.random() - 0.5; }).slice(0, 6) : CHAT_BASE; }
+  function brandChatLines() { var d = currentMascotTheme(), out = []; if (d && d.peeks) d.peeks.forEach(function (p, i) { (p.say || []).forEach(function (line) { out.push([i % 2, line]); }); }); if (!out.length) out = CHAT_BASE.slice(); out.sort(function(){ return Math.random() - 0.5; }); return out.slice(0, 6); }
   function stopChat() { chatT.forEach(clearTimeout); chatT = []; }
   function playChat() {
     var now = Date.now(), minis = $$('.mini'); if (now - lastChat < 30000 || minis.length < 2) return; lastChat = now; stopChat();
@@ -740,7 +755,7 @@
   function applySeason() {
     var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || autoPeekTheme || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : ''; 
     if (key === S.themeApplied) return; S.themeApplied = key;
-    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); if (def) root.classList.add('th-' + key);
+    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); if (def) root.classList.add('th-' + key); root.classList.toggle('seasonal-halloween', !!def);
     $$('img[data-av]').forEach(function (i) { var w = i.getAttribute('data-av'), src = (def && def.avatars && def.avatars[w]) || 'assets/' + w + '.jpg'; if (i.getAttribute('src') !== src) i.src = src; });
     try { var sp = $('#splash'); if (sp) sp.setAttribute('data-scene', (def && def.splash) || sceneNow()); } catch (e) {}
     ((def && def.preload) || []).forEach(function (u) { var im = new Image(); im.src = u; });
