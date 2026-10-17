@@ -11,7 +11,7 @@
 <meta property="og:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
 <meta property="og:image" content="assets/logo.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="pp-version" content="20261016e">
+<meta name="pp-version" content="20261016g">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261016e">
+<link rel="stylesheet" href="style.css?v=20261016g">
 </head>
 <body>
 
@@ -422,6 +422,11 @@
     <hr>
     <div class="fg"><label class="lbl" for="aAnn"><b style="color:var(--ink)">5. Aviso para los clientes</b> (vacío lo oculta)</label><input id="aAnn" class="field sm" type="text" autocomplete="off" placeholder="Ej: Hoy atendemos hasta las 20:00"><button type="button" class="btn gold" id="aAnnBtn">Guardar aviso</button></div>
     <hr>
+    <div class="fg" id="aThemeBox"><b>🎨 Temáticas</b>
+      <div class="sub" style="font-size:13px">Cambia el aspecto del sitio en fechas especiales. <b>Probar</b> solo lo ves tú; <b>Activar</b> lo ven todos al instante. Solo una temática a la vez.</div>
+      <div class="panelbox" id="aThemeNow" style="font-size:14px"></div>
+      <div id="aThemeList" style="display:flex;flex-direction:column;gap:8px"></div></div>
+    <hr>
     <div class="fg" id="aInqBox"><b>📲 Consultas por WhatsApp</b>
       <div class="sub" style="font-size:13px">Cada vez que un cliente toca Justo o Boris queda registrada aquí. Toca <b>Se dio</b> o <b>No</b> para llevar la cuenta; al confirmar “Se dio” se suma a los concretados del día.</div>
       <div class="panelbox" id="aInqSum" style="font-size:14px"></div>
@@ -454,10 +459,11 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261016e"></script>
+<script src="firebase-config.js?v=20261016g"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-<script src="app.js?v=20261016e"></script>
+<script src="themes.js?v=20261016g"></script>
+<script src="app.js?v=20261016g"></script>
 </body>
 </html>

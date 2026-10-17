@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261016e';
+  var VER = '20261016g';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -319,12 +319,13 @@
       var stRefP = db.ref('status');
       function stCb(s) {
         var was = S.open; S.status = s.val(); applyStatus();
+        S.themePub = (S.status && S.status.theme) || ''; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} applySeason(); if (S.admin) renderThemes();
         if (S.open && was === false && !S.admin) S.live = false;     // reabre: espera la cotización real antes de mostrarla
         if (!S.open) S.live = true;
         syncData(); update(); if (S.admin) refreshPanel();
       }
       stRefP.on('value', stCb, function () {});
-      S.resync = function () { try { db.goOnline(); } catch (e) {} stRefP.once('value', stCb).catch(function () {}); };
+      S.resync = function () { try { db.goOnline(); } catch (e) {} stRefP.once('value', stCb).catch(function () {}); if (cfgRef) cfgRef.once('value', cfgCb).catch(function () {}); };
       db.ref('reviews').on('value', function (s) { S.reviews = revList(s.val()); S.rulesBad.reviews = false; renderReviews(); if (S.admin) { renderRvAdmin(); renderRules(); } }, function () { S.rulesBad.reviews = true; if (S.admin) renderRules(); });
       auth.onAuthStateChanged(function (u) {
         if (u && u.email === window.ADMIN_EMAIL) mountPanel(); else unmountPanel();
@@ -668,6 +669,13 @@
       greetT.push(setTimeout(function () { hop(m); burst(m, false); say(m, L[0]); }, 650 + i * 900));
       greetT.push(setTimeout(function () { say(m, i ? L[1] : HELP[0]); }, 650 + i * 900 + 1700));
     });
+    (function loop(n) {                                               // después, una frase cada ~5 s mientras el menú siga abierto
+      greetT.push(setTimeout(function () {
+        var sh = $('#sheet2'); if (!sh || !sh.classList.contains('open')) return;
+        var av = $$('#pick .avatar'); if (av.length) { var k = (n % 2 === 0) ? Math.floor(Math.random() * av.length) : (n + 1) % av.length, m = av[k], nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), P = SAY[nm] || SAY.Justo; hop(m); say(m, P[Math.floor(Math.random() * P.length)]); }
+        loop(n + 1);
+      }, 5200));
+    })(0);
   }
   function hop(m) { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }
   function burst(node, talk) {
@@ -692,35 +700,59 @@
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
   }
   /* Los que duermen en la pantalla de apagado también responden al toque */
-  /* ---------- Halloween (15 oct – 2 nov, o con ?halloween=1) ---------- */
-  var HW = (function () { try { if (/[?&]halloween=1/.test(location.search)) return true; var d = new Date(), m = d.getMonth(), n = d.getDate(); return (m === 9 && n >= 15) || (m === 10 && n <= 2); } catch (e) { return false; } })();
-  if (HW) {
-    document.documentElement.classList.add('hw');
-    $$('img[src="assets/justo.jpg"]').forEach(function (i) { i.src = 'assets/justo-h.jpg'; });
-    $$('img[src="assets/boris.jpg"]').forEach(function (i) { i.src = 'assets/boris-h.jpg'; });
+  /* ---------- Temáticas (themes.js). La activa el administrador desde el panel y la ven todos al instante ---------- */
+  var TH = window.PP_THEMES || {};
+  $$('img').forEach(function (i) { var m = (i.getAttribute('src') || '').match(/^assets\/(justo|boris)\.jpg$/); if (m) i.setAttribute('data-av', m[1]); });
+  try { S.themePub = localStorage.getItem('pp_theme') || ''; } catch (e) {}          // última temática conocida: la carga ya sale con el tema
+  (function () { var q = location.search.match(/[?&]tema=([a-z0-9_-]+)/) || (/[?&]halloween=1/.test(location.search) ? [0, 'halloween'] : null); if (q && TH[q[1]]) S.themePreview = q[1]; })();
+  function themeDef() { return (S.themeApplied && TH[S.themeApplied]) || null; }
+  function applySeason() {
+    var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
+    if (key === S.themeApplied) return; S.themeApplied = key;
+    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); if (def) root.classList.add('th-' + key);
+    $$('img[data-av]').forEach(function (i) { var w = i.getAttribute('data-av'), src = (def && def.avatars && def.avatars[w]) || 'assets/' + w + '.jpg'; if (i.getAttribute('src') !== src) i.src = src; });
+    try { var sp = $('#splash'); if (sp) sp.setAttribute('data-scene', (def && def.splash) || sceneNow()); } catch (e) {}
+    ((def && def.preload) || []).forEach(function (u) { var im = new Image(); im.src = u; });
+    if (def && def.peeks && def.peeks.length) setTimeout(peek, 7000);
   }
-  var PEEKS = [{ img: 'peek-vamp.jpg', say: ['¡Buuu! 🎃', '¿Cambiamos antes de que anochezca? 🦇'] }, { img: 'peek-wolf.jpg', say: ['Auuuu… 🐺', 'Mejor cotización que la luna llena 😎'] }, { img: 'peek-bear.jpg', say: ['Grrr… ¡hola! 🐻', 'Tranqui, no muerdo… mucho 😁'] }, { img: 'peek-ghost.jpg', say: ['Boo! 👻', '¿Te asusté? 😄'] }];
   function peek() {
-    if (!HW || S.admin || S.peeking || document.hidden) return;
+    var def = themeDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || document.hidden || (S.admin && S.themePreview === undefined)) return;
     var sh = $('#sheet2'), off = $('#off'); if ((sh && sh.classList.contains('open')) || (off && !off.hidden)) return;
-    var P = PEEKS[Math.floor(Math.random() * PEEKS.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
+    var P = def.peeks[Math.floor(Math.random() * def.peeks.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
     if (!w.animate) return; S.peeking = true;
-    w.className = 'peek ' + (left ? 'l' : 'r'); w.style.bottom = (22 + Math.floor(Math.random() * 38)) + '%'; im.src = 'assets/' + P.img; im.alt = ''; w.appendChild(im); document.body.appendChild(w);
+    w.className = 'peek ' + (left ? 'l' : 'r'); w.style.bottom = (22 + Math.floor(Math.random() * 38)) + '%'; im.src = P.img; im.alt = ''; w.appendChild(im); document.body.appendChild(w);
     var hide = left ? 'translateX(-100%)' : 'translateX(100%)', show = left ? 'translateX(-34%)' : 'translateX(34%)';
     var a1 = w.animate([{ transform: hide }, { transform: show }], { duration: 900, easing: 'cubic-bezier(.2,1.3,.4,1)', fill: 'forwards' });
     a1.onfinish = function () {
-      if (Math.random() < 0.4) say(w, P.say[Math.floor(Math.random() * P.say.length)]);
+      if (P.say && P.say.length && Math.random() < 0.4) say(w, P.say[Math.floor(Math.random() * P.say.length)]);
       setTimeout(function () { var a2 = w.animate([{ transform: show }, { transform: hide }], { duration: 700, easing: 'ease-in', fill: 'forwards' }); a2.onfinish = function () { if (w.parentNode) w.parentNode.removeChild(w); S.peeking = false; }; }, 2400);
     };
   }
-  if (HW) { setTimeout(peek, 9000); setInterval(function () { if (Math.random() < 0.55) peek(); }, 24000); }
+  setInterval(function () { if (Math.random() < 0.55) peek(); }, 24000);
+  function renderThemes() {
+    var box = pa('aThemeList'); if (!box) return; box.textContent = '';
+    var ids = Object.keys(TH), pub = S.themePub || '';
+    if (!ids.length) { box.appendChild(el('div', 'sub', 'No hay temáticas instaladas (falta themes.js).')); return; }
+    ids.forEach(function (id) {
+      var d = TH[id], on = pub === id, pv = S.themePreview === id, wrap = el('div'), row = el('div', 'alrow' + (on ? ' hit' : '')), b = el('div', 'b');
+      row.appendChild(el('div', 'nm', d.emoji + ' ' + d.name + (on ? ' · ACTIVA para todos' : '') + (pv ? ' · vista previa (solo tú)' : '')));
+      function btn(txt, css, fn) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css; z.addEventListener('click', fn); b.appendChild(z); }
+      btn(pv ? 'Quitar vista' : 'Probar', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)', function () { S.themePreview = pv ? undefined : id; applySeason(); renderThemes(); msgA(pv ? 'Vista previa cerrada.' : 'Vista previa de ' + d.name + ': solo la ves tú, los clientes no.'); });
+      btn(on ? 'Desactivar' : 'Activar', on ? 'background:#B3261E;color:#fff' : 'background:#0F7A40;color:#fff', function () {
+        db.ref('status').update({ theme: on ? null : id }).then(function () { msgA(on ? d.name + ' desactivada: todos vuelven al diseño normal.' : d.name + ' ACTIVADA ✓ Los clientes la ven ahora mismo.'); })
+          .catch(function (e) { msgA(/permission|PERMISSION/i.test((e && e.message) || '') ? 'Sin permiso para guardar la temática: publica el firebase.rules.json nuevo en Firebase (agrega el campo "theme").' : errMsg(e), true); });
+      });
+      row.appendChild(b); wrap.appendChild(row); if (d.desc) wrap.appendChild(el('div', 'sub', d.desc)); box.appendChild(wrap);
+    });
+    pa('aThemeNow').textContent = pub && TH[pub] ? 'Temática activa: ' + TH[pub].name : 'Ninguna temática activa: se ve el diseño normal.';
+  }
   /* Mientras está apagado, las mascotas hablan dormidas y de vez en cuando pasan rodando por la pantalla */
   var OFFTALK = [['Zzz… ¿ya abrimos? 🥱', 'Soñé con dólares 💭', 'Cinco minutitos más… 😴', 'Shhh… el dólar duerme 🤫'], ['Zzz… ¡mi cotización! 💤', 'Estoy descansando, ¿eh? 😎', 'Volvemos enseguida ⏳', 'Zzz… dame un cafecito ☕']];
   var STROLL = { justo: ['¡Solo estiro las piernas! 🚶', '¿Quién apagó la luz? 🔦', 'Boludeando un ratito 😜'], boris: ['Estoy de paseo, ya volvemos 😎', '¡Qué silencio! 🦗', 'Revisando que todo esté en orden 🔍'] };
   function strollOff(ov) {
     if (S.strolling) return; S.strolling = true;
     var who = Math.random() < 0.5 ? 'justo' : 'boris', L = STROLL[who], w = document.createElement('div'), im = document.createElement('img');
-    w.className = 'stroll'; im.src = 'assets/' + who + (HW ? '-h' : '') + '.jpg'; im.alt = ''; w.appendChild(im); ov.appendChild(w);
+    w.className = 'stroll'; var td = themeDef(); im.src = (td && td.avatars && td.avatars[who]) || 'assets/' + who + '.jpg'; im.alt = ''; w.appendChild(im); ov.appendChild(w);
     var W = ov.clientWidth || innerWidth, mid = Math.round(W / 2 - 34), fin = function () { if (w.parentNode) w.parentNode.removeChild(w); S.strolling = false; };
     if (!w.animate) { fin(); return; }
     var a1 = w.animate([{ transform: 'translateX(-90px) rotate(0deg)' }, { transform: 'translateX(' + mid + 'px) rotate(540deg)' }], { duration: 2600, easing: 'ease-out', fill: 'forwards' });
@@ -1049,8 +1081,8 @@
     });
     function run(p, ok, grp) {
       msgA('Guardando…');
-      p.then(function () { (grp || []).forEach(function (id) { delete pa(id).dataset.dirty; }); msgA(ok + ' ✓ Ya está en vivo para los clientes.'); refreshPanel(); })
-        .catch(function (e) { msgA(errMsg(e), true); });
+      p.then(function () { (grp || []).forEach(function (id) { delete pa(id).dataset.dirty; }); msgA(ok + ' ✓ Ya está en vivo para los clientes.'); refreshPanel(); if (S.resync) S.resync(); })
+        .catch(function (e) { msgA(errMsg(e), true); refreshPanel(); if (S.resync) S.resync(); });
     }
     pa('aPub').addEventListener('click', function () {
       var v = num(pa('aRate').value); if (!(v > 0)) { msgA('Escribe una cotización válida.', true); return; }
@@ -1082,6 +1114,7 @@
       var wasAuto = autoOn(), upd = stMin({ mode: modeFor(turnOn, wasAuto) }), extra = '';
       if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
+      pa('aEngineBox').classList.toggle('on', turnOn); pa('aEngine').setAttribute('aria-pressed', turnOn ? 'true' : 'false');
       var mp = { 'config/autoPref': wasAuto }; Object.keys(upd).forEach(function (k) { mp['status/' + k] = upd[k]; });
       run(db.ref().update(mp), (turnOn ? (wasAuto ? 'Encendido: ahora abre y cierra según el horario' : 'En línea') : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el horario automático queda en pausa hasta que enciendas)' : '')) + extra, turnOn ? [] : ['aReason']);
     }
@@ -1124,6 +1157,7 @@
       var turnOn = !autoOn(), fa = toMin(S.cfg.hoursFrom), fb = toMin(S.cfg.hoursTo);
       if (turnOn && (fa == null || fb == null || fa === fb)) { msgA('Primero guarda el horario (punto 6) con dos horas distintas.', true); return; }
       var up2 = stMin({ mode: modeFor(S.master !== false, turnOn) }), mp2 = { 'config/autoPref': turnOn }; Object.keys(up2).forEach(function (k) { mp2['status/' + k] = up2[k]; });
+      pa('aAuto').classList.toggle('on', turnOn); pa('aAuto').setAttribute('aria-checked', turnOn ? 'true' : 'false');
       run(db.ref().update(mp2), turnOn ? 'Encendido automático ACTIVADO: abre y cierra solo según el horario (mientras el botón principal esté encendido)' : 'Encendido automático DESACTIVADO: manda solo el botón principal');
     });
     function weekText() {
@@ -1147,7 +1181,7 @@
     pa('aWeekCopy').addEventListener('click', function () { var tx = weekText(); try { navigator.clipboard.writeText(tx).then(function () { msgA('Resumen copiado ✓'); }); } catch (e) { msgA('No se pudo copiar.', true); } });
     S.stRef = db.ref('stats').orderByKey().limitToLast(14); S.stRef.on('value', function (s) { S.stats = s.val() || {}; S.rulesBad.stats = false; renderStats(); renderRules(); }, function () { S.rulesBad.stats = true; renderRules(); });
     pa('aAnnBtn').addEventListener('click', function () { run(db.ref('config/announcement').set(pa('aAnn').value.trim().slice(0, 200)), 'Aviso guardado', ['aAnn']); });
-    pa('aHoursOn').addEventListener('click', function () { var cur = S.cfg.hoursRaw !== undefined ? S.cfg.hoursRaw : S.cfg.hoursOn; run(db.ref('config/hoursOn').set(!cur), !cur ? 'Horario visible para los clientes' : 'Horario oculto (el automático, si está activo, sigue funcionando)'); });
+    pa('aHoursOn').addEventListener('click', function () { var cur = S.cfg.hoursRaw !== undefined ? S.cfg.hoursRaw : S.cfg.hoursOn; pa('aHoursOn').classList.toggle('on', !cur); pa('aHoursOn').setAttribute('aria-checked', !cur ? 'true' : 'false'); run(db.ref('config/hoursOn').set(!cur), !cur ? 'Horario visible para los clientes' : 'Horario oculto (el automático, si está activo, sigue funcionando)'); });
     pa('aHoursBtn').addEventListener('click', function () {
       var from = pa('aFrom').value, to = pa('aTo').value;
       if (toMin(from) == null || toMin(to) == null) { msgA('Elige las dos horas.', true); return; }
@@ -1244,8 +1278,20 @@
     S.waiters = [];
     slot.textContent = '';
   }
+  function refreshSwitches() {
+    var c = S.cfg, mst = S.master !== false, au = autoOn(), hs = c.hoursRaw !== undefined ? c.hoursRaw : c.hoursOn;
+    pa('aEngineBox').classList.toggle('on', mst); pa('aEngine').setAttribute('aria-pressed', mst ? 'true' : 'false');
+    pa('aAuto').classList.toggle('on', au); pa('aAuto').setAttribute('aria-checked', au ? 'true' : 'false');
+    pa('aHoursOn').classList.toggle('on', !!hs); pa('aHoursOn').setAttribute('aria-checked', hs ? 'true' : 'false');
+    pa('aManual').classList.toggle('on', !!c.allowManual); pa('aManual').setAttribute('aria-checked', c.allowManual ? 'true' : 'false');
+  }
   function refreshPanel() {
-    if (!S.admin || !pa('aRate')) return; var c = S.cfg;
+    if (!S.admin || !pa('aRate')) return;
+    try { refreshSwitches(); } catch (e) { console.error(e); }
+    try { refreshPanelFull(); } catch (e) { console.error(e); msgA('Error interno al redibujar el panel: ' + (e && e.message ? e.message : e) + ' · avísame con este texto.', true); }
+  }
+  function refreshPanelFull() {
+    if (!S.admin || !pa('aRate')) return; renderThemes(); var c = S.cfg;
     function fill(id, v) { var n = pa(id); if (n && !n.dataset.dirty && document.activeElement !== n) n.value = v; }
     fill('aRate', inN(c.rate)); fill('aMin', inN(c.minUsd)); fill('aSell', c.rateSell > 0 ? inN(c.rateSell) : '');
     fill('aAnn', c.announcement); fill('aFrom', c.hoursFrom); fill('aTo', c.hoursTo); fill('aReason', c.offReason);
@@ -1350,7 +1396,7 @@
     t.appendChild(s); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 600);
   }, { passive: true });
   addEye($('#pass')); addEye($('#offPass'));
-  try { $('#splash').setAttribute('data-scene', HW ? 'halloween' : sceneNow()); } catch (e) {}
+  applySeason();
   applyStatic(); update();
   setTimeout(update, 9500);
   var rb = $('#sbRetry'); if (rb) rb.addEventListener('click', function () { S.t0 = Date.now(); if (S.resync) S.resync(); syncData(); update(); setTimeout(update, 9500); });
