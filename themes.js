@@ -4,13 +4,13 @@
 // Para sumar otra temática: copia el bloque 'halloween', cambia nombre/rutas, sube las imágenes a assets/.
 window.PP_THEMES = {
   halloween: {
-    name: 'Halloween · Frankenstein, Momia, Vampiro y Lobo',
+    name: 'Halloween',
     emoji: '🎃',
-    desc: 'Diseño completo de Halloween, logo nuevo y mascotas que alternan disfraz (Frankenstein ⇄ Vampiro, Momia ⇄ Lobo).',
+    desc: 'Una sola temática: diseño, logo y mascotas de Halloween. Cada cliente ve al azar a Frankenstein y la Momia o al Vampiro y el Lobo, y van alternando solos. Funciona en modo claro y oscuro.',
     look: 'halloween',
     splash: 'halloween',
     logo: 'assets/logo-halloween.jpg',
-    fonts: 'https://fonts.googleapis.com/css2?family=Creepster&family=Pirata+One&display=swap',
+    fonts: 'https://fonts.googleapis.com/css2?family=Pirata+One&display=swap',
     costumes: {
       justo: [
         { img: 'assets/justo-h.jpg',   say: ['¡Estoy vivo! ⚡ ¡Cambiemos!', '¡Soy Justo-stein! 🤠', 'Aquí para ayudarte ✅'] },
@@ -24,25 +24,10 @@ window.PP_THEMES = {
     avatars: { justo: 'assets/justo-h.jpg', boris: 'assets/boris-h.jpg' },
     preload: ['assets/halloween-bg.jpg'],
     peeks: [
-      { img: 'assets/peek-bear.jpg',  say: ['Grrr… ¡hola! 🐻', 'Tranqui, no muerdo… mucho 😁', '¿Ya cambiaste hoy? 🎃'] },
+      { img: 'assets/peek-bear.jpg',  say: ['Grrr… ¡hola! 🐻', 'Cuido tu plata como si fuera miel 🍯', '¿Ya cambiaste hoy? 🎃'] },
       { img: 'assets/peek-ghost.jpg', say: ['¡Boo! 👻', '¿Te asusté?', '¡No dejes que tu cambio desaparezca!', '¿Subió el dólar? ¿O bajó? 👀'] },
       { img: 'assets/peek-vamp.jpg',  say: ['¡Buuu! 🎃', '¿Ya cambiaste hoy?', 'El dólar volvió de entre los muertos 🧛'] },
       { img: 'assets/peek-wolf.jpg',  say: ['Auuuu… 🐺', '¡El dólar está que muerde!', '¡Que no te agarre la luna sin cotizar! 🌕'] }
-    ]
-  },
-  dracula_lobo: {
-    name: 'Drácula y Lobo (fijos)',
-    emoji: '🧛',
-    desc: 'Misma ambientación de Halloween, pero con Drácula y Lobo fijos (sin alternar).',
-    look: 'halloween',
-    splash: 'halloween',
-    logo: 'assets/logo-halloween.jpg',
-    fonts: 'https://fonts.googleapis.com/css2?family=Creepster&family=Pirata+One&display=swap',
-    avatars: { justo: 'assets/peek-vamp.jpg', boris: 'assets/peek-wolf.jpg' },
-    preload: ['assets/halloween-bg.jpg'],
-    peeks: [
-      { img: 'assets/peek-ghost.jpg', say: ['¡Boo! 👻', '¿Te asusté?'] },
-      { img: 'assets/peek-bear.jpg',  say: ['Grrr… ¡hola! 🐻', 'Tranqui, no muerdo… mucho 😁'] }
     ]
   }
 };

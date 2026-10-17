@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261017e';
+  var VER = '20261017f';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -651,15 +651,23 @@
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
   function linesFor(nm) { var d = themeDef(), who = String(nm || 'Justo').toLowerCase(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].say; } return SAY[nm] || SAY.Justo; }
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
+  /* la burbuja sigue a quien habla mientras se desliza la página; si la mascota sale de la pantalla, se va con ella */
+  function placeBubble(b) {
+    var node = b.__node; if (!node || !node.isConnected) { if (b.parentNode) b.parentNode.removeChild(b); return; }
+    var r = node.getBoundingClientRect(); if (r.bottom < 50 || r.top > innerHeight) { if (b.parentNode) b.parentNode.removeChild(b); return; }
+    var cx = r.left + r.width / 2, w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
+    b.style.top = Math.max(56, r.top - 8) + 'px'; b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px');
+  }
+  var bubRaf = 0;
+  document.addEventListener('scroll', function () { if (bubRaf) return; bubRaf = requestAnimationFrame(function () { bubRaf = 0; $$('.bubble').forEach(placeBubble); }); }, { passive: true, capture: true });
+  window.addEventListener('resize', function () { $$('.bubble').forEach(placeBubble); });
   function say(node, text) {
     $$('.bubble').forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); });          // una sola burbuja a la vez: nunca se tapan entre sí
-    var dur = Math.max(2800, Math.min(6500, 1600 + text.length * 70));                               // el tiempo en pantalla depende del largo de la frase
-    var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, b = document.createElement('div');
-    b.className = 'bubble'; b.textContent = text; b.style.cssText = 'left:0;top:' + Math.max(56, r.top - 8) + 'px;visibility:hidden;animation-duration:' + dur + 'ms';
-    document.body.appendChild(b); node.__bub = b;
-    var w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
-    b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
-    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); if (node.__bub === b) node.__bub = null; }, dur + 120);
+    var dur = Math.max(2800, Math.min(6500, 1600 + text.length * 70));
+    var b = document.createElement('div');
+    b.className = 'bubble'; b.textContent = text; b.__node = node; b.style.cssText = 'left:0;top:0;visibility:hidden;animation-duration:' + dur + 'ms';
+    document.body.appendChild(b); placeBubble(b); b.style.visibility = '';
+    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, dur + 120);
     return dur;
   }
   /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
@@ -709,8 +717,9 @@
   $$('img').forEach(function (i) { var m = (i.getAttribute('src') || '').match(/^assets\/(justo|boris)\.jpg$/); if (m) i.setAttribute('data-av', m[1]); });
   try { S.themePub = localStorage.getItem('pp_theme') || ''; } catch (e) {}          // última temática conocida: la carga ya sale con el tema
   (function () { var q = location.search.match(/[?&]tema=([a-z0-9_-]+)/) || (/[?&]halloween=1/.test(location.search) ? [0, 'halloween'] : null); if (q && TH[q[1]]) S.themePreview = q[1]; })();
+  function normTheme(id) { return id === 'dracula_lobo' ? 'halloween' : id; }
   function themeDef() { return (S.themeApplied && TH[S.themeApplied]) || null; }
-  S.costume = 0;
+  S.costume = Math.random() < 0.5 ? 0 : 1;          // cada visita arranca con una pareja distinta al azar
   function costumeSrc(who) {
     var d = themeDef(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].img; }
     return (d && d.avatars && d.avatars[who]) || 'assets/' + who + '.jpg';
@@ -733,9 +742,10 @@
     setTimeout(function () { var m = visibleMascot(); if (m && Math.random() < 0.6) { var L = linesFor(m.getAttribute('data-av') === 'boris' ? 'Boris' : 'Justo'); hop(m); say(m, L[Math.floor(Math.random() * L.length)]); } }, 1400);
   }, 9000);
   function applySeason() {
-    var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
+    var id = normTheme(S.themePreview !== undefined ? S.themePreview : (S.themePub || '')), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
     if (key === S.themeApplied) return; S.themeApplied = key;
-    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); root.classList.remove('th-look');
+    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); root.classList.remove('th-halloween');
+    if (def && !S.userMode && S.theme !== 'dark') { S.forcedDark = true; applyTheme('dark'); } else if (!def && S.forcedDark && !S.userMode) { S.forcedDark = false; applyTheme('light'); }
     if (def) { root.classList.add('th-' + key); if (def.look) root.classList.add('th-' + def.look); root.classList.add('th-on'); } else root.classList.remove('th-on');
     if (def && def.fonts && !document.getElementById('thFonts')) { var lk = document.createElement('link'); lk.id = 'thFonts'; lk.rel = 'stylesheet'; lk.href = def.fonts; document.head.appendChild(lk); }
     var pre = (def && def.preload) || []; pre.forEach(function (u) { var im = new Image(); im.src = u; });
@@ -764,7 +774,7 @@
   setInterval(function () { if (Math.random() < 0.7) peek(); }, 18000);
   function renderThemes() {
     var box = pa('aThemeList'); if (!box) return; box.textContent = '';
-    var ids = Object.keys(TH), pub = S.themePub || '';
+    var ids = Object.keys(TH), pub = normTheme(S.themePub || '');
     if (!ids.length) { box.appendChild(el('div', 'sub', 'No hay temáticas instaladas (falta themes.js).')); return; }
     ids.forEach(function (id) {
       var d = TH[id], on = pub === id, pv = S.themePreview === id, wrap = el('div'), row = el('div', 'alrow' + (on ? ' hit' : '')), b = el('div', 'b');
@@ -772,8 +782,9 @@
       function btn(txt, css, fn) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css; z.addEventListener('click', fn); b.appendChild(z); }
       btn(pv ? 'Quitar vista' : 'Probar', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)', function () { S.themePreview = pv ? undefined : id; applySeason(); renderThemes(); msgA(pv ? 'Vista previa cerrada.' : 'Vista previa de ' + d.name + ': solo la ves tú, los clientes no.'); });
       btn(on ? 'Desactivar' : 'Activar', on ? 'background:#B3261E;color:#fff' : 'background:#0F7A40;color:#fff', function () {
+        var prev = S.themePub; S.themePub = on ? '' : id; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} applySeason(); renderThemes();     // se ve al instante; luego se guarda
         db.ref('status').update({ theme: on ? null : id }).then(function () { msgA(on ? d.name + ' desactivada: todos vuelven al diseño normal.' : d.name + ' ACTIVADA ✓ Los clientes la ven ahora mismo.'); })
-          .catch(function (e) { msgA(/permission|PERMISSION/i.test((e && e.message) || '') ? 'Sin permiso para guardar la temática: publica el firebase.rules.json nuevo en Firebase (agrega el campo "theme").' : errMsg(e), true); });
+            .catch(function (e) { S.themePub = prev; try { localStorage.setItem('pp_theme', prev || ''); } catch (x) {} applySeason(); renderThemes(); msgA(/permission|PERMISSION/i.test((e && e.message) || '') ? 'Sin permiso para guardar la temática: publica el firebase.rules.json nuevo en Firebase (agrega el campo "theme").' : errMsg(e), true); });
       });
       row.appendChild(b); wrap.appendChild(row); if (d.desc) wrap.appendChild(el('div', 'sub', d.desc)); box.appendChild(wrap);
     });
@@ -814,7 +825,7 @@
     var mt = document.querySelector('meta[name=theme-color]'); if (mt) mt.setAttribute('content', next === 'dark' ? '#070B26' : '#0F1B5C');
   }
   $('#themeBtn').addEventListener('click', function () {
-    var btn = this, next = S.theme === 'light' ? 'dark' : 'light', root = document.documentElement;
+    var btn = this, next = S.theme === 'light' ? 'dark' : 'light', root = document.documentElement; S.userMode = true;
     btn.classList.add('spin'); setTimeout(function () { btn.classList.remove('spin'); }, 750);
     function fallback() { root.classList.add('theme-anim'); applyTheme(next); setTimeout(function () { root.classList.remove('theme-anim'); }, 1100); }
     if (!document.startViewTransition) { fallback(); return; }

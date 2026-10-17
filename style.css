@@ -1,4 +1,4 @@
-:root{--v:"20261017e";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261017f";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -403,7 +403,7 @@ a{color:var(--accent)}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261017e ================= */
+/* ================= v20261017f ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -569,8 +569,8 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 .peek{width:clamp(82px,22vw,108px);height:clamp(82px,22vw,108px);filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
 .peek img{border-width:3px;box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 0 8px rgba(255,138,42,.45),0 10px 22px rgba(0,0,0,.28)}
 
-/* ================= v20261017e · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
-html.th-halloween,html.th-halloween[data-theme=dark],html.th-halloween[data-theme=light]{--bg:#0a0620;--card:#161036;--ink:#FFF1E0;--navy:#2a1458;--muted:#D8C4FF;--line:#3d2478;--soft:#21184f;--field:#0b0924;--fline:#5b3a9a;--accent:#FFA24A;--gold:#FF8A1F;--green:#1e7a38;--warn-bg:#2a1a10;--shadow:0 0 0 1.5px rgba(255,138,31,.42),0 12px 30px rgba(0,0,0,.55),0 0 26px rgba(255,138,31,.12);color-scheme:dark}
+/* ================= v20261017f · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
+html.th-halloween{--bg:#0a0620;--card:#161036;--ink:#FFF1E0;--navy:#2a1458;--muted:#D8C4FF;--line:#3d2478;--soft:#21184f;--field:#0b0924;--fline:#5b3a9a;--accent:#FFA24A;--gold:#FF8A1F;--green:#1e7a38;--warn-bg:#2a1a10;--shadow:0 0 0 1.5px rgba(255,138,31,.42),0 12px 30px rgba(0,0,0,.55),0 0 26px rgba(255,138,31,.12);color-scheme:dark}
 html.th-halloween body{background:radial-gradient(120% 60% at 50% -8%,#47207f 0,transparent 60%),radial-gradient(70% 40% at 100% 100%,rgba(255,106,0,.20),transparent 60%),#0a0620;background-attachment:fixed}
 html.th-halloween body::before,html.th-halloween body::after{content:"";position:fixed;top:0;width:150px;height:150px;pointer-events:none;z-index:3;background-size:contain;background-repeat:no-repeat;opacity:.9}
 html.th-halloween body::before{left:0;background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E")}
@@ -588,35 +588,34 @@ html.th-halloween .head .logo{background:transparent;padding:0;max-width:310px;m
 html.th-halloween .logoimg{mix-blend-mode:normal;border-radius:22px;-webkit-mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 48%,transparent 100%);mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 48%,transparent 100%)}
 html.th-halloween .tag{font:400 17px 'Pirata One',serif;letter-spacing:1.4px;color:#FF9A3C;text-shadow:0 0 10px rgba(255,138,31,.5)}
 html.th-halloween .status{background:rgba(255,255,255,.08);color:#FFF1E0}
-html.th-halloween .themebtn{background:#2a1458;color:#FF9A3C;box-shadow:0 0 0 2px rgba(255,138,31,.6),0 0 18px rgba(255,138,31,.45)}
 /* cotización: lápida agrietada */
 html.th-halloween .hero{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 200%22 preserveAspectRatio=%22none%22%3E%3Cg fill=%22none%22 stroke=%22%23ff8a1f%22 stroke-opacity=%22.55%22 stroke-width=%221.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M60 0L72 38L58 62L80 96%22/%3E%3Cpath d=%22M250 0L238 30L262 58L244 92L266 120%22/%3E%3Cpath d=%22M400 70L360 84L342 118L300 126%22/%3E%3Cpath d=%22M0 150L38 142L52 170L96 176%22/%3E%3Cpath d=%22M180 200L196 168L186 150%22/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,radial-gradient(circle at 50% 0%,rgba(255,138,31,.16),transparent 60%),linear-gradient(160deg,#3a3552,#25203a 60%,#1b1730);border:3px solid #55506f;border-radius:26px 26px 22px 22px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 0 0 2px rgba(255,138,31,.35),0 16px 36px rgba(0,0,0,.6),0 0 30px rgba(255,138,31,.18)}
 html.th-halloween .hero .k{color:#7CFF3A;font:700 13px 'Plus Jakarta Sans',sans-serif;letter-spacing:2.5px;text-shadow:0 0 10px rgba(124,255,58,.8)}
 html.th-halloween .hero .k::before{content:"🦇"}
-html.th-halloween .hero .big{font:400 52px/1.05 'Creepster','Sora',cursive;color:#FF8A1F;letter-spacing:1px;text-shadow:0 0 6px rgba(255,138,31,.95),0 0 22px rgba(255,106,0,.75),0 4px 0 rgba(120,40,0,.8)}
+html.th-halloween .hero .big{font:800 46px/1.08 'Sora',sans-serif;letter-spacing:-1.2px;color:#FFB347;text-shadow:0 0 12px rgba(255,138,31,.5),0 2px 0 rgba(90,30,0,.75);font-variant-numeric:tabular-nums}
 html.th-halloween .hero .s{color:#FFE2C2}
 html.th-halloween .dot{background:#7CFF3A;animation:pulseg 2s infinite}
 html.th-halloween .heroSell b{color:#FFB265}
 /* pestañas: ataúdes */
-html.th-halloween .tabs,html.th-halloween .seg{background:transparent;padding:0;gap:8px;filter:drop-shadow(0 0 6px rgba(255,138,31,.55))}
-html.th-halloween .tabs .thumb,html.th-halloween .seg .thumb{display:none}
-html.th-halloween .tabs button,html.th-halloween .seg button{background:linear-gradient(180deg,#3a1d0a,#22110a);color:#FFD2A1;font:400 18px 'Pirata One',serif;letter-spacing:.4px;clip-path:polygon(9% 0,91% 0,100% 50%,91% 100%,9% 100%,0 50%);min-height:54px;border:0;box-shadow:inset 0 0 0 2px #FF8A1F}
-html.th-halloween .tabs button.on,html.th-halloween .seg button.on{background:linear-gradient(180deg,#ff9a3c,#e8630a);color:#1c0b00;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+html.th-halloween .tabs{background:transparent;padding:0;gap:8px;filter:drop-shadow(0 0 6px rgba(255,138,31,.55))}
+html.th-halloween .tabs .thumb{display:none}
+html.th-halloween .tabs button{background:linear-gradient(180deg,#3a1d0a,#22110a);color:#FFD2A1;font:400 18px 'Pirata One',serif;letter-spacing:.4px;clip-path:polygon(9% 0,91% 0,100% 50%,91% 100%,9% 100%,0 50%);min-height:54px;border:0;box-shadow:inset 0 0 0 2px #FF8A1F}
+html.th-halloween .tabs button.on{background:linear-gradient(180deg,#ff9a3c,#e8630a);color:#1c0b00;text-shadow:0 1px 0 rgba(255,255,255,.35)}
 /* campos con baba verde */
-html.th-halloween .field{border:3px solid #7CFF3A;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2226%22 viewBox=%220 0 64 26%22%3E%3Cg fill=%22%237CFF3A%22%3E%3Crect x=%220%22 y=%220%22 width=%2264%22 height=%225%22/%3E%3Crect x=%2211%22 y=%220%22 width=%227%22 height=%2217%22 rx=%223.5%22/%3E%3Ccircle cx=%2214.5%22 cy=%2218%22 r=%224.2%22/%3E%3Crect x=%2233%22 y=%220%22 width=%226%22 height=%2211%22 rx=%223%22/%3E%3Ccircle cx=%2236%22 cy=%2212%22 r=%223.6%22/%3E%3Crect x=%2250%22 y=%220%22 width=%227%22 height=%2221%22 rx=%223.5%22/%3E%3Ccircle cx=%2253.5%22 cy=%2222%22 r=%224%22/%3E%3C/g%3E%3C/svg%3E") left bottom/64px 20px repeat-x,#0b1a16;color:#E9FFD9;font:400 30px 'Creepster','Sora',cursive;letter-spacing:1px;box-shadow:0 0 16px rgba(124,255,58,.45),inset 0 0 14px rgba(0,0,0,.6);padding-bottom:16px}
-html.th-halloween .field.sm{font:600 16px 'Plus Jakarta Sans',sans-serif;letter-spacing:0;background:#0b1a16;color:#E9FFD9;padding-bottom:8px}
-html.th-halloween .field:focus{border-color:#B6FF7A;box-shadow:0 0 0 4px rgba(124,255,58,.25),0 0 22px rgba(124,255,58,.6)}
+html.th-halloween .field{border:2px solid #5CE05C;border-radius:18px;background:#0b1f16;color:#F1FFE6;font:800 28px 'Sora',sans-serif;letter-spacing:-.3px;box-shadow:0 0 14px rgba(92,224,92,.35),inset 0 0 12px rgba(0,0,0,.5)}
+html.th-halloween .field.sm{font:600 16px 'Plus Jakarta Sans',sans-serif;letter-spacing:0;background:#0b1f16;color:#F1FFE6}
+html.th-halloween .field:focus{border-color:#A6FF8A;box-shadow:0 0 0 4px rgba(92,224,92,.25),0 0 20px rgba(92,224,92,.5)}
 html.th-halloween textarea.field,html.th-halloween .msg{font:500 15px/1.5 'Plus Jakarta Sans',sans-serif;background:#0b1a16;color:#E9FFD9;border-color:#7CFF3A}
 html.th-halloween ::placeholder{color:#7fa58a}
 html.th-halloween .liveline,html.th-halloween .rshow{color:#8CFF55;text-shadow:0 0 10px rgba(124,255,58,.6)}
-html.th-halloween .rshow{font:400 26px 'Creepster','Sora',cursive;letter-spacing:.8px}
+html.th-halloween .rshow{font:800 22px 'Sora',sans-serif;letter-spacing:-.3px}
 html.th-halloween .chip{background:#21184f;border-color:#FF8A1F;color:#FFE2C2}
 html.th-halloween .chip.on{background:#FF8A1F;color:#1c0b00;border-color:#FF8A1F}
 html.th-halloween .linkbtn{color:#FFA24A}
 html.th-halloween .rrow,html.th-halloween .panelbox,html.th-halloween .live,html.th-halloween .qr,html.th-halloween .step,html.th-halloween .faqq,html.th-halloween .alrow{background:rgba(255,255,255,.06)}
 /* resultado */
 html.th-halloween .result{background:radial-gradient(circle at 50% 0%,rgba(255,138,31,.22),transparent 60%),linear-gradient(160deg,#241552,#150d38);border:2px solid rgba(255,138,31,.6);box-shadow:0 0 28px rgba(255,138,31,.25),0 14px 34px rgba(0,0,0,.55)}
-html.th-halloween .result .big{font:400 52px/1.05 'Creepster','Sora',cursive;letter-spacing:1px;color:#FF8A1F;text-shadow:0 0 6px rgba(255,138,31,.95),0 0 22px rgba(255,106,0,.75),0 4px 0 rgba(120,40,0,.8)}
+html.th-halloween .result .big{font:800 46px/1.08 'Sora',sans-serif;letter-spacing:-1.2px;color:#FFB347;text-shadow:0 0 12px rgba(255,138,31,.5),0 2px 0 rgba(90,30,0,.75);font-variant-numeric:tabular-nums}
 html.th-halloween .result .k{font:400 26px 'Pirata One',serif;color:#FF9A3C}
 html.th-halloween .result .r{color:#FFF1E0}
 html.th-halloween .result .r::before{content:"🎃";margin-right:8px}
@@ -644,7 +643,7 @@ html.th-halloween .btn.ghost,html.th-halloween .btn.ig{background:#21184f;color:
 /* barra inferior */
 html.th-halloween .sticky{background:linear-gradient(180deg,rgba(32,16,72,.96),rgba(14,8,40,.98));border-top:2px solid rgba(255,138,31,.6);box-shadow:0 -10px 30px rgba(255,106,0,.18)}
 html.th-halloween .stamt span{color:#FF9A3C;font:400 18px 'Pirata One',serif}
-html.th-halloween .stamt strong{font:400 clamp(26px,8vw,34px)/1.05 'Creepster','Sora',cursive;color:#FF8A1F;text-shadow:0 0 14px rgba(255,138,31,.7);letter-spacing:.8px}
+html.th-halloween .stamt strong{font:800 clamp(24px,7vw,30px)/1.1 'Sora',sans-serif;color:#FFB347;text-shadow:0 0 10px rgba(255,138,31,.45);letter-spacing:-.5px}
 /* marca y pie */
 html.th-halloween .brand{background:radial-gradient(circle at 50% 0%,rgba(255,138,31,.2),transparent 55%),linear-gradient(135deg,#2a1260,#120a34);border:2px solid rgba(255,138,31,.5)}
 html.th-halloween .brand h3{font:400 30px 'Pirata One',serif;color:#FF9A3C;text-shadow:0 0 12px rgba(255,138,31,.5)}
@@ -668,5 +667,48 @@ html.th-halloween .offlogo{background:transparent;box-shadow:none}
 /* cambio de disfraz de las mascotas */
 @keyframes flip{0%{transform:rotateY(0) scale(1)}45%{transform:rotateY(90deg) scale(1.12);filter:brightness(2.2) saturate(.2)}55%{transform:rotateY(-90deg) scale(1.12);filter:brightness(2.2) saturate(.2)}100%{transform:rotateY(0) scale(1)}}
 img.flip{animation:flip .7s ease-in-out!important}
-@media (max-width:420px){html.th-halloween .hero .big,html.th-halloween .result .big{font-size:46px}}
+@media (max-width:420px){html.th-halloween .hero .big,html.th-halloween .result .big{font-size:40px}}
 @media (prefers-reduced-motion:reduce){img.flip{animation:none!important}}
+
+/* ---- Halloween · comisión (Incluida / Aparte): letra clara y legible ---- */
+html.th-halloween .seg{background:rgba(255,255,255,.08);border:2px solid rgba(255,138,31,.55);border-radius:18px;padding:4px}
+html.th-halloween .seg .thumb{background:linear-gradient(180deg,#ffa63f,#f06a0b);box-shadow:0 0 14px rgba(255,138,31,.55)}
+html.th-halloween .seg button{font:700 14px/1.2 'Plus Jakarta Sans',sans-serif;color:#FFE2C2;min-height:52px}
+html.th-halloween .seg button.on{color:#1c0b00}
+/* ---- Halloween · botón modo claro / oscuro ---- */
+html.th-halloween .themebtn{background:#2a1458;color:#FFB347;box-shadow:0 0 0 2px rgba(255,138,31,.6),0 0 16px rgba(255,138,31,.4)}
+html.th-halloween[data-theme=dark] .themebtn{background:#FF8A1F;color:#1c0b00;box-shadow:0 0 0 3px rgba(255,138,31,.35),0 0 20px rgba(255,138,31,.6)}
+
+/* ================= HALLOWEEN · MODO CLARO ================= */
+html.th-halloween:not([data-theme=dark]){--bg:#f6ecff;--card:#fff8f0;--ink:#2a1458;--navy:#3b1d7a;--muted:#5a3f8f;--line:#e2cdfa;--soft:#f1e5ff;--field:#f2fff0;--fline:#b99be8;--accent:#C4520A;--gold:#F26A0B;--warn-bg:#fff0d8;--shadow:0 0 0 1.5px rgba(242,106,11,.4),0 10px 26px rgba(80,30,140,.18);color-scheme:light}
+html.th-halloween:not([data-theme=dark]) body{background:radial-gradient(120% 55% at 50% -8%,#ffd9b0 0,transparent 60%),radial-gradient(80% 40% at 0% 100%,rgba(150,90,230,.25),transparent 60%),#f6ecff;background-attachment:fixed}
+html.th-halloween:not([data-theme=dark]) body::before,html.th-halloween:not([data-theme=dark]) body::after,html.th-halloween:not([data-theme=dark]) .card::before,html.th-halloween:not([data-theme=dark]) .card::after{filter:brightness(.35) saturate(1.6);opacity:.55}
+html.th-halloween:not([data-theme=dark]) .card{background:linear-gradient(170deg,#fffaf3,#f5e9ff);border-color:rgba(242,106,11,.55)}
+html.th-halloween:not([data-theme=dark]) .card h2{color:#C4520A;text-shadow:none}
+html.th-halloween:not([data-theme=dark]) .head{background:linear-gradient(180deg,#ffe3c2,#f3e1ff);border-bottom-color:rgba(242,106,11,.6);box-shadow:0 10px 30px rgba(242,106,11,.18)}
+html.th-halloween:not([data-theme=dark]) .head .logo{border-radius:22px;box-shadow:0 8px 26px rgba(40,10,80,.35);overflow:hidden}
+html.th-halloween:not([data-theme=dark]) .logoimg{-webkit-mask-image:none;mask-image:none}
+html.th-halloween:not([data-theme=dark]) .tag{color:#B3470A;text-shadow:none}
+html.th-halloween:not([data-theme=dark]) .status{background:rgba(60,20,120,.1);color:#2a1458}
+html.th-halloween:not([data-theme=dark]) .liveline,html.th-halloween:not([data-theme=dark]) .rshow{color:#17702a;text-shadow:none}
+html.th-halloween:not([data-theme=dark]) .rrow,html.th-halloween:not([data-theme=dark]) .panelbox,html.th-halloween:not([data-theme=dark]) .live,html.th-halloween:not([data-theme=dark]) .qr,html.th-halloween:not([data-theme=dark]) .step,html.th-halloween:not([data-theme=dark]) .faqq,html.th-halloween:not([data-theme=dark]) .alrow{background:rgba(110,60,200,.09)}
+html.th-halloween:not([data-theme=dark]) .chip{background:#fff;color:#3b1d7a;border-color:#F26A0B}
+html.th-halloween:not([data-theme=dark]) .chip.on{background:#F26A0B;color:#fff}
+html.th-halloween:not([data-theme=dark]) .seg{background:rgba(110,60,200,.12);border-color:#F26A0B}
+html.th-halloween:not([data-theme=dark]) .seg button{color:#3b1d7a}
+html.th-halloween:not([data-theme=dark]) .seg button.on{color:#1c0b00}
+html.th-halloween:not([data-theme=dark]) .adm{background:#fff;color:#2a1458;border-color:rgba(242,106,11,.6);box-shadow:0 4px 14px rgba(80,30,140,.12)}
+html.th-halloween:not([data-theme=dark]) .adm b{color:#C4520A}
+html.th-halloween:not([data-theme=dark]) .adm small{color:#5a3f8f}
+html.th-halloween:not([data-theme=dark]) .adm em{color:#17702a}
+html.th-halloween:not([data-theme=dark]) .checks div{color:#2a1458}
+html.th-halloween:not([data-theme=dark]) .checks svg{stroke:#17702a}
+html.th-halloween:not([data-theme=dark]) .nofee{background:rgba(23,112,42,.12);color:#17702a}
+html.th-halloween:not([data-theme=dark]) .btn.ghost,html.th-halloween:not([data-theme=dark]) .btn.ig{background:#fff;color:#3b1d7a;border-color:#F26A0B}
+html.th-halloween:not([data-theme=dark]) .sticky{background:linear-gradient(180deg,rgba(255,243,230,.97),rgba(246,230,255,.98));border-top-color:rgba(242,106,11,.7);box-shadow:0 -10px 28px rgba(242,106,11,.2)}
+html.th-halloween:not([data-theme=dark]) .stamt span{color:#B3470A}
+html.th-halloween:not([data-theme=dark]) .stamt strong{color:#C4520A;text-shadow:none}
+html.th-halloween:not([data-theme=dark]) .sheetpanel{background:linear-gradient(180deg,#fffaf3,#f3e6ff)}
+html.th-halloween:not([data-theme=dark]) .closebtn,html.th-halloween:not([data-theme=dark]) .qbtn{background:#f1e5ff;color:#C4520A}
+html.th-halloween:not([data-theme=dark]) .linkbtn{color:#C4520A}
+html.th-halloween:not([data-theme=dark]) ::placeholder{color:#7fa58a}
