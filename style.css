@@ -1,4 +1,4 @@
-:root{--v:"20261017a";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261017e";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -40,7 +40,7 @@ a{color:var(--accent)}
 .track{width:190px;height:6px;border-radius:999px;background:rgba(255,255,255,.2);overflow:hidden}
 .bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),#F5A800);animation:loadbar 1.4s cubic-bezier(.4,0,.2,1) forwards}
 /* header */
-.head{background:var(--card);border-radius:0 0 28px 28px;padding:calc(10px + env(safe-area-inset-top)) 24px 0;box-shadow:0 10px 30px rgba(11,18,64,.1);display:flex;flex-direction:column;align-items:center;gap:8px;overflow:visible;position:relative}
+.head{background:var(--card);border-radius:0 0 28px 28px;padding:calc(10px + env(safe-area-inset-top)) 24px 0;box-shadow:0 10px 30px rgba(11,18,64,.1);display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;position:relative}
 .head .logo{width:100%;max-width:210px}
 .tag{font:600 10.5px 'Plus Jakarta Sans',sans-serif;letter-spacing:1.6px;color:var(--muted);text-align:center;padding-bottom:12px}
 .flag{width:calc(100% + 48px);height:8px;background:linear-gradient(90deg,#F5B800 0 50%,#2547C8 50% 75%,#D7263D 75% 100%)}
@@ -395,21 +395,15 @@ a{color:var(--accent)}
 #off[data-sc="desierto"] .sunball{right:5%}
 
 /* ---- mascotas: burbuja y chispas al tocar ---- */
-.bubble{position:fixed!important;display:block!important;visibility:visible!important;z-index:2147483647!important;transform:translate(-50%,-100%) scale(1);opacity:1;background:#fff;color:#0F1B5C;border:2px solid #DCE2F5;border-radius:17px;padding:12px 16px;font:800 14px/1.45 'Plus Jakarta Sans',sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.3);white-space:normal;width:max-content;max-width:min(320px,calc(100vw - 32px));overflow-wrap:anywhere;text-align:center;pointer-events:none;animation:bubin var(--bubble-life,6200ms) ease forwards;will-change:transform,opacity;max-height:42vh;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box}
+.bubble{position:fixed;z-index:130;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border-radius:16px;padding:8px 14px;font:700 13.5px 'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.3);white-space:normal;max-width:min(260px,calc(100vw - 28px));text-align:center;line-height:1.35;pointer-events:none;animation:bubin 2.8s ease forwards}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
-@keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.72)}8%{opacity:1;transform:translate(-50%,-100%) scale(1.03)}13%{transform:translate(-50%,-100%) scale(1)}88%{opacity:1}100%{opacity:0;transform:translate(-50%,-112%) scale(.98)}}
-.bubble-visible{animation:bubin var(--bubble-life,4800ms) ease forwards!important}
-/* La identidad del logo se conserva; los adornos estacionales no reemplazan la marca. */
-.seasonal-halloween .logo,.seasonal-halloween .flogo,.seasonal-halloween .offlogo{position:relative}
-.seasonal-halloween .logo::after,.seasonal-halloween .flogo::after,.seasonal-halloween .offlogo::after{content:'🦇  🎃';position:absolute;right:-5px;top:-5px;z-index:2147483000;font-size:clamp(17px,4vw,25px);line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));pointer-events:none}
-.seasonal-halloween .badge:has(>.logoimg)::before{content:'🦇';position:absolute;left:-7px;top:-12px;z-index:4;font-size:20px;pointer-events:none}
-.seasonal-halloween .badge:has(>.logoimg){position:relative;overflow:visible}
+@keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.5)}12%{opacity:1;transform:translate(-50%,-100%) scale(1.05)}18%{transform:translate(-50%,-100%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-125%) scale(1)}}
 .spark{position:fixed;z-index:129;pointer-events:none;font:800 18px 'Sora',sans-serif;color:var(--gold);text-shadow:0 2px 6px rgba(0,0,0,.35);animation:spark .9s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes spark{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.3) rotate(var(--rot))}}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261017a ================= */
+/* ================= v20261017e ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -575,13 +569,104 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 .peek{width:clamp(82px,22vw,108px);height:clamp(82px,22vw,108px);filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
 .peek img{border-width:3px;box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 0 8px rgba(255,138,42,.45),0 10px 22px rgba(0,0,0,.28)}
 
-/* Burbuja accesible: animación reducida y mascotas completas en las apariciones. */
-.peek{z-index:128;max-width:44vw;pointer-events:none}
-.peek img{display:block;width:clamp(82px,22vw,142px);height:auto;max-height:28vh;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
-@media(prefers-reduced-motion:reduce){.bubble{animation-duration:4.5s;animation-iteration-count:1}.spark{animation-duration:.01ms;animation-iteration-count:1}}
-
-/* Corrección urgente Halloween + burbujas legibles en web y PWA */
-.seasonal-halloween .head .logo{position:relative;overflow:visible;outline:2px solid rgba(255,138,42,.6);box-shadow:0 0 0 5px rgba(255,138,42,.12)}
-.seasonal-halloween .head .logo::before{content:'🕸️';position:absolute;left:-8px;top:-10px;font-size:21px;z-index:2147483000;pointer-events:none}
-.seasonal-halloween .head .logo::after{content:'🎃';position:absolute;right:-7px;top:-12px;font-size:24px;z-index:2147483000;pointer-events:none}
-.seasonal-halloween .bubble{background:#fff!important;color:#101b5c!important;border-color:#ffb24a!important;text-shadow:none!important}
+/* ================= v20261017e · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
+html.th-halloween,html.th-halloween[data-theme=dark],html.th-halloween[data-theme=light]{--bg:#0a0620;--card:#161036;--ink:#FFF1E0;--navy:#2a1458;--muted:#D8C4FF;--line:#3d2478;--soft:#21184f;--field:#0b0924;--fline:#5b3a9a;--accent:#FFA24A;--gold:#FF8A1F;--green:#1e7a38;--warn-bg:#2a1a10;--shadow:0 0 0 1.5px rgba(255,138,31,.42),0 12px 30px rgba(0,0,0,.55),0 0 26px rgba(255,138,31,.12);color-scheme:dark}
+html.th-halloween body{background:radial-gradient(120% 60% at 50% -8%,#47207f 0,transparent 60%),radial-gradient(70% 40% at 100% 100%,rgba(255,106,0,.20),transparent 60%),#0a0620;background-attachment:fixed}
+html.th-halloween body::before,html.th-halloween body::after{content:"";position:fixed;top:0;width:150px;height:150px;pointer-events:none;z-index:3;background-size:contain;background-repeat:no-repeat;opacity:.9}
+html.th-halloween body::before{left:0;background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E")}
+html.th-halloween body::after{right:0;background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg transform=%22translate(112 0) scale(-1 1)%22 fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E")}
+html.th-halloween h1,html.th-halloween h2,html.th-halloween h3{font-family:'Pirata One','Sora',serif;letter-spacing:.4px;font-weight:400}
+html.th-halloween .card h2{font-size:27px;color:#FF9A3C;text-shadow:0 0 14px rgba(255,138,31,.55)}
+html.th-halloween .card{background:linear-gradient(170deg,#1b1244,#120c33);border:2px solid rgba(255,138,31,.45);overflow:hidden}
+html.th-halloween .card::before{content:"";position:absolute;left:0;top:0;width:96px;height:96px;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E") left top/contain no-repeat;pointer-events:none;opacity:.8}
+html.th-halloween .card::after{content:"";position:absolute;right:0;top:0;width:96px;height:96px;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg transform=%22translate(112 0) scale(-1 1)%22 fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E") right top/contain no-repeat;pointer-events:none;opacity:.8}
+html.th-halloween .card>*:not(.lockov){position:relative;z-index:1}
+html.th-halloween .lockov{z-index:5}
+/* cabecera con el logo nuevo */
+html.th-halloween .head{background:linear-gradient(180deg,#2a1260,#120a34);border-bottom:2px solid rgba(255,138,31,.55);box-shadow:0 10px 34px rgba(255,106,0,.18)}
+html.th-halloween .head .logo{background:transparent;padding:0;max-width:310px;margin-top:2px!important}
+html.th-halloween .logoimg{mix-blend-mode:normal;border-radius:22px;-webkit-mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 48%,transparent 100%);mask-image:radial-gradient(ellipse 58% 56% at 50% 50%,#000 48%,transparent 100%)}
+html.th-halloween .tag{font:400 17px 'Pirata One',serif;letter-spacing:1.4px;color:#FF9A3C;text-shadow:0 0 10px rgba(255,138,31,.5)}
+html.th-halloween .status{background:rgba(255,255,255,.08);color:#FFF1E0}
+html.th-halloween .themebtn{background:#2a1458;color:#FF9A3C;box-shadow:0 0 0 2px rgba(255,138,31,.6),0 0 18px rgba(255,138,31,.45)}
+/* cotización: lápida agrietada */
+html.th-halloween .hero{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 200%22 preserveAspectRatio=%22none%22%3E%3Cg fill=%22none%22 stroke=%22%23ff8a1f%22 stroke-opacity=%22.55%22 stroke-width=%221.6%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M60 0L72 38L58 62L80 96%22/%3E%3Cpath d=%22M250 0L238 30L262 58L244 92L266 120%22/%3E%3Cpath d=%22M400 70L360 84L342 118L300 126%22/%3E%3Cpath d=%22M0 150L38 142L52 170L96 176%22/%3E%3Cpath d=%22M180 200L196 168L186 150%22/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat,radial-gradient(circle at 50% 0%,rgba(255,138,31,.16),transparent 60%),linear-gradient(160deg,#3a3552,#25203a 60%,#1b1730);border:3px solid #55506f;border-radius:26px 26px 22px 22px;box-shadow:inset 0 0 40px rgba(0,0,0,.55),0 0 0 2px rgba(255,138,31,.35),0 16px 36px rgba(0,0,0,.6),0 0 30px rgba(255,138,31,.18)}
+html.th-halloween .hero .k{color:#7CFF3A;font:700 13px 'Plus Jakarta Sans',sans-serif;letter-spacing:2.5px;text-shadow:0 0 10px rgba(124,255,58,.8)}
+html.th-halloween .hero .k::before{content:"🦇"}
+html.th-halloween .hero .big{font:400 52px/1.05 'Creepster','Sora',cursive;color:#FF8A1F;letter-spacing:1px;text-shadow:0 0 6px rgba(255,138,31,.95),0 0 22px rgba(255,106,0,.75),0 4px 0 rgba(120,40,0,.8)}
+html.th-halloween .hero .s{color:#FFE2C2}
+html.th-halloween .dot{background:#7CFF3A;animation:pulseg 2s infinite}
+html.th-halloween .heroSell b{color:#FFB265}
+/* pestañas: ataúdes */
+html.th-halloween .tabs,html.th-halloween .seg{background:transparent;padding:0;gap:8px;filter:drop-shadow(0 0 6px rgba(255,138,31,.55))}
+html.th-halloween .tabs .thumb,html.th-halloween .seg .thumb{display:none}
+html.th-halloween .tabs button,html.th-halloween .seg button{background:linear-gradient(180deg,#3a1d0a,#22110a);color:#FFD2A1;font:400 18px 'Pirata One',serif;letter-spacing:.4px;clip-path:polygon(9% 0,91% 0,100% 50%,91% 100%,9% 100%,0 50%);min-height:54px;border:0;box-shadow:inset 0 0 0 2px #FF8A1F}
+html.th-halloween .tabs button.on,html.th-halloween .seg button.on{background:linear-gradient(180deg,#ff9a3c,#e8630a);color:#1c0b00;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+/* campos con baba verde */
+html.th-halloween .field{border:3px solid #7CFF3A;background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2264%22 height=%2226%22 viewBox=%220 0 64 26%22%3E%3Cg fill=%22%237CFF3A%22%3E%3Crect x=%220%22 y=%220%22 width=%2264%22 height=%225%22/%3E%3Crect x=%2211%22 y=%220%22 width=%227%22 height=%2217%22 rx=%223.5%22/%3E%3Ccircle cx=%2214.5%22 cy=%2218%22 r=%224.2%22/%3E%3Crect x=%2233%22 y=%220%22 width=%226%22 height=%2211%22 rx=%223%22/%3E%3Ccircle cx=%2236%22 cy=%2212%22 r=%223.6%22/%3E%3Crect x=%2250%22 y=%220%22 width=%227%22 height=%2221%22 rx=%223.5%22/%3E%3Ccircle cx=%2253.5%22 cy=%2222%22 r=%224%22/%3E%3C/g%3E%3C/svg%3E") left bottom/64px 20px repeat-x,#0b1a16;color:#E9FFD9;font:400 30px 'Creepster','Sora',cursive;letter-spacing:1px;box-shadow:0 0 16px rgba(124,255,58,.45),inset 0 0 14px rgba(0,0,0,.6);padding-bottom:16px}
+html.th-halloween .field.sm{font:600 16px 'Plus Jakarta Sans',sans-serif;letter-spacing:0;background:#0b1a16;color:#E9FFD9;padding-bottom:8px}
+html.th-halloween .field:focus{border-color:#B6FF7A;box-shadow:0 0 0 4px rgba(124,255,58,.25),0 0 22px rgba(124,255,58,.6)}
+html.th-halloween textarea.field,html.th-halloween .msg{font:500 15px/1.5 'Plus Jakarta Sans',sans-serif;background:#0b1a16;color:#E9FFD9;border-color:#7CFF3A}
+html.th-halloween ::placeholder{color:#7fa58a}
+html.th-halloween .liveline,html.th-halloween .rshow{color:#8CFF55;text-shadow:0 0 10px rgba(124,255,58,.6)}
+html.th-halloween .rshow{font:400 26px 'Creepster','Sora',cursive;letter-spacing:.8px}
+html.th-halloween .chip{background:#21184f;border-color:#FF8A1F;color:#FFE2C2}
+html.th-halloween .chip.on{background:#FF8A1F;color:#1c0b00;border-color:#FF8A1F}
+html.th-halloween .linkbtn{color:#FFA24A}
+html.th-halloween .rrow,html.th-halloween .panelbox,html.th-halloween .live,html.th-halloween .qr,html.th-halloween .step,html.th-halloween .faqq,html.th-halloween .alrow{background:rgba(255,255,255,.06)}
+/* resultado */
+html.th-halloween .result{background:radial-gradient(circle at 50% 0%,rgba(255,138,31,.22),transparent 60%),linear-gradient(160deg,#241552,#150d38);border:2px solid rgba(255,138,31,.6);box-shadow:0 0 28px rgba(255,138,31,.25),0 14px 34px rgba(0,0,0,.55)}
+html.th-halloween .result .big{font:400 52px/1.05 'Creepster','Sora',cursive;letter-spacing:1px;color:#FF8A1F;text-shadow:0 0 6px rgba(255,138,31,.95),0 0 22px rgba(255,106,0,.75),0 4px 0 rgba(120,40,0,.8)}
+html.th-halloween .result .k{font:400 26px 'Pirata One',serif;color:#FF9A3C}
+html.th-halloween .result .r{color:#FFF1E0}
+html.th-halloween .result .r::before{content:"🎃";margin-right:8px}
+html.th-halloween .result .r{justify-content:flex-start}
+html.th-halloween .result .r span{color:#FFE2C2;flex:1}
+html.th-halloween .result .note{background:#4a4a52 linear-gradient(180deg,#5b5b66,#3d3d46);border:3px solid #7CFF3A;border-radius:26px 26px 10px 10px;color:#F1F1F1;text-align:center;box-shadow:0 0 18px rgba(124,255,58,.35)}
+/* avisos: pergamino */
+html.th-halloween .warn,html.th-halloween .hint,html.th-halloween .ann{background:linear-gradient(180deg,#ecd9a8,#d8bd82);border:3px solid #a97b3d;border-radius:16px;color:#3b1d06;box-shadow:inset 0 0 22px rgba(120,70,20,.35),0 6px 16px rgba(0,0,0,.5)}
+html.th-halloween .warn span:first-child{filter:grayscale(1) contrast(1.3)}
+html.th-halloween .nofee{background:rgba(124,255,58,.14);color:#8CFF55}
+/* administradores: reja del cementerio */
+html.th-halloween .adm{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:2px solid rgba(255,138,31,.55);color:#FFF1E0;box-shadow:0 0 16px rgba(255,138,31,.15)}
+html.th-halloween .adm b{font:400 25px 'Pirata One',serif;color:#FF9A3C;letter-spacing:.5px}
+html.th-halloween .adm small{color:#FFE2C2}
+html.th-halloween .adm em{color:#8CFF55}
+html.th-halloween .avatar,html.th-halloween .mini,html.th-halloween .stroll img{border-color:#FF8A1F;background:#1b1244;box-shadow:0 0 0 3px rgba(255,138,31,.25),0 0 22px rgba(255,138,31,.55)}
+html.th-halloween .go{background:#1e7a38;box-shadow:0 0 14px rgba(124,255,58,.45)}
+html.th-halloween .checks div{color:#FFE9D2}
+html.th-halloween .checks svg{stroke:#8CFF55}
+/* botones */
+html.th-halloween .btn{background:linear-gradient(135deg,#3b1d7a,#5a2aa8);color:#FFF1E0;box-shadow:0 0 0 2px rgba(255,138,31,.45)}
+html.th-halloween .btn.gold{background:linear-gradient(180deg,#ffa63f,#f06a0b);color:#1c0b00;box-shadow:0 0 0 2px #ffcf9a inset,0 0 20px rgba(255,138,31,.6);font-weight:800}
+html.th-halloween .btn.green{background:linear-gradient(180deg,#27903f,#17602b);color:#fff;box-shadow:0 0 0 2px rgba(124,255,58,.5),0 0 14px rgba(124,255,58,.25)}
+html.th-halloween .btn.ghost,html.th-halloween .btn.ig{background:#21184f;color:#FFE2C2;border:2px solid #FF8A1F}
+/* barra inferior */
+html.th-halloween .sticky{background:linear-gradient(180deg,rgba(32,16,72,.96),rgba(14,8,40,.98));border-top:2px solid rgba(255,138,31,.6);box-shadow:0 -10px 30px rgba(255,106,0,.18)}
+html.th-halloween .stamt span{color:#FF9A3C;font:400 18px 'Pirata One',serif}
+html.th-halloween .stamt strong{font:400 clamp(26px,8vw,34px)/1.05 'Creepster','Sora',cursive;color:#FF8A1F;text-shadow:0 0 14px rgba(255,138,31,.7);letter-spacing:.8px}
+/* marca y pie */
+html.th-halloween .brand{background:radial-gradient(circle at 50% 0%,rgba(255,138,31,.2),transparent 55%),linear-gradient(135deg,#2a1260,#120a34);border:2px solid rgba(255,138,31,.5)}
+html.th-halloween .brand h3{font:400 30px 'Pirata One',serif;color:#FF9A3C;text-shadow:0 0 12px rgba(255,138,31,.5)}
+html.th-halloween .brand .tg{color:#7CFF3A}
+html.th-halloween .badge,html.th-halloween .splash[data-scene=halloween] .badge{background:transparent;box-shadow:none;padding:0;border-radius:22px;overflow:visible}
+html.th-halloween .badge::after{display:none}
+html.th-halloween .sitefoot,html.th-halloween .fcopy,html.th-halloween .ftag,html.th-halloween .fdis{color:#E7D6FF}
+html.th-halloween .fd summary{color:#FF9A3C}
+/* hojas inferiores y avisos */
+html.th-halloween .sheetpanel{background:linear-gradient(180deg,#1b1244,#0f0a2e);border-top:3px solid #FF8A1F;box-shadow:0 -10px 40px rgba(255,138,31,.25)}
+html.th-halloween .closebtn,html.th-halloween .qbtn{background:#2a1458;color:#FF9A3C}
+html.th-halloween .adminbox{border-color:#FF8A1F}
+html.th-halloween .sw.on{background:#1e9a45}
+/* burbujas de las mascotas: tema Halloween */
+html.th-halloween .bubble{background:linear-gradient(180deg,#2b1760,#1a0e45);color:#FFF1E0;border:2px solid #FF8A1F;box-shadow:0 0 18px rgba(255,138,31,.55),0 10px 24px rgba(0,0,0,.5);font-size:14.5px}
+html.th-halloween .bubble::after{background:#1a0e45;border-right:2px solid #FF8A1F;border-bottom:2px solid #FF8A1F;border-radius:0 0 4px 0}
+html.th-halloween .spark{color:#FF8A1F;text-shadow:0 0 8px rgba(255,138,31,.9)}
+/* pantalla de apagado y carga */
+html.th-halloween .offpanel{border:2px solid rgba(255,138,31,.5)}
+html.th-halloween .offlogo{background:transparent;box-shadow:none}
+/* cambio de disfraz de las mascotas */
+@keyframes flip{0%{transform:rotateY(0) scale(1)}45%{transform:rotateY(90deg) scale(1.12);filter:brightness(2.2) saturate(.2)}55%{transform:rotateY(-90deg) scale(1.12);filter:brightness(2.2) saturate(.2)}100%{transform:rotateY(0) scale(1)}}
+img.flip{animation:flip .7s ease-in-out!important}
+@media (max-width:420px){html.th-halloween .hero .big,html.th-halloween .result .big{font-size:46px}}
+@media (prefers-reduced-motion:reduce){img.flip{animation:none!important}}

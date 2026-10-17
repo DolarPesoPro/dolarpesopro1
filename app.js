@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261017a';
+  var VER = '20261017e';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -319,7 +319,7 @@
       var stRefP = db.ref('status');
       function stCb(s) {
         var was = S.open; S.status = s.val(); applyStatus();
-        S.themePub = (S.status && S.status.theme) || ''; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} if (!S.themePub && !autoPeekTheme) { try { var previousPair = localStorage.getItem('pp_peek_pair') || 'dracula_lobo'; autoPeekTheme = previousPair === 'halloween' ? 'dracula_lobo' : 'halloween'; localStorage.setItem('pp_peek_pair', autoPeekTheme); } catch (e) { autoPeekTheme = 'halloween'; } } applySeason(); if (S.admin) renderThemes();
+        S.themePub = (S.status && S.status.theme) || ''; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} applySeason(); if (S.admin) renderThemes();
         if (S.open && was === false && !S.admin) S.live = false;     // reabre: espera la cotización real antes de mostrarla
         if (!S.open) S.live = true;
         syncData(); update(); if (S.admin) refreshPanel();
@@ -649,52 +649,18 @@
   rateEl.addEventListener('input', function () { S.manual = rateEl.value; update(); });
   $('#rateReset').addEventListener('click', function () { S.manual = null; rateEl.value = inN(S.cfg.rate); update(); });
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
+  function linesFor(nm) { var d = themeDef(), who = String(nm || 'Justo').toLowerCase(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].say; } return SAY[nm] || SAY.Justo; }
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
-  // Burbuja única y legible: evita que varias frases se superpongan en web/PWA/móvil.
-  var activeBubble = null, bubbleTimer = null, bubbleQueue = [], bubbleBusy = false;
-  function showBubble(node, text) {
-    if (!node || !document.body || !text) { bubbleBusy = false; return; }
-    var r = node.getBoundingClientRect();
-    if (!r || (!r.width && !r.height)) { bubbleBusy = false; return; }
-    var b = document.createElement('div');
-    b.className = 'bubble bubble-visible';
-    b.textContent = String(text);
-    b.setAttribute('role', 'status'); b.setAttribute('aria-live', 'polite');
-    b.style.cssText = 'position:fixed!important;display:block!important;visibility:visible!important;opacity:1;pointer-events:none;z-index:2147483647;left:12px;top:12px;transform:none;max-width:calc(100vw - 32px);width:max-content;box-sizing:border-box;';
-    document.body.appendChild(b);
-    var vw = document.documentElement.clientWidth || window.innerWidth;
-    var vh = document.documentElement.clientHeight || window.innerHeight;
-    b.style.maxWidth = Math.max(170, Math.min(320, vw - 32)) + 'px';
-    var br = b.getBoundingClientRect(), w = br.width, h = br.height;
-    var cx = r.left + r.width / 2;
-    var bx = Math.max(w / 2 + 16, Math.min(vw - w / 2 - 16, cx));
-    var top = r.top - 14;
-    // Si no cabe encima, se muestra debajo; nunca se coloca fuera del viewport.
-    if (top - h < 8) top = r.bottom + h + 14;
-    if (top > vh - 8) top = Math.max(h + 12, vh - 12);
-    b.style.left = bx + 'px'; b.style.top = top + 'px';
-    b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px');
-    var life = Math.max(5600, Math.min(7600, 4200 + String(text).length * 48));
-    b.style.setProperty('--bubble-life', life + 'ms');
-    if (activeBubble && activeBubble !== b && activeBubble.parentNode) activeBubble.parentNode.removeChild(activeBubble);
-    activeBubble = b;
-    clearTimeout(bubbleTimer);
-    bubbleTimer = setTimeout(function () {
-      if (b.parentNode) b.parentNode.removeChild(b);
-      if (activeBubble === b) activeBubble = null;
-      bubbleBusy = false;
-      if (bubbleQueue.length) { var next = bubbleQueue.shift(); showBubble(next.node, next.text); }
-    }, life);
-  }
   function say(node, text) {
-    if (!node || !text) return;
-    // Mantener una sola burbuja a la vez hace que la frase se pueda leer en pantallas pequeñas.
-    if (bubbleBusy) {
-      bubbleQueue.push({ node: node, text: String(text) });
-      if (bubbleQueue.length > 8) bubbleQueue.shift();
-      return;
-    }
-    bubbleBusy = true; showBubble(node, text);
+    $$('.bubble').forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); });          // una sola burbuja a la vez: nunca se tapan entre sí
+    var dur = Math.max(2800, Math.min(6500, 1600 + text.length * 70));                               // el tiempo en pantalla depende del largo de la frase
+    var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, b = document.createElement('div');
+    b.className = 'bubble'; b.textContent = text; b.style.cssText = 'left:0;top:' + Math.max(56, r.top - 8) + 'px;visibility:hidden;animation-duration:' + dur + 'ms';
+    document.body.appendChild(b); node.__bub = b;
+    var w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
+    b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
+    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); if (node.__bub === b) node.__bub = null; }, dur + 120);
+    return dur;
   }
   /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
   var greetT = [];
@@ -703,14 +669,14 @@
     stopGreet();
     var HELP = ['¿En qué te puedo ayudar? 💬', '¡Te atiendo yo! 👋'];
     $$('#pick .avatar').forEach(function (m, i) {
-      var nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), L = SAY[nm] || SAY.Justo;
+      var nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), L = linesFor(nm);
       greetT.push(setTimeout(function () { hop(m); burst(m, false); say(m, L[0]); }, 650 + i * 900));
       greetT.push(setTimeout(function () { say(m, i ? L[1] : HELP[0]); }, 650 + i * 900 + 1700));
     });
     (function loop(n) {                                               // después, una frase cada ~5 s mientras el menú siga abierto
       greetT.push(setTimeout(function () {
         var sh = $('#sheet2'); if (!sh || !sh.classList.contains('open')) return;
-        var av = $$('#pick .avatar'); if (av.length) { var k = (n % 2 === 0) ? Math.floor(Math.random() * av.length) : (n + 1) % av.length, m = av[k], nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), P = SAY[nm] || SAY.Justo; hop(m); say(m, P[Math.floor(Math.random() * P.length)]); }
+        var av = $$('#pick .avatar'); if (av.length) { var k = (n % 2 === 0) ? Math.floor(Math.random() * av.length) : (n + 1) % av.length, m = av[k], nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), P = linesFor(nm); hop(m); say(m, P[Math.floor(Math.random() * P.length)]); }
         loop(n + 1);
       }, 5200));
     })(0);
@@ -723,80 +689,79 @@
       sp.className = 'spark'; sp.textContent = g[i % g.length]; sp.style.cssText = 'left:' + cx + 'px;top:' + cy + 'px;--dx:' + (Math.cos(a) * d).toFixed(0) + 'px;--dy:' + (Math.sin(a) * d - 20).toFixed(0) + 'px;--rot:' + ((Math.random() * 140) - 70).toFixed(0) + 'deg;color:' + (i % 3 ? '#FFD54A' : '#fff');
       document.body.appendChild(sp); setTimeout((function (n) { return function () { if (n.parentNode) n.parentNode.removeChild(n); }; })(sp), 950);
     }
-    if (talk) { var nm = (node.getAttribute('alt') || '').split(',')[0].trim(), L = SAY[nm] || SAY.Justo; say(node, L[Math.floor(Math.random() * L.length)]); }
+    if (talk) { var nm = (node.getAttribute('alt') || '').split(',')[0].trim(), L = linesFor(nm); say(node, L[Math.floor(Math.random() * L.length)]); }
     try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
   }
   $$('.mini').forEach(function (m) { m.addEventListener('click', function () { stopChat(); hop(m); burst(m, true); }); });
   /* Al llegar a Justo y Boris (sección de marca) conversan solos, una vez por visita */
-  var CHAT_BASE = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
-  function brandChatLines() { var d = currentMascotTheme(), out = []; if (d && d.peeks) d.peeks.forEach(function (p, i) { (p.say || []).forEach(function (line) { out.push([i % 2, line]); }); }); if (!out.length) out = CHAT_BASE.slice(); out.sort(function(){ return Math.random() - 0.5; }); return out.slice(0, 6); }
+  var CHAT = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
   function stopChat() { chatT.forEach(clearTimeout); chatT = []; }
   function playChat() {
     var now = Date.now(), minis = $$('.mini'); if (now - lastChat < 30000 || minis.length < 2) return; lastChat = now; stopChat();
-    var lines = brandChatLines(); lines.forEach(function (l, i) { chatT.push(setTimeout(function () { var m = minis[l[0]]; if (m) { hop(m); burst(m, false); say(m, l[1]); } }, 700 + i * 6800)); });
+    CHAT.forEach(function (l, i) { chatT.push(setTimeout(function () { var m = minis[l[0]]; hop(m); burst(m, false); say(m, l[1]); }, 700 + i * 3300)); });
   }
   if ('IntersectionObserver' in window && $('.brand')) {
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
   }
-  /* En la sección de contacto, las mascotas también saludan; funciona en web y PWA. */
-  var contactTalk = ['¡Hola! 👋 ¿En qué podemos ayudarte?', '¡Escribinos por WhatsApp y te damos una mano! 💬', '¿Ya cambiaste hoy? 💵', '¡Tu consulta es bienvenida!'];
-  var contactObserver = null;
-  function startContactTalk() {
-    var cards = $$('[data-wa]'); if (!cards.length) return;
-    cards.forEach(function (card, i) {
-      if (card.dataset.mascotTalkBound) return;
-      card.dataset.mascotTalkBound = '1';
-      card.addEventListener('mouseenter', function () { var av = card.querySelector('.avatar'); if (av) { hop(av); say(av, contactTalk[Math.floor(Math.random() * contactTalk.length)]); } });
-      card.addEventListener('focusin', function () { var av = card.querySelector('.avatar'); if (av) say(av, contactTalk[Math.floor(Math.random() * contactTalk.length)]); });
-      card.addEventListener('click', function () { var av = card.querySelector('.avatar'); if (av) say(av, i === 0 ? '¡Hola! Soy Justo 🤠' : '¡Hola! Soy Boris 😎'); });
-    });
-    var section = $('#talk') || cards[0].closest('section');
-    if (section && 'IntersectionObserver' in window && !section.dataset.mascotObserver) {
-      section.dataset.mascotObserver = '1';
-      contactObserver = new IntersectionObserver(function (entries) { entries.forEach(function (entry) {
-        if (entry.isIntersecting && !document.hidden) { var avs = $$('#talk .avatar'); if (!avs.length) avs = cards.map(function (c) { return c.querySelector('.avatar'); }).filter(Boolean); if (avs.length) { var a = avs[Math.floor(Math.random() * avs.length)]; say(a, contactTalk[Math.floor(Math.random() * contactTalk.length)]); } }
-      }); }, { threshold: 0.35 }); contactObserver.observe(section);
-    }
-  }
-  startContactTalk();
   /* Los que duermen en la pantalla de apagado también responden al toque */
   /* ---------- Temáticas (themes.js). La activa el administrador desde el panel y la ven todos al instante ---------- */
   var TH = window.PP_THEMES || {};
   $$('img').forEach(function (i) { var m = (i.getAttribute('src') || '').match(/^assets\/(justo|boris)\.jpg$/); if (m) i.setAttribute('data-av', m[1]); });
   try { S.themePub = localStorage.getItem('pp_theme') || ''; } catch (e) {}          // última temática conocida: la carga ya sale con el tema
   (function () { var q = location.search.match(/[?&]tema=([a-z0-9_-]+)/) || (/[?&]halloween=1/.test(location.search) ? [0, 'halloween'] : null); if (q && TH[q[1]]) S.themePreview = q[1]; })();
-  // Sin temática publicada por el administrador, cada carga elige una pareja al azar.
-  // No se guarda la elección: recargar puede mostrar la otra pareja.
-  var autoPeekTheme = '';
-  try {
-    autoPeekTheme = S.themePub && TH[S.themePub] ? S.themePub : (Math.random() < 0.5 ? 'halloween' : 'dracula_lobo');
-  } catch (e) { autoPeekTheme = 'halloween'; }
   function themeDef() { return (S.themeApplied && TH[S.themeApplied]) || null; }
-  function peekDef() { var active = themeDef(); return active || (autoPeekTheme && TH[autoPeekTheme]) || null; }
-  function currentMascotTheme() { var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || autoPeekTheme); return TH[id] || null; }
+  S.costume = 0;
+  function costumeSrc(who) {
+    var d = themeDef(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].img; }
+    return (d && d.avatars && d.avatars[who]) || 'assets/' + who + '.jpg';
+  }
+  /* cambia la foto de una mascota; si pide animación, da la vuelta (flip) y cambia a mitad */
+  function paintAvatar(i, animate) {
+    var src = costumeSrc(i.getAttribute('data-av')); if (i.getAttribute('src') === src) return;
+    if (!animate) { i.src = src; return; }
+    i.classList.remove('flip'); void i.offsetWidth; i.classList.add('flip');
+    setTimeout(function () { i.src = src; }, 260); setTimeout(function () { i.classList.remove('flip'); }, 700);
+  }
+  function paintAll(who, animate) { $$('img[data-av]').forEach(function (i) { if (!who || i.getAttribute('data-av') === who) paintAvatar(i, animate); }); }
+  function visibleMascot() {
+    var l = $$('img[data-av]'); for (var k = 0; k < l.length; k++) { var r = l[k].getBoundingClientRect(); if (r.width > 20 && r.top > 60 && r.bottom < innerHeight - 90 && l[k].offsetParent !== null) return l[k]; } return null;
+  }
+  /* cada ~9 s las mascotas se cambian de disfraz: Justo (Frankenstein ⇄ Vampiro) y Boris (Momia ⇄ Lobo) */
+  setInterval(function () {
+    var d = themeDef(); if (!d || !d.costumes || document.hidden) return;
+    S.costume++; paintAll('justo', true); setTimeout(function () { paintAll('boris', true); }, 450);
+    setTimeout(function () { var m = visibleMascot(); if (m && Math.random() < 0.6) { var L = linesFor(m.getAttribute('data-av') === 'boris' ? 'Boris' : 'Justo'); hop(m); say(m, L[Math.floor(Math.random() * L.length)]); } }, 1400);
+  }, 9000);
   function applySeason() {
-    var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || autoPeekTheme || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : ''; 
+    var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
     if (key === S.themeApplied) return; S.themeApplied = key;
-    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); if (def) root.classList.add('th-' + key); root.classList.toggle('seasonal-halloween', !!def);
-    $$('img[data-av]').forEach(function (i) { var w = i.getAttribute('data-av'), src = (def && def.avatars && def.avatars[w]) || 'assets/' + w + '.jpg'; if (i.getAttribute('src') !== src) i.src = src; });
+    var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); root.classList.remove('th-look');
+    if (def) { root.classList.add('th-' + key); if (def.look) root.classList.add('th-' + def.look); root.classList.add('th-on'); } else root.classList.remove('th-on');
+    if (def && def.fonts && !document.getElementById('thFonts')) { var lk = document.createElement('link'); lk.id = 'thFonts'; lk.rel = 'stylesheet'; lk.href = def.fonts; document.head.appendChild(lk); }
+    var pre = (def && def.preload) || []; pre.forEach(function (u) { var im = new Image(); im.src = u; });
+    if (def && def.costumes) Object.keys(def.costumes).forEach(function (w) { def.costumes[w].forEach(function (c) { var im = new Image(); im.src = c.img; }); });
+    if (def && def.logo) { var lg = new Image(); lg.src = def.logo; }
+    paintAll(null, false);
+    $$('img.logoimg').forEach(function (i) { var src = (def && def.logo) || 'assets/logo.jpg'; if (i.getAttribute('src') !== src) i.src = src; });
     try { var sp = $('#splash'); if (sp) sp.setAttribute('data-scene', (def && def.splash) || sceneNow()); } catch (e) {}
-    ((def && def.preload) || []).forEach(function (u) { var im = new Image(); im.src = u; });
-    var nextPeeks = def || peekDef(); if (nextPeeks && nextPeeks.peeks && nextPeeks.peeks.length) setTimeout(peek, 7000);
+    if (def && def.peeks && def.peeks.length) setTimeout(peek, 7000);
   }
   function peek() {
-    var def = peekDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || document.hidden || (S.admin && S.themePreview === undefined)) return;
+    var def = themeDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || document.hidden || (S.admin && S.themePreview === undefined)) return;
     var sh = $('#sheet2'), off = $('#off'); if ((sh && sh.classList.contains('open')) || (off && !off.hidden)) return;
-    var P = def.peeks[Math.floor(Math.random() * def.peeks.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
+    var worn = [costumeSrc('justo'), costumeSrc('boris')], pool = def.peeks.filter(function (p) { return worn.indexOf(p.img) < 0; }); if (!pool.length) pool = def.peeks;   // no repetir el disfraz que ya llevan puesto
+    var P = pool[Math.floor(Math.random() * pool.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
     if (!w.animate) return; S.peeking = true;
+    var fail = setTimeout(function () { S.peeking = false; if (w.parentNode) w.parentNode.removeChild(w); }, 16000);   // seguro: nunca se queda trabado
     w.className = 'peek ' + (left ? 'l' : 'r'); w.style.bottom = (22 + Math.floor(Math.random() * 38)) + '%'; im.src = P.img; im.alt = ''; w.appendChild(im); document.body.appendChild(w);
     var hide = left ? 'translateX(-100%)' : 'translateX(100%)', show = left ? 'translateX(-34%)' : 'translateX(34%)';
     var a1 = w.animate([{ transform: hide }, { transform: show }], { duration: 900, easing: 'cubic-bezier(.2,1.3,.4,1)', fill: 'forwards' });
     a1.onfinish = function () {
-      if (P.say && P.say.length && Math.random() < 0.9) say(w, P.say[Math.floor(Math.random() * P.say.length)]);
-      setTimeout(function () { var a2 = w.animate([{ transform: show }, { transform: hide }], { duration: 700, easing: 'ease-in', fill: 'forwards' }); a2.onfinish = function () { if (w.parentNode) w.parentNode.removeChild(w); S.peeking = false; }; }, 3200);
+      var txt = (P.say && P.say.length) ? P.say[Math.floor(Math.random() * P.say.length)] : '¡Buuu! 🎃', dur = say(w, txt);   // SIEMPRE dice su frase y se queda hasta que termine de leerse
+      setTimeout(function () { var a2 = w.animate([{ transform: show }, { transform: hide }], { duration: 700, easing: 'ease-in', fill: 'forwards' }); a2.onfinish = function () { clearTimeout(fail); if (w.parentNode) w.parentNode.removeChild(w); S.peeking = false; }; }, dur + 300);
     };
   }
-  setInterval(function () { if (Math.random() < 0.55) peek(); }, 24000);
+  setInterval(function () { if (Math.random() < 0.7) peek(); }, 18000);
   function renderThemes() {
     var box = pa('aThemeList'); if (!box) return; box.textContent = '';
     var ids = Object.keys(TH), pub = S.themePub || '';
@@ -820,7 +785,7 @@
   function strollOff(ov) {
     if (S.strolling) return; S.strolling = true;
     var who = Math.random() < 0.5 ? 'justo' : 'boris', L = STROLL[who], w = document.createElement('div'), im = document.createElement('img');
-    w.className = 'stroll'; var td = themeDef(); im.src = (td && td.avatars && td.avatars[who]) || 'assets/' + who + '.jpg'; im.alt = ''; w.appendChild(im); ov.appendChild(w);
+    w.className = 'stroll'; im.src = costumeSrc(who); im.alt = ''; w.appendChild(im); ov.appendChild(w);
     var W = ov.clientWidth || innerWidth, mid = Math.round(W / 2 - 34), fin = function () { if (w.parentNode) w.parentNode.removeChild(w); S.strolling = false; };
     if (!w.animate) { fin(); return; }
     var a1 = w.animate([{ transform: 'translateX(-90px) rotate(0deg)' }, { transform: 'translateX(' + mid + 'px) rotate(540deg)' }], { duration: 2600, easing: 'ease-out', fill: 'forwards' });
