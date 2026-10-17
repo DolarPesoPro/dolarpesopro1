@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261016d';
+  var VER = '20261016e';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -272,7 +272,7 @@
   function applyStatus() {
     var st = S.status;
     if (!st || !st.mode) { S.master = true; S.auto = false; S.open = S.cfg.online !== false; return; }
-    S.master = st.mode !== 'off'; S.auto = st.auto === true || st.mode === 'auto';      // 'auto' viejo = encendido + horario
+    S.master = st.mode !== 'off'; S.auto = st.mode === 'auto';      // mode: on | off | auto (encendido + horario)
     S.open = S.master && (!S.auto || schedOpen(st));
     if (S.denied && !S.admin) S.open = false;
     S.cfg.online = S.open; S.cfg.offReason = typeof st.offReason === 'string' ? st.offReason.slice(0, 120) : '';
@@ -280,19 +280,22 @@
     S.cfg.hoursRaw = S.cfg.hoursOn; if (S.auto) S.cfg.hoursOn = true;
   }
   function stFull(over) {
-    var c = S.cfg, st = S.status || {}, o = Object.assign({ mode: S.master === false ? 'off' : 'on', auto: !!S.auto, offReason: st.offReason || '', hoursFrom: c.hoursFrom, hoursTo: c.hoursTo }, over || {});
-    if (o.mode === 'auto') { o.mode = 'on'; o.auto = true; }
+    var c = S.cfg, st = S.status || {}, o = Object.assign({ mode: curMode(), offReason: st.offReason || '', hoursFrom: c.hoursFrom, hoursTo: c.hoursTo }, over || {});
+    o.auto = null;
     o.fromMin = toMin(o.hoursFrom) || 0; o.toMin = toMin(o.hoursTo) || 0; o.offReason = o.offReason || null; o.onlineAt = firebase.database.ServerValue.TIMESTAMP; return o;
   }
+  function curMode() { return S.master === false ? 'off' : (S.auto ? 'auto' : 'on'); }
+  function autoOn() { return !!(S.auto || (S.master === false && S.autoPref)); }       // interruptor "automático" (aunque el principal esté apagado)
+  function modeFor(master, auto) { return master ? (auto ? 'auto' : 'on') : 'off'; }
   /* escritura mínima del estado: solo toca lo necesario (no pisa horarios con valores viejos) */
   function stMin(over) {
-    var st = S.status || {}, o = Object.assign({ mode: S.master === false ? 'off' : 'on', auto: !!S.auto }, over || {}); if (o.mode === 'auto') { o.mode = 'on'; o.auto = true; }
+    var st = S.status || {}, o = Object.assign({ mode: curMode() }, over || {}); o.auto = null;
     o.onlineAt = firebase.database.ServerValue.TIMESTAMP;
     if (typeof st.fromMin !== 'number' || typeof st.toMin !== 'number') { var f = stFull(over); o.fromMin = f.fromMin; o.toMin = f.toMin; o.hoursFrom = f.hoursFrom; o.hoursTo = f.hoursTo; }
     return o;
   }
   function cfgCb(s) {
-    var old = S.cfg.rate; S.cfg = readCfg(s.val()); S.denied = false; applyStatus();
+    var old = S.cfg.rate; S.cfg = readCfg(s.val()); S.autoPref = !!(s.val() && s.val().autoPref === true); S.denied = false; applyStatus();
     if (!S.firstCfg && old !== S.cfg.rate && S.open) { var h = $('#hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); liveToast(old); }
     S.firstCfg = false; S.live = true; update(); if (S.admin) refreshPanel(); maybeInitialToast();
   }
@@ -689,13 +692,35 @@
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
   }
   /* Los que duermen en la pantalla de apagado también responden al toque */
+  /* ---------- Halloween (15 oct – 2 nov, o con ?halloween=1) ---------- */
+  var HW = (function () { try { if (/[?&]halloween=1/.test(location.search)) return true; var d = new Date(), m = d.getMonth(), n = d.getDate(); return (m === 9 && n >= 15) || (m === 10 && n <= 2); } catch (e) { return false; } })();
+  if (HW) {
+    document.documentElement.classList.add('hw');
+    $$('img[src="assets/justo.jpg"]').forEach(function (i) { i.src = 'assets/justo-h.jpg'; });
+    $$('img[src="assets/boris.jpg"]').forEach(function (i) { i.src = 'assets/boris-h.jpg'; });
+  }
+  var PEEKS = [{ img: 'peek-vamp.jpg', say: ['¡Buuu! 🎃', '¿Cambiamos antes de que anochezca? 🦇'] }, { img: 'peek-wolf.jpg', say: ['Auuuu… 🐺', 'Mejor cotización que la luna llena 😎'] }, { img: 'peek-bear.jpg', say: ['Grrr… ¡hola! 🐻', 'Tranqui, no muerdo… mucho 😁'] }, { img: 'peek-ghost.jpg', say: ['Boo! 👻', '¿Te asusté? 😄'] }];
+  function peek() {
+    if (!HW || S.admin || S.peeking || document.hidden) return;
+    var sh = $('#sheet2'), off = $('#off'); if ((sh && sh.classList.contains('open')) || (off && !off.hidden)) return;
+    var P = PEEKS[Math.floor(Math.random() * PEEKS.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
+    if (!w.animate) return; S.peeking = true;
+    w.className = 'peek ' + (left ? 'l' : 'r'); w.style.bottom = (22 + Math.floor(Math.random() * 38)) + '%'; im.src = 'assets/' + P.img; im.alt = ''; w.appendChild(im); document.body.appendChild(w);
+    var hide = left ? 'translateX(-100%)' : 'translateX(100%)', show = left ? 'translateX(-34%)' : 'translateX(34%)';
+    var a1 = w.animate([{ transform: hide }, { transform: show }], { duration: 900, easing: 'cubic-bezier(.2,1.3,.4,1)', fill: 'forwards' });
+    a1.onfinish = function () {
+      if (Math.random() < 0.4) say(w, P.say[Math.floor(Math.random() * P.say.length)]);
+      setTimeout(function () { var a2 = w.animate([{ transform: show }, { transform: hide }], { duration: 700, easing: 'ease-in', fill: 'forwards' }); a2.onfinish = function () { if (w.parentNode) w.parentNode.removeChild(w); S.peeking = false; }; }, 2400);
+    };
+  }
+  if (HW) { setTimeout(peek, 9000); setInterval(function () { if (Math.random() < 0.55) peek(); }, 24000); }
   /* Mientras está apagado, las mascotas hablan dormidas y de vez en cuando pasan rodando por la pantalla */
   var OFFTALK = [['Zzz… ¿ya abrimos? 🥱', 'Soñé con dólares 💭', 'Cinco minutitos más… 😴', 'Shhh… el dólar duerme 🤫'], ['Zzz… ¡mi cotización! 💤', 'Estoy descansando, ¿eh? 😎', 'Volvemos enseguida ⏳', 'Zzz… dame un cafecito ☕']];
   var STROLL = { justo: ['¡Solo estiro las piernas! 🚶', '¿Quién apagó la luz? 🔦', 'Boludeando un ratito 😜'], boris: ['Estoy de paseo, ya volvemos 😎', '¡Qué silencio! 🦗', 'Revisando que todo esté en orden 🔍'] };
   function strollOff(ov) {
     if (S.strolling) return; S.strolling = true;
     var who = Math.random() < 0.5 ? 'justo' : 'boris', L = STROLL[who], w = document.createElement('div'), im = document.createElement('img');
-    w.className = 'stroll'; im.src = 'assets/' + who + '.jpg'; im.alt = ''; w.appendChild(im); ov.appendChild(w);
+    w.className = 'stroll'; im.src = 'assets/' + who + (HW ? '-h' : '') + '.jpg'; im.alt = ''; w.appendChild(im); ov.appendChild(w);
     var W = ov.clientWidth || innerWidth, mid = Math.round(W / 2 - 34), fin = function () { if (w.parentNode) w.parentNode.removeChild(w); S.strolling = false; };
     if (!w.animate) { fin(); return; }
     var a1 = w.animate([{ transform: 'translateX(-90px) rotate(0deg)' }, { transform: 'translateX(' + mid + 'px) rotate(540deg)' }], { duration: 2600, easing: 'ease-out', fill: 'forwards' });
@@ -1002,7 +1027,13 @@
 
   var P = null;   // nodos del panel
   function pa(id) { return slot.querySelector('#' + id); }
-  function msgA(txt, bad) { var m = pa('aMsg'); if (!m) return; m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
+  var aToastT = null;
+  function msgA(txt, bad) {
+    var m = pa('aMsg'); if (m) { m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
+    var tt = document.getElementById('aToast'); if (!tt) { tt = document.createElement('div'); tt.id = 'aToast'; tt.setAttribute('role', 'status'); tt.setAttribute('aria-live', 'polite'); document.body.appendChild(tt); }
+    tt.textContent = txt; tt.className = 'atoast on' + (bad ? ' bad' : ''); clearTimeout(aToastT);
+    if (!/^Guardando/.test(txt)) aToastT = setTimeout(function () { tt.className = 'atoast'; }, bad ? 12000 : 4500);
+  }
   function mountPanel() {
     if (S.admin) return; S.admin = true; if (window.GA_ID) window['ga-disable-' + window.GA_ID] = true; gate.hidden = true; update();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
@@ -1048,10 +1079,11 @@
       var btn = pa('aEngine');
       btn.classList.remove('crank'); void btn.offsetWidth; btn.classList.add('crank'); setTimeout(function () { btn.classList.remove('crank'); }, 650);
       try { if (navigator.vibrate) navigator.vibrate(turnOn ? [30, 40, 70] : 25); } catch (e) {}
-      var upd = stMin({ mode: turnOn ? 'on' : 'off' }), extra = '', wasAuto = !!S.auto;
+      var wasAuto = autoOn(), upd = stMin({ mode: modeFor(turnOn, wasAuto) }), extra = '';
       if (!turnOn) { var rr = pa('aReason').value.trim().slice(0, 120); upd.offReason = rr || null; }
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
-      run(db.ref('status').update(upd), (turnOn ? (wasAuto ? 'Encendido: ahora abre y cierra según el horario' : 'En línea') : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el horario automático queda en pausa hasta que enciendas)' : '')) + extra, turnOn ? [] : ['aReason']);
+      var mp = { 'config/autoPref': wasAuto }; Object.keys(upd).forEach(function (k) { mp['status/' + k] = upd[k]; });
+      run(db.ref().update(mp), (turnOn ? (wasAuto ? 'Encendido: ahora abre y cierra según el horario' : 'En línea') : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el horario automático queda en pausa hasta que enciendas)' : '')) + extra, turnOn ? [] : ['aReason']);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
@@ -1089,9 +1121,10 @@
     }, function () { S.rulesBad.inquiries = true; renderRules(); });
     S.inqRender = inqRender;
     pa('aAuto').addEventListener('click', function () {
-      var turnOn = !S.auto, fa = toMin(S.cfg.hoursFrom), fb = toMin(S.cfg.hoursTo);
+      var turnOn = !autoOn(), fa = toMin(S.cfg.hoursFrom), fb = toMin(S.cfg.hoursTo);
       if (turnOn && (fa == null || fb == null || fa === fb)) { msgA('Primero guarda el horario (punto 6) con dos horas distintas.', true); return; }
-      run(db.ref('status').update(stMin({ auto: turnOn })), turnOn ? 'Encendido automático ACTIVADO: abre y cierra solo según el horario (mientras el botón principal esté encendido)' : 'Encendido automático DESACTIVADO: manda solo el botón principal');
+      var up2 = stMin({ mode: modeFor(S.master !== false, turnOn) }), mp2 = { 'config/autoPref': turnOn }; Object.keys(up2).forEach(function (k) { mp2['status/' + k] = up2[k]; });
+      run(db.ref().update(mp2), turnOn ? 'Encendido automático ACTIVADO: abre y cierra solo según el horario (mientras el botón principal esté encendido)' : 'Encendido automático DESACTIVADO: manda solo el botón principal');
     });
     function weekText() {
       var base = new Date(srvNow() - 10800000), lines = [], st = 0, dn = 0, pst = 0, pdn = 0, best = null, i;
@@ -1207,6 +1240,7 @@
     if (S.stRef) { S.stRef.off(); S.stRef = null; }
     if (S.noRef) { S.noRef.off(); S.noRef = null; }
     if (S.inqRef) { S.inqRef.off(); S.inqRef = null; } S.inq = [];
+    var tt0 = document.getElementById('aToast'); if (tt0) tt0.className = 'atoast';
     S.waiters = [];
     slot.textContent = '';
   }
@@ -1222,7 +1256,7 @@
     pa('aEngineTitle').textContent = !mst ? 'FUERA DE LÍNEA' : on ? 'EN LÍNEA' : 'ENCENDIDO · CERRADO POR HORARIO'; pa('aPeek').hidden = on;
     pa('aEngineSub').textContent = !mst ? 'Apagado general: los clientes ven la pantalla de descanso. Tú sigues viendo todo normal. Toca el botón para encender.' : on ? 'Los clientes pueden cotizar y escribirte. Toca el botón para apagar todo.' : 'El botón está encendido, pero ahora cierra el horario automático (abres a las ' + c.hoursFrom + '). Toca el botón para apagar todo.';
     pa('aLive').innerHTML = '<b>Lo que ven los clientes ahora</b><br>Cotización: <b>' + (on ? ars(c.rate) : 'oculta (fuera de línea)') + '</b>' + (c.rateSell > 0 ? ' · Pesos → dólares: <b>' + ars(c.rateSell) + '</b>' : '') + '<br>Mínimo para calcular: <b>' + fmtN(c.minUsd) + ' USD</b> · Cambio manual: <b>' + (c.allowManual ? 'permitido' : 'bloqueado') + '</b><br>Conexión: <b>' + (S.online ? 'en vivo' : 'sin conexión') + '</b>';
-    var au = !!S.auto; pa('aAuto').classList.toggle('on', au); pa('aAuto').setAttribute('aria-checked', au ? 'true' : 'false');
+    var au = autoOn(); pa('aAuto').classList.toggle('on', au); pa('aAuto').setAttribute('aria-checked', au ? 'true' : 'false');
     pa('aAutoHelp').textContent = au ? (mst ? 'Activo: abre a las ' + c.hoursFrom + ' y cierra a las ' + c.hoursTo + ' (hora de Argentina). El botón principal siempre puede apagar todo.' : 'Activo pero en pausa: el botón principal está apagado, así que no abre hasta que lo enciendas.') : 'Desactivado: abre y cierra solo cuando tú lo decides con el botón principal. Actívalo para usar el horario del punto 6.';
     renderAlerts(); renderWaiters(); renderRvAdmin(); renderRules();
   }
@@ -1316,7 +1350,7 @@
     t.appendChild(s); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 600);
   }, { passive: true });
   addEye($('#pass')); addEye($('#offPass'));
-  try { $('#splash').setAttribute('data-scene', sceneNow()); } catch (e) {}
+  try { $('#splash').setAttribute('data-scene', HW ? 'halloween' : sceneNow()); } catch (e) {}
   applyStatic(); update();
   setTimeout(update, 9500);
   var rb = $('#sbRetry'); if (rb) rb.addEventListener('click', function () { S.t0 = Date.now(); if (S.resync) S.resync(); syncData(); update(); setTimeout(update, 9500); });

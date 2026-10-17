@@ -120,6 +120,9 @@
       },
       "auto": {
         ".validate": "newData.isBoolean()"
+      },
+      "theme": {
+        ".validate": "newData.isString() && newData.val().length <= 24 && newData.val().matches(/^[a-z0-9_-]*$/)"
       }
     },
     "inquiries": {
