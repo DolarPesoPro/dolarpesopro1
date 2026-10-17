@@ -1,4 +1,4 @@
-:root{--v:"20261016g";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261017a";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -395,7 +395,7 @@ a{color:var(--accent)}
 #off[data-sc="desierto"] .sunball{right:5%}
 
 /* ---- mascotas: burbuja y chispas al tocar ---- */
-.bubble{position:fixed;z-index:130;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border-radius:16px;padding:8px 14px;font:700 13.5px 'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none;animation:bubin 2s ease forwards}
+.bubble{position:fixed;z-index:9999;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border:1px solid rgba(15,27,92,.12);border-radius:17px;padding:10px 15px;font:800 13.5px/1.4 'Plus Jakarta Sans',sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.28);white-space:normal;width:max-content;max-width:min(270px,calc(100vw - 28px));overflow-wrap:anywhere;text-align:center;pointer-events:none;animation:bubin 2.8s ease forwards;will-change:transform,opacity}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
 @keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.5)}12%{opacity:1;transform:translate(-50%,-100%) scale(1.05)}18%{transform:translate(-50%,-100%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-125%) scale(1)}}
 .spark{position:fixed;z-index:129;pointer-events:none;font:800 18px 'Sora',sans-serif;color:var(--gold);text-shadow:0 2px 6px rgba(0,0,0,.35);animation:spark .9s cubic-bezier(.2,.7,.3,1) forwards}
@@ -403,7 +403,7 @@ a{color:var(--accent)}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261016g ================= */
+/* ================= v20261017a ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -566,4 +566,10 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 #splashTxt::after{content:none!important}
 .splash[data-scene=halloween]{background:linear-gradient(180deg,rgba(4,7,32,.6),rgba(4,7,32,.4) 45%,rgba(4,7,32,.75)),#050a1c url(assets/halloween-bg.jpg) center/cover no-repeat}
 .sp-ghost.g1{left:6%;top:7%}.sp-ghost.g2{right:7%;top:6%}.sp-ghost.g3{left:46%;top:4%}
-.peek{width:74px;height:74px}
+.peek{width:clamp(82px,22vw,108px);height:clamp(82px,22vw,108px);filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
+.peek img{border-width:3px;box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 0 8px rgba(255,138,42,.45),0 10px 22px rgba(0,0,0,.28)}
+
+/* Burbuja accesible: animación reducida y mascotas completas en las apariciones. */
+.peek{z-index:128;max-width:44vw;pointer-events:none}
+.peek img{display:block;width:clamp(82px,22vw,142px);height:auto;max-height:28vh;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
+@media(prefers-reduced-motion:reduce){.bubble{animation-duration:.01ms;animation-iteration-count:1}.spark{animation-duration:.01ms;animation-iteration-count:1}}

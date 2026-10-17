@@ -1,22 +1,29 @@
-// ───────────── TEMÁTICAS ─────────────
-// Cada temática es un bloque. Para agregar una nueva (Navidad, Mundial, Día de la Madre…):
-//   1) copia el bloque 'halloween' y cámbiale la clave (ej: 'navidad'), nombre, emoji y descripción;
-//   2) sube sus imágenes a assets/ y escribe sus rutas aquí;
-//   3) (opcional) agrega su paisaje de carga en style.css:  .splash[data-scene=navidad]{ ... }
-// Aparece sola en el panel → "Temáticas", con botones Probar / Activar / Desactivar.
+// ───────────── TEMÁTICAS DÓLAR PESO PRO ─────────────
+// Las frases temáticas viven exclusivamente en estas listas `say`.
+// Las mascotas conservan la identidad visual de Dollar Peso Pro.
 window.PP_THEMES = {
   halloween: {
-    name: 'Halloween',
+    name: 'Halloween · Frankenstein y Momia',
     emoji: '🎃',
-    desc: 'Cementerio con luna llena en la carga, Justo y Boris disfrazados, y personajes que se asoman de vez en cuando.',
-    splash: 'halloween',                                   // paisaje de la pantalla de carga (ver style.css)
-    avatars: { justo: 'assets/justo-h.jpg', boris: 'assets/boris-h.jpg' },   // reemplazan a Justo y Boris en todo el sitio
-    preload: ['assets/halloween-bg.jpg'],
-    peeks: [                                               // se asoman por el borde cada tanto (déjalo vacío [] para no usarlos)
-      { img: 'assets/peek-vamp.jpg',  say: ['¡Buuu! 🎃', '¿Cambiamos antes de que anochezca? 🦇'] },
-      { img: 'assets/peek-wolf.jpg',  say: ['Auuuu… 🐺', 'Mejor cotización que la luna llena 😎'] },
-      { img: 'assets/peek-bear.jpg',  say: ['Grrr… ¡hola! 🐻', 'Tranqui, no muerdo… mucho 😁'] },
-      { img: 'assets/peek-ghost.jpg', say: ['Boo! 👻', '¿Te asusté? 😄'] }
+    desc: 'Pareja de Halloween con las mascotas originales de Dollar Peso Pro.',
+    splash: 'halloween',
+    avatars: { justo: 'assets/justo-h.jpg', boris: 'assets/boris-h.jpg' },
+    preload: ['assets/halloween-bg.jpg', 'assets/justo-h.jpg', 'assets/boris-h.jpg'],
+    peeks: [
+      { img: 'assets/justo-h.jpg', say: ['¡Buuu! 🎃', '¿Ya cambiaste hoy?', '¡Subió el dólar! ¿O bajó? 👀'] },
+      { img: 'assets/boris-h.jpg', say: ['¡No te quedes congelado con el cambio! 🧟', 'Tranqui, soy una momia buena onda 😎', '¡Tu plata sigue viva!'] }
+    ]
+  },
+  dracula_lobo: {
+    name: 'Drácula y Lobo',
+    emoji: '🧛',
+    desc: 'Segunda pareja temática. Mantiene las gafas, el logo SP y el estilo de las mascotas.',
+    splash: 'halloween',
+    avatars: { justo: 'assets/justo-h.jpg', boris: 'assets/boris-h.jpg' },
+    preload: ['assets/halloween-bg.jpg', 'assets/peek-vamp.jpg', 'assets/peek-wolf.jpg'],
+    peeks: [
+      { img: 'assets/peek-vamp.jpg', say: ['Buenas noches… ¿ya cambiaste hoy? 🧛', '¡El dólar volvió de entre los muertos!', '¿Subió el dólar? 👀'] },
+      { img: 'assets/peek-wolf.jpg', say: ['¡Auuuu! 🐺', '¡Que no te agarre la luna sin cotizar!', '¿Ya cambiaste hoy?'] }
     ]
   }
 };

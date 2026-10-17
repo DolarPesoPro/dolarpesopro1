@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261016g';
+  var VER = '20261017a';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -319,7 +319,7 @@
       var stRefP = db.ref('status');
       function stCb(s) {
         var was = S.open; S.status = s.val(); applyStatus();
-        S.themePub = (S.status && S.status.theme) || ''; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} applySeason(); if (S.admin) renderThemes();
+        S.themePub = (S.status && S.status.theme) || ''; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} if (!S.themePub && !autoPeekTheme) { try { var previousPair = localStorage.getItem('pp_peek_pair') || 'dracula_lobo'; autoPeekTheme = previousPair === 'halloween' ? 'dracula_lobo' : 'halloween'; localStorage.setItem('pp_peek_pair', autoPeekTheme); } catch (e) { autoPeekTheme = 'halloween'; } } applySeason(); if (S.admin) renderThemes();
         if (S.open && was === false && !S.admin) S.live = false;     // reabre: espera la cotización real antes de mostrarla
         if (!S.open) S.live = true;
         syncData(); update(); if (S.admin) refreshPanel();
@@ -652,11 +652,12 @@
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
   function say(node, text) {
     var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, b = document.createElement('div');
-    b.className = 'bubble'; b.textContent = text; b.style.cssText = 'left:0;top:' + Math.max(52, r.top - 8) + 'px;visibility:hidden';
+    b.className = 'bubble'; b.textContent = text; b.style.cssText = 'left:0;top:' + Math.max(86, r.top - 10) + 'px;visibility:hidden';
     document.body.appendChild(b);
-    var w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
-    b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
-    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2100);
+    var w = b.offsetWidth, h = b.offsetHeight, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
+    var top = Math.max(h + 14, Math.min(innerHeight - 24, r.top - 10));
+    b.style.top = top + 'px'; b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
+    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 2850);
   }
   /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
   var greetT = [];
@@ -690,33 +691,63 @@
   }
   $$('.mini').forEach(function (m) { m.addEventListener('click', function () { stopChat(); hop(m); burst(m, true); }); });
   /* Al llegar a Justo y Boris (sección de marca) conversan solos, una vez por visita */
-  var CHAT = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
+  var CHAT_BASE = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
+  function brandChatLines() { var d = currentMascotTheme(), out = []; if (d && d.peeks) d.peeks.forEach(function (p, i) { (p.say || []).forEach(function (line) { out.push([i % 2, line]); }); }); return out.length ? out.sort(function(){ return Math.random() - 0.5; }).slice(0, 6) : CHAT_BASE; }
   function stopChat() { chatT.forEach(clearTimeout); chatT = []; }
   function playChat() {
     var now = Date.now(), minis = $$('.mini'); if (now - lastChat < 30000 || minis.length < 2) return; lastChat = now; stopChat();
-    CHAT.forEach(function (l, i) { chatT.push(setTimeout(function () { var m = minis[l[0]]; hop(m); burst(m, false); say(m, l[1]); }, 700 + i * 2400)); });
+    var lines = brandChatLines(); lines.forEach(function (l, i) { chatT.push(setTimeout(function () { var m = minis[l[0]]; if (m) { hop(m); burst(m, false); say(m, l[1]); } }, 700 + i * 2400)); });
   }
   if ('IntersectionObserver' in window && $('.brand')) {
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
   }
+  /* En la sección de contacto, las mascotas también saludan; funciona en web y PWA. */
+  var contactTalk = ['¡Hola! 👋 ¿En qué podemos ayudarte?', '¡Escribinos por WhatsApp y te damos una mano! 💬', '¿Ya cambiaste hoy? 💵', '¡Tu consulta es bienvenida!'];
+  var contactObserver = null;
+  function startContactTalk() {
+    var cards = $$('[data-wa]'); if (!cards.length) return;
+    cards.forEach(function (card, i) {
+      if (card.dataset.mascotTalkBound) return;
+      card.dataset.mascotTalkBound = '1';
+      card.addEventListener('mouseenter', function () { var av = card.querySelector('.avatar'); if (av) { hop(av); say(av, contactTalk[Math.floor(Math.random() * contactTalk.length)]); } });
+      card.addEventListener('focusin', function () { var av = card.querySelector('.avatar'); if (av) say(av, contactTalk[Math.floor(Math.random() * contactTalk.length)]); });
+      card.addEventListener('click', function () { var av = card.querySelector('.avatar'); if (av) say(av, i === 0 ? '¡Hola! Soy Justo 🤠' : '¡Hola! Soy Boris 😎'); });
+    });
+    var section = $('#talk') || cards[0].closest('section');
+    if (section && 'IntersectionObserver' in window && !section.dataset.mascotObserver) {
+      section.dataset.mascotObserver = '1';
+      contactObserver = new IntersectionObserver(function (entries) { entries.forEach(function (entry) {
+        if (entry.isIntersecting && !document.hidden) { var avs = $$('#talk .avatar'); if (!avs.length) avs = cards.map(function (c) { return c.querySelector('.avatar'); }).filter(Boolean); if (avs.length) { var a = avs[Math.floor(Math.random() * avs.length)]; say(a, contactTalk[Math.floor(Math.random() * contactTalk.length)]); } }
+      }); }, { threshold: 0.35 }); contactObserver.observe(section);
+    }
+  }
+  startContactTalk();
   /* Los que duermen en la pantalla de apagado también responden al toque */
   /* ---------- Temáticas (themes.js). La activa el administrador desde el panel y la ven todos al instante ---------- */
   var TH = window.PP_THEMES || {};
   $$('img').forEach(function (i) { var m = (i.getAttribute('src') || '').match(/^assets\/(justo|boris)\.jpg$/); if (m) i.setAttribute('data-av', m[1]); });
   try { S.themePub = localStorage.getItem('pp_theme') || ''; } catch (e) {}          // última temática conocida: la carga ya sale con el tema
   (function () { var q = location.search.match(/[?&]tema=([a-z0-9_-]+)/) || (/[?&]halloween=1/.test(location.search) ? [0, 'halloween'] : null); if (q && TH[q[1]]) S.themePreview = q[1]; })();
+  // Sin temática publicada por el administrador, cada carga elige una pareja al azar.
+  // No se guarda la elección: recargar puede mostrar la otra pareja.
+  var autoPeekTheme = '';
+  try {
+    autoPeekTheme = S.themePub && TH[S.themePub] ? S.themePub : (Math.random() < 0.5 ? 'halloween' : 'dracula_lobo');
+  } catch (e) { autoPeekTheme = 'halloween'; }
   function themeDef() { return (S.themeApplied && TH[S.themeApplied]) || null; }
+  function peekDef() { var active = themeDef(); return active || (autoPeekTheme && TH[autoPeekTheme]) || null; }
+  function currentMascotTheme() { var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || autoPeekTheme); return TH[id] || null; }
   function applySeason() {
-    var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
+    var id = S.themePreview !== undefined ? S.themePreview : (S.themePub || autoPeekTheme || ''), def = id && TH[id] ? TH[id] : null, key = def ? id : ''; 
     if (key === S.themeApplied) return; S.themeApplied = key;
     var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); if (def) root.classList.add('th-' + key);
     $$('img[data-av]').forEach(function (i) { var w = i.getAttribute('data-av'), src = (def && def.avatars && def.avatars[w]) || 'assets/' + w + '.jpg'; if (i.getAttribute('src') !== src) i.src = src; });
     try { var sp = $('#splash'); if (sp) sp.setAttribute('data-scene', (def && def.splash) || sceneNow()); } catch (e) {}
     ((def && def.preload) || []).forEach(function (u) { var im = new Image(); im.src = u; });
-    if (def && def.peeks && def.peeks.length) setTimeout(peek, 7000);
+    var nextPeeks = def || peekDef(); if (nextPeeks && nextPeeks.peeks && nextPeeks.peeks.length) setTimeout(peek, 7000);
   }
   function peek() {
-    var def = themeDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || document.hidden || (S.admin && S.themePreview === undefined)) return;
+    var def = peekDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || document.hidden || (S.admin && S.themePreview === undefined)) return;
     var sh = $('#sheet2'), off = $('#off'); if ((sh && sh.classList.contains('open')) || (off && !off.hidden)) return;
     var P = def.peeks[Math.floor(Math.random() * def.peeks.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
     if (!w.animate) return; S.peeking = true;
@@ -724,8 +755,8 @@
     var hide = left ? 'translateX(-100%)' : 'translateX(100%)', show = left ? 'translateX(-34%)' : 'translateX(34%)';
     var a1 = w.animate([{ transform: hide }, { transform: show }], { duration: 900, easing: 'cubic-bezier(.2,1.3,.4,1)', fill: 'forwards' });
     a1.onfinish = function () {
-      if (P.say && P.say.length && Math.random() < 0.4) say(w, P.say[Math.floor(Math.random() * P.say.length)]);
-      setTimeout(function () { var a2 = w.animate([{ transform: show }, { transform: hide }], { duration: 700, easing: 'ease-in', fill: 'forwards' }); a2.onfinish = function () { if (w.parentNode) w.parentNode.removeChild(w); S.peeking = false; }; }, 2400);
+      if (P.say && P.say.length && Math.random() < 0.9) say(w, P.say[Math.floor(Math.random() * P.say.length)]);
+      setTimeout(function () { var a2 = w.animate([{ transform: show }, { transform: hide }], { duration: 700, easing: 'ease-in', fill: 'forwards' }); a2.onfinish = function () { if (w.parentNode) w.parentNode.removeChild(w); S.peeking = false; }; }, 3200);
     };
   }
   setInterval(function () { if (Math.random() < 0.55) peek(); }, 24000);
