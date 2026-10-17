@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261017f';
+  var VER = '20261017g';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -651,43 +651,37 @@
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
   function linesFor(nm) { var d = themeDef(), who = String(nm || 'Justo').toLowerCase(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].say; } return SAY[nm] || SAY.Justo; }
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
-  /* la burbuja sigue a quien habla mientras se desliza la página; si la mascota sale de la pantalla, se va con ella */
-  function placeBubble(b) {
-    var node = b.__node; if (!node || !node.isConnected) { if (b.parentNode) b.parentNode.removeChild(b); return; }
-    var r = node.getBoundingClientRect(); if (r.bottom < 50 || r.top > innerHeight) { if (b.parentNode) b.parentNode.removeChild(b); return; }
-    var cx = r.left + r.width / 2, w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
-    b.style.top = Math.max(56, r.top - 8) + 'px'; b.style.left = bx + 'px'; b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px');
-  }
-  var bubRaf = 0;
-  document.addEventListener('scroll', function () { if (bubRaf) return; bubRaf = requestAnimationFrame(function () { bubRaf = 0; $$('.bubble').forEach(placeBubble); }); }, { passive: true, capture: true });
-  window.addEventListener('resize', function () { $$('.bubble').forEach(placeBubble); });
+  /* Las burbujas se anclan a la página (position:absolute) y se mueven con el scroll sin ningún código extra: cero vibración.
+     Solo si la mascota está en algo fijo (aparición lateral, menú de cambio, pantalla de apagado) la burbuja también es fija. */
+  function clearBubbles() { $$('.bubble').forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); }); }
   function say(node, text) {
-    $$('.bubble').forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); });          // una sola burbuja a la vez: nunca se tapan entre sí
-    var dur = Math.max(2800, Math.min(6500, 1600 + text.length * 70));
+    clearBubbles();                                                                                    // una sola burbuja a la vez
+    var dur = Math.max(2800, Math.min(6500, 1600 + text.length * 70)), fixed = !!(node.closest && node.closest('.peek,.stroll,.sheetpanel,.off'));
     var b = document.createElement('div');
-    b.className = 'bubble'; b.textContent = text; b.__node = node; b.style.cssText = 'left:0;top:0;visibility:hidden;animation-duration:' + dur + 'ms';
-    document.body.appendChild(b); placeBubble(b); b.style.visibility = '';
+    b.className = 'bubble' + (fixed ? '' : ' abs'); b.textContent = text; b.style.cssText = 'left:0;top:0;visibility:hidden;animation-duration:' + dur + 'ms';
+    document.body.appendChild(b);
+    var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
+    b.style.left = bx + 'px'; b.style.top = (fixed ? Math.max(56, r.top - 8) : r.top + (window.pageYOffset || 0) - 8) + 'px';
+    b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
     setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, dur + 120);
     return dur;
   }
   /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
   var greetT = [];
-  function stopGreet() { greetT.forEach(clearTimeout); greetT = []; }
+  function stopGreet() { greetT.forEach(clearTimeout); greetT = []; clearBubbles(); }
   function greetPick() {
     stopGreet();
-    var HELP = ['¿En qué te puedo ayudar? 💬', '¡Te atiendo yo! 👋'];
-    $$('#pick .avatar').forEach(function (m, i) {
-      var nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), L = linesFor(nm);
-      greetT.push(setTimeout(function () { hop(m); burst(m, false); say(m, L[0]); }, 650 + i * 900));
-      greetT.push(setTimeout(function () { say(m, i ? L[1] : HELP[0]); }, 650 + i * 900 + 1700));
-    });
-    (function loop(n) {                                               // después, una frase cada ~5 s mientras el menú siga abierto
+    var av = $$('#pick .avatar'); if (!av.length) return;
+    function isOpen() { var sh = $('#sheet2'); return sh && sh.classList.contains('open'); }
+    function step(k, delay) {
       greetT.push(setTimeout(function () {
-        var sh = $('#sheet2'); if (!sh || !sh.classList.contains('open')) return;
-        var av = $$('#pick .avatar'); if (av.length) { var k = (n % 2 === 0) ? Math.floor(Math.random() * av.length) : (n + 1) % av.length, m = av[k], nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), P = linesFor(nm); hop(m); say(m, P[Math.floor(Math.random() * P.length)]); }
-        loop(n + 1);
-      }, 5200));
-    })(0);
+        if (!isOpen()) return;
+        var m = av[k % av.length], nm = (m.getAttribute('alt') || 'Justo').split(',')[0].trim(), L = linesFor(nm), txt = k === 0 ? '¿En qué te puedo ayudar? 💬' : (k === 1 ? L[0] : L[Math.floor(Math.random() * L.length)]);
+        hop(m); if (k < 2) burst(m, false);
+        step(k + 1, say(m, txt) + (k < 2 ? 700 : 2600));                                        // espera a que termine de leerse + una pausa
+      }, delay));
+    }
+    step(0, 800);
   }
   function hop(m) { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }
   function burst(node, talk) {
@@ -727,9 +721,17 @@
   /* cambia la foto de una mascota; si pide animación, da la vuelta (flip) y cambia a mitad */
   function paintAvatar(i, animate) {
     var src = costumeSrc(i.getAttribute('data-av')); if (i.getAttribute('src') === src) return;
-    if (!animate) { i.src = src; return; }
-    i.classList.remove('flip'); void i.offsetWidth; i.classList.add('flip');
-    setTimeout(function () { i.src = src; }, 260); setTimeout(function () { i.classList.remove('flip'); }, 700);
+    if (!animate || !i.animate) { i.src = src; return; }
+    var pre = new Image(); pre.src = src;
+    var go = function () {                                                                              // se difumina, cambia la imagen y vuelve a aparecer (sin saltos)
+      var out = i.animate([{ opacity: 1, filter: 'blur(0px) brightness(1)' }, { opacity: 0, filter: 'blur(7px) brightness(1.5)' }], { duration: 480, easing: 'ease-in-out', fill: 'forwards' });
+      out.onfinish = function () {
+        i.src = src;
+        var inn = i.animate([{ opacity: 0, filter: 'blur(7px) brightness(1.5)' }, { opacity: 1, filter: 'blur(0px) brightness(1)' }], { duration: 620, easing: 'ease-out' });
+        out.cancel(); inn.onfinish = function () { inn.cancel(); };
+      };
+    };
+    if (pre.decode) pre.decode().then(go, go); else go();
   }
   function paintAll(who, animate) { $$('img[data-av]').forEach(function (i) { if (!who || i.getAttribute('data-av') === who) paintAvatar(i, animate); }); }
   function visibleMascot() {
@@ -738,9 +740,9 @@
   /* cada ~9 s las mascotas se cambian de disfraz: Justo (Frankenstein ⇄ Vampiro) y Boris (Momia ⇄ Lobo) */
   setInterval(function () {
     var d = themeDef(); if (!d || !d.costumes || document.hidden) return;
-    S.costume++; paintAll('justo', true); setTimeout(function () { paintAll('boris', true); }, 450);
-    setTimeout(function () { var m = visibleMascot(); if (m && Math.random() < 0.6) { var L = linesFor(m.getAttribute('data-av') === 'boris' ? 'Boris' : 'Justo'); hop(m); say(m, L[Math.floor(Math.random() * L.length)]); } }, 1400);
-  }, 9000);
+    S.costume++; paintAll('justo', true); setTimeout(function () { paintAll('boris', true); }, 700);
+    setTimeout(function () { var m = visibleMascot(); if (m && Math.random() < 0.6) { var L = linesFor(m.getAttribute('data-av') === 'boris' ? 'Boris' : 'Justo'); hop(m); say(m, L[Math.floor(Math.random() * L.length)]); } }, 2600);
+  }, 12000);
   function applySeason() {
     var id = normTheme(S.themePreview !== undefined ? S.themePreview : (S.themePub || '')), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
     if (key === S.themeApplied) return; S.themeApplied = key;

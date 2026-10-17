@@ -1,4 +1,4 @@
-:root{--v:"20261017f";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261017g";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -403,7 +403,7 @@ a{color:var(--accent)}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261017f ================= */
+/* ================= v20261017g ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -451,6 +451,7 @@ textarea.field{min-height:96px;font:500 16px/1.5 'Plus Jakarta Sans',sans-serif;
 .off .field{color:#0F1B5C;background:#fff;border-color:#DCE2F5}
 /* ---- mascotas: la flecha de la burbuja apunta a quien habla ---- */
 .bubble::after{left:calc(50% + var(--tx,0px))}
+.bubble.abs{position:absolute}
 .sl img{cursor:pointer}
 /* ---- panel: filas de avisos y reseñas ---- */
 .alrow .nm{min-width:0;overflow-wrap:anywhere}
@@ -569,9 +570,11 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 .peek{width:clamp(82px,22vw,108px);height:clamp(82px,22vw,108px);filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
 .peek img{border-width:3px;box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 0 8px rgba(255,138,42,.45),0 10px 22px rgba(0,0,0,.28)}
 
-/* ================= v20261017f · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
+/* ================= v20261017g · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
 html.th-halloween{--bg:#0a0620;--card:#161036;--ink:#FFF1E0;--navy:#2a1458;--muted:#D8C4FF;--line:#3d2478;--soft:#21184f;--field:#0b0924;--fline:#5b3a9a;--accent:#FFA24A;--gold:#FF8A1F;--green:#1e7a38;--warn-bg:#2a1a10;--shadow:0 0 0 1.5px rgba(255,138,31,.42),0 12px 30px rgba(0,0,0,.55),0 0 26px rgba(255,138,31,.12);color-scheme:dark}
-html.th-halloween body{background:radial-gradient(120% 60% at 50% -8%,#47207f 0,transparent 60%),radial-gradient(70% 40% at 100% 100%,rgba(255,106,0,.20),transparent 60%),#0a0620;background-attachment:fixed}
+html.th-halloween{background:#0a0620}
+html.th-halloween::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 60% at 50% -8%,#47207f 0,transparent 60%),radial-gradient(70% 40% at 100% 100%,rgba(255,106,0,.20),transparent 60%),#0a0620}
+html.th-halloween body{background:transparent}
 html.th-halloween body::before,html.th-halloween body::after{content:"";position:fixed;top:0;width:150px;height:150px;pointer-events:none;z-index:3;background-size:contain;background-repeat:no-repeat;opacity:.9}
 html.th-halloween body::before{left:0;background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E")}
 html.th-halloween body::after{right:0;background-image:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 112 112%22%3E%3Cg transform=%22translate(112 0) scale(-1 1)%22 fill=%22none%22 stroke=%22%23c9b8ff%22 stroke-opacity=%220.42%22 stroke-width=%221.2%22%3E%3Cpath d=%22M0 0L110 0%22/%3E%3Cpath d=%22M0 0L104 38%22/%3E%3Cpath d=%22M0 0L82 78%22/%3E%3Cpath d=%22M0 0L44 104%22/%3E%3Cpath d=%22M0 0L0 110%22/%3E%3Cpath d=%22M33 0 Q29 5 31 11 Q25 16 25 23 Q17 25 13 31 Q6 29 0 33%22/%3E%3Cpath d=%22M61 0 Q53 9 57 21 Q46 29 45 43 Q31 45 24 57 Q11 53 0 61%22/%3E%3Cpath d=%22M88 0 Q77 14 83 30 Q67 42 66 62 Q45 66 35 83 Q16 77 0 88%22/%3E%3C/g%3E%3C/svg%3E")}
@@ -681,7 +684,9 @@ html.th-halloween[data-theme=dark] .themebtn{background:#FF8A1F;color:#1c0b00;bo
 
 /* ================= HALLOWEEN · MODO CLARO ================= */
 html.th-halloween:not([data-theme=dark]){--bg:#f6ecff;--card:#fff8f0;--ink:#2a1458;--navy:#3b1d7a;--muted:#5a3f8f;--line:#e2cdfa;--soft:#f1e5ff;--field:#f2fff0;--fline:#b99be8;--accent:#C4520A;--gold:#F26A0B;--warn-bg:#fff0d8;--shadow:0 0 0 1.5px rgba(242,106,11,.4),0 10px 26px rgba(80,30,140,.18);color-scheme:light}
-html.th-halloween:not([data-theme=dark]) body{background:radial-gradient(120% 55% at 50% -8%,#ffd9b0 0,transparent 60%),radial-gradient(80% 40% at 0% 100%,rgba(150,90,230,.25),transparent 60%),#f6ecff;background-attachment:fixed}
+html.th-halloween:not([data-theme=dark]){background:#f6ecff}
+html.th-halloween:not([data-theme=dark])::before{background:radial-gradient(120% 55% at 50% -8%,#ffd9b0 0,transparent 60%),radial-gradient(80% 40% at 0% 100%,rgba(150,90,230,.25),transparent 60%),#f6ecff}
+html.th-halloween:not([data-theme=dark]) body{background:transparent}
 html.th-halloween:not([data-theme=dark]) body::before,html.th-halloween:not([data-theme=dark]) body::after,html.th-halloween:not([data-theme=dark]) .card::before,html.th-halloween:not([data-theme=dark]) .card::after{filter:brightness(.35) saturate(1.6);opacity:.55}
 html.th-halloween:not([data-theme=dark]) .card{background:linear-gradient(170deg,#fffaf3,#f5e9ff);border-color:rgba(242,106,11,.55)}
 html.th-halloween:not([data-theme=dark]) .card h2{color:#C4520A;text-shadow:none}
@@ -712,3 +717,7 @@ html.th-halloween:not([data-theme=dark]) .sheetpanel{background:linear-gradient(
 html.th-halloween:not([data-theme=dark]) .closebtn,html.th-halloween:not([data-theme=dark]) .qbtn{background:#f1e5ff;color:#C4520A}
 html.th-halloween:not([data-theme=dark]) .linkbtn{color:#C4520A}
 html.th-halloween:not([data-theme=dark]) ::placeholder{color:#7fa58a}
+
+/* ---- Halloween · pestañas Dólares → Pesos: letra más clara ---- */
+html.th-halloween .tabs button{font:800 15px/1.15 'Plus Jakarta Sans',sans-serif;letter-spacing:0;color:#FFE2C2}
+html.th-halloween .tabs button.on{color:#1c0b00;text-shadow:none}
