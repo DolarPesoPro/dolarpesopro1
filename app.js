@@ -620,6 +620,7 @@
     /* mensaje + enlaces */
     var msg = message(k); var mb = $('#msgbox'); if (mb.value !== msg) mb.value = msg;
     $$('[data-wa]').forEach(function (x) { x.href = 'https://wa.me/' + PHONES[x.getAttribute('data-wa')] + '?text=' + encodeURIComponent(msg); });
+    if ($('#sheet2') && $('#sheet2').classList.contains('open')) renderPickSummary();
     $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar'); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar');
     /* guía (se redibuja si cambia el idioma o las comisiones) */
     var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct + '|' + OS;
@@ -1216,7 +1217,25 @@
   document.addEventListener('click', function (e) { var w = e.target.closest && e.target.closest('[data-wa]'); if (w) logInquiry(w.getAttribute('data-wa')); });
   setTimeout(initGA, 2500);
 
-  function doChange() { track('hacer_cambio', { amount: Math.round(num(S.amount) || 0) }); doCopy(true); countStart(); setSheet2(true); }
+  function renderPickSummary() {
+    var box = $('#pickSummaryText'); if (!box) return;
+    var k = S.lastCalc || calc(), lines = [];
+    if (S.dir === 'ars') {
+      var pr = arsPair();
+      if (pr.p > 0 && pr.u > 0) {
+        lines.push('Entregas: ' + ars(pr.p));
+        lines.push('Recibes aproximadamente: ' + usd(pr.u));
+        lines.push('Cotización de referencia: ' + ars(S.cfg.rateSell) + ' por USD');
+      } else lines.push('Cambio de pesos a dólares: consulta la cotización vigente por WhatsApp.');
+    } else if (k.ok) {
+      lines.push('Importe: ' + usd(k.amt));
+      lines.push('Comisión: ' + usd(k.fee) + (S.mode === 'incluida' ? ' (incluida)' : ' (aparte)'));
+      lines.push('Recibes aproximadamente: ' + ars(k.receive));
+      lines.push('Cotización de referencia: ' + ars(k.rate) + ' por USD');
+    } else lines.push('Completa un importe válido para ver el resumen.');
+    box.textContent = lines.join(' · ') + ' · Precio sujeto a confirmación del administrador.';
+  }
+  function doChange() { track('hacer_cambio', { amount: Math.round(num(S.amount) || 0) }); doCopy(true); countStart(); renderPickSummary(); setSheet2(true); }
   $('#changeBtn').addEventListener('click', doChange);
   $('#stChange').addEventListener('click', doChange);
   $('#sheet2Close').addEventListener('click', function () { setSheet2(false); });
@@ -1431,6 +1450,16 @@
         function btn(txt, st, css) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css; z.addEventListener('click', function () { inqSet(x, st); }); b.appendChild(z); }
         if (x.st === 'pending') { btn('Se dio', 'done', 'background:#0F7A40;color:#fff'); btn('No', 'lost', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)'); }
         else btn('Deshacer', 'pending', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)');
+        if (x.st === 'lost') {
+          var follow = el('a', null, 'Volver a contactar');
+          var fmsg = ['Hola, retomo tu consulta de Dólar PesoPro.'];
+          if (typeof x.usd === 'number') fmsg.push('Importe consultado: ' + fmtN(x.usd) + ' USD.');
+          if (typeof x.rate === 'number') fmsg.push('Cotización de referencia anterior: ' + ars(x.rate) + ' por USD.');
+          fmsg.push('¿Quieres que te confirme la cotización actual?');
+          follow.href = 'https://wa.me/' + PHONES[x.who === 'boris' ? 'boris' : 'justo'] + '?text=' + encodeURIComponent(fmsg.join('\n'));
+          follow.target = '_blank'; follow.rel = 'noopener'; follow.style.cssText = "min-height:36px;padding:0 10px;border-radius:12px;background:#167044;color:#fff;font:700 12px 'Plus Jakarta Sans',sans-serif;text-decoration:none;display:flex;align-items:center;white-space:nowrap";
+          follow.addEventListener('click', function () { track('inquiry_recontact', { who: x.who || 'justo' }); }); b.appendChild(follow);
+        }
         var dz = el('button', null, '🗑'); dz.type = 'button'; dz.setAttribute('aria-label', 'Borrar esta consulta'); dz.style.cssText = 'background:var(--card);color:#C62828;border:2px solid var(--fline)'; twoStep(dz, '¿Borrar?', function () { inqDel([x]); }); b.appendChild(dz);
         row.appendChild(info); row.appendChild(b); box.appendChild(row);
       });

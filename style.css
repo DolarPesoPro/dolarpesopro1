@@ -177,6 +177,11 @@ a{color:var(--accent)}
 .live b{color:var(--ink)}
 .msgok{font-size:13px;font-weight:700;color:var(--green);min-height:18px}
 .msgerr{color:#E5484D}
+
+/* Resumen visible en el paso final antes de elegir administrador */
+.picksummary{margin:14px 0 16px;padding:14px 16px;border:1px solid var(--fline);border-radius:16px;background:var(--soft);color:var(--ink);font-size:14px;line-height:1.55}
+.picksummary>b{display:block;font-weight:800;margin-bottom:4px}
+#pickSummaryText{overflow-wrap:anywhere}
 .alrow{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--soft);border-radius:14px;padding:10px 12px;font-size:13px}
 .alrow.hit{border:2px solid #2BC273}
 .alrow .b{display:flex;gap:6px}
