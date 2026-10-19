@@ -12,10 +12,11 @@ window.FIREBASE_CONFIG = {
 // Correo interno del administrador (el mismo que creaste en Firebase → Authentication).
 window.ADMIN_EMAIL = "admin@dolarpesopro.app";
 
-// Avisos al celular de Justo (opcional). Instala la app gratuita "ntfy" en su teléfono,
+// (Antiguo) Avisos al celular de Justo desde la página. NO pongas aquí tu tema: cualquiera podría verlo.
+// Instala la app gratuita "ntfy" en su teléfono,
 // suscríbete a un nombre secreto y largo (ej: "pesopro-justo-x7k29q") y escríbelo aquí.
 // Déjalo vacío ("") para desactivar.
-window.NTFY_TOPIC = "pesopro-justo-im6zas834chdzq";
+window.NTFY_TOPIC = "";   // VACÍO a propósito: este archivo es público. El aviso al celular de Justo lo manda ahora la función de Firebase (ver LEEME, PASO 4).
 
 // Google Analytics 4 (opcional). Pega aquí tu ID de medición, que empieza con "G-" (ej: "G-AB12CD34EF").
 // Déjalo vacío ("") para no usar Analytics. Nunca cuenta al administrador.
@@ -25,3 +26,6 @@ window.GA_ID = "";
 // Firebase → Configuración del proyecto → Cloud Messaging → Certificados push web → Generar par de claves.
 // Déjalo vacío ("") y el botón de avisos al celular no aparece.
 window.VAPID_KEY = "";
+
+// Carga el inicio de sesión del admin solo cuando se necesita (la página abre más rápido). Si el candado del admin dejara de funcionar, cambia true por false.
+window.LAZY_AUTH = true;

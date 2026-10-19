@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261020a';
+  var VER = '20261020b';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -66,7 +66,7 @@
       chk1: 'Administradores verificados. Opera solo con Justo y Boris.', chk2: 'Directo a tu cuenta, en tu banco de preferencia o billetera virtual.', chk3: 'Precio congelado 10 minutos al confirmar.',
       alertTitle: 'Avísame cuando suba', alertSub: 'Dinos a qué cotización quieres cambiar y te escribimos por WhatsApp cuando llegue.',
       alertTarget: 'Cotización objetivo (pesos por USD)', alertPhone: 'Tu WhatsApp', alertBtn: 'Avisarme',
-      alertPriv: 'Solo usaremos tu número para este aviso.', pushBtn: '🔔 Avisarme en este celular', pushOk: '¡Listo! Te avisaremos en este celular cuando suba el dólar.', pushDenied: 'Las notificaciones están bloqueadas. Actívalas en los ajustes del navegador.', pushIos: 'En iPhone primero instala la app: Compartir → Agregar a inicio, y ábrela desde ahí.', pushErr: 'No se pudo activar el aviso. Intenta de nuevo.', alertOk: '¡Listo! Te avisaremos por WhatsApp.',
+      cardBtn: '📸 Tarjeta de la cotización', cardTitle: 'Cotización del día', cardShare: 'Compartir', cardDl: 'Descargar', cardX: 'Cerrar', cardWait: 'Espera a que cargue la cotización', cardErr: 'No se pudo crear la imagen. Intenta de nuevo.', cardText: 'Cotización de hoy: {r} por dólar. Calcula tu cambio:', cardLbl: 'COTIZACIÓN DEL DÍA', cardPer: 'pesos por cada dólar', cardUpd: 'Actualizado {d} · hora de Argentina', cardAdm: 'Justo y Boris · administradores verificados', cardFoot: 'Valor de referencia: se confirma con un administrador', cardCta: 'Cambio Ecuador ↔ Argentina', cardVs: '{s} vs. anterior', alertPriv: 'Solo usaremos tu número para este aviso.', pushBtn: '🔔 Avisarme en este celular', pushOk: '¡Listo! Te avisaremos en este celular cuando suba el dólar.', pushDenied: 'Las notificaciones están bloqueadas. Actívalas en los ajustes del navegador.', pushIos: 'En iPhone primero instala la app: Compartir → Agregar a inicio, y ábrela desde ahí.', pushErr: 'No se pudo activar el aviso. Intenta de nuevo.', alertOk: '¡Listo! Te avisaremos por WhatsApp.',
       alertBad: 'Revisa la cotización y tu número de WhatsApp.', alertErr: 'No se pudo guardar. Intenta de nuevo.',
       shareTitle: 'Comparte y únete', shareSub: 'Recomienda Dólar PesoPro y entra al grupo para ver las novedades.', shareBtn: 'Compartir con un amigo',
       shareText: 'Cambia dólares a pesos entre Ecuador y Argentina con Dólar PesoPro. Cotiza aquí:',
@@ -145,7 +145,7 @@
       chk1: 'Verified administrators. Only deal with Justo and Boris.', chk2: 'Straight to your account, in your preferred bank or digital wallet.', chk3: 'Price frozen for 10 minutes once confirmed.',
       alertTitle: 'Notify me when it rises', alertSub: 'Tell us the rate you want and we will message you on WhatsApp when it arrives.',
       alertTarget: 'Target rate (pesos per USD)', alertPhone: 'Your WhatsApp', alertBtn: 'Notify me',
-      alertPriv: 'We will only use your number for this alert.', pushBtn: '🔔 Notify me on this phone', pushOk: 'Done! We will notify this phone when the dollar rises.', pushDenied: 'Notifications are blocked. Turn them on in your browser settings.', pushIos: 'On iPhone, install the app first: Share → Add to Home Screen, then open it from there.', pushErr: 'Could not enable alerts. Please try again.', alertOk: 'Done! We will notify you on WhatsApp.',
+      cardBtn: '📸 Rate card', cardTitle: 'Rate of the day', cardShare: 'Share', cardDl: 'Download', cardX: 'Close', cardWait: 'Wait for the rate to load', cardErr: 'Could not create the image. Please try again.', cardText: 'Today’s rate: {r} per dollar. Work out your exchange:', cardLbl: 'RATE OF THE DAY', cardPer: 'pesos per dollar', cardUpd: 'Updated {d} · Argentina time', cardAdm: 'Justo & Boris · verified administrators', cardFoot: 'Reference value: confirmed by an administrator', cardCta: 'Ecuador ↔ Argentina exchange', cardVs: '{s} vs. previous', alertPriv: 'We will only use your number for this alert.', pushBtn: '🔔 Notify me on this phone', pushOk: 'Done! We will notify this phone when the dollar rises.', pushDenied: 'Notifications are blocked. Turn them on in your browser settings.', pushIos: 'On iPhone, install the app first: Share → Add to Home Screen, then open it from there.', pushErr: 'Could not enable alerts. Please try again.', alertOk: 'Done! We will notify you on WhatsApp.',
       alertBad: 'Check the rate and your WhatsApp number.', alertErr: 'Could not save. Please try again.',
       shareTitle: 'Share and join', shareSub: 'Recommend Dólar PesoPro and join the group for updates.', shareBtn: 'Share with a friend',
       shareText: 'Exchange dollars for pesos between Ecuador and Argentina with Dólar PesoPro. Check the rate here:',
@@ -308,12 +308,25 @@
     if (cfgRef) { cfgRef.off(); cfgRef = null; } if (histRef) { histRef.off(); histRef = null; }
     S.cfg = readCfg(null); S.historyRaw = []; S.firstCfg = true; applyStatus();
   }
+  /* El módulo de inicio de sesión pesa mucho y solo lo usa el administrador: se descarga al tocar el candado, al abrir #admin o al iniciar sesión. */
+  var authP = null;
+  function authCb(u) { if (u && u.email === window.ADMIN_EMAIL) mountPanel(); else unmountPanel(); syncData(); }
+  function loadAuth() {
+    if (auth) return Promise.resolve(auth); if (authP) return authP;
+    authP = new Promise(function (ok, no) {
+      function go() { try { auth = firebase.auth(); auth.setPersistence(firebase.auth.Auth.Persistence.NONE).catch(function () {}); auth.onAuthStateChanged(authCb); ok(auth); } catch (e) { authP = null; no(e); } }
+      if (!fbOk) { authP = null; var e0 = new Error('no-firebase'); e0.code = 'auth/network-request-failed'; return no(e0); }
+      if (firebase.auth) return go();
+      var x = document.createElement('script'); x.src = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js'; x.onload = go;
+      x.onerror = function () { authP = null; var er = new Error('auth-load'); er.code = 'auth/network-request-failed'; no(er); }; document.head.appendChild(x);
+    });
+    return authP;
+  }
   function syncData() { if (!db) return; if (S.admin || S.open) attachData(); else detachData(); }
   if (fbOk) {
     try {
       firebase.initializeApp(window.FIREBASE_CONFIG);
-      db = firebase.database(); auth = firebase.auth();
-      auth.setPersistence(firebase.auth.Auth.Persistence.NONE).catch(function () {});   // la sesión de admin no se guarda en el dispositivo
+      db = firebase.database();
       db.ref('.info/connected').on('value', function (s) { S.online = !!s.val(); update(); });
       db.ref('.info/serverTimeOffset').on('value', function (s) { S.offset = s.val() || 0; applyStatus(); update(); });
       var stRefP = db.ref('status');
@@ -327,10 +340,7 @@
       stRefP.on('value', stCb, function () {});
       S.resync = function () { try { db.goOnline(); } catch (e) {} stRefP.once('value', stCb).catch(function () {}); if (cfgRef) cfgRef.once('value', cfgCb).catch(function () {}); };
       db.ref('reviews').on('value', function (s) { S.reviews = revList(s.val()); S.rulesBad.reviews = false; renderReviews(); if (S.admin) { renderRvAdmin(); renderRules(); } }, function () { S.rulesBad.reviews = true; if (S.admin) renderRules(); });
-      auth.onAuthStateChanged(function (u) {
-        if (u && u.email === window.ADMIN_EMAIL) mountPanel(); else unmountPanel();
-        syncData();
-      });
+      if (window.LAZY_AUTH === false || location.hash === '#admin') loadAuth().catch(function () {});
     } catch (e) { fbOk = false; db = null; auth = null; }
   }
 
@@ -1024,6 +1034,65 @@
     }).catch(function () { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; });
   });
 
+  /* ---------- Tarjeta de la cotización: imagen vertical 1080×1920 para WhatsApp (estados) e Instagram (historias) ---------- */
+  function loadImg(src) { return new Promise(function (ok, no) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = no; i.src = src; }); }
+  function arStamp() {
+    try { return new Intl.DateTimeFormat(S.lang === 'en' ? 'en-GB' : 'es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(S.cfg.updatedAt || Date.now())); } catch (e) { return whenTxt(S.cfg.updatedAt || Date.now()); }
+  }
+  function drawCard() {
+    var hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = 1920, rate = c.rate;
+    var fonts = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('800 100px Sora'), document.fonts.load('700 40px "Plus Jakarta Sans"')]).catch(function () {}) : null;
+    return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), fonts]).then(function (r) {
+      var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), lg = r[0], X = W / 2;
+      var bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, hw ? '#1d0d33' : '#0F1B5C'); bg.addColorStop(1, hw ? '#07030f' : '#0A1038'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      var top = 0;
+      if (hw) { var lh = Math.round(lg.height * W / lg.width); g.drawImage(lg, 0, 0, W, lh); var fd = g.createLinearGradient(0, lh - 160, 0, lh); fd.addColorStop(0, 'rgba(10,4,20,0)'); fd.addColorStop(1, '#0d0618'); g.fillStyle = fd; g.fillRect(0, lh - 160, W, 160); top = lh; }
+      else { g.fillStyle = '#fff'; g.fillRect(0, 0, W, 780); var lw = 940, lh2 = Math.round(lg.height * lw / lg.width); g.drawImage(lg, (W - lw) / 2, (780 - lh2) / 2, lw, lh2); var fl = ['#F5B800', '#1F3FBF', '#D62839']; fl.forEach(function (col, i) { g.fillStyle = col; g.fillRect(i * W / 3, 780, W / 3, 16); }); top = 796; }
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+      function txt(s, y, font, col, ls) { g.font = font; g.fillStyle = col; try { g.letterSpacing = (ls || 0) + 'px'; } catch (e) {} g.fillText(s, X, y); try { g.letterSpacing = '0px'; } catch (e) {} }
+      var y = Math.max(top + 130, 930);
+      txt(t('cardLbl'), y, "700 40px 'Plus Jakarta Sans',sans-serif", hw ? '#FF9A3C' : '#B8C7FF', 6);
+      var big = ars(rate), fs = 230; g.font = "800 " + fs + "px Sora,sans-serif"; while (g.measureText(big).width > 940 && fs > 90) { fs -= 8; g.font = "800 " + fs + "px Sora,sans-serif"; }
+      y += fs * 0.95 + 30; txt(big, y, "800 " + fs + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
+      y += 78; txt(t('cardPer'), y, "600 54px 'Plus Jakarta Sans',sans-serif", '#fff');
+      if (c.prev > 0 && Math.abs(rate - c.prev) >= 0.005) { var d = rate - c.prev, up = d > 0; y += 90; txt(t('cardVs', { s: (up ? '▲ +' : '▼ −') + fmt(Math.abs(d)) }), y, "700 46px 'Plus Jakarta Sans',sans-serif", up ? '#3DDC84' : '#FF7A7A'); }
+      y += 90; txt(t('cardUpd', { d: arStamp() }), y, "500 38px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      var bx = 90, bw = W - 180, by = H - 330; g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); if (g.roundRect) g.roundRect(bx, by, bw, 150, 40); else g.rect(bx, by, bw, 150); g.fill();
+      txt(t('cardAdm'), by + 66, "700 40px 'Plus Jakarta Sans',sans-serif", '#fff'); txt(t('cardCta'), by + 118, "500 34px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      txt(t('cardFoot'), H - 110, "500 30px 'Plus Jakarta Sans',sans-serif", 'rgba(201,209,255,.85)');
+      return new Promise(function (ok, no) { cv.toBlob(function (b) { b ? ok(b) : no(); }, 'image/png'); });
+    });
+  }
+  function shareUrl() { var u = location.href.split('#')[0].split('?')[0]; try { if (S.themeApplied === 'halloween') u = new URL('halloween.html', u).href; } catch (e) {} return u; }
+  function closeCard() { var ov = $('#cardOv'); if (!ov) return; ov.hidden = true; document.body.style.overflow = ''; if (ov._u) { URL.revokeObjectURL(ov._u); ov._u = null; } var b = $('#cardBtn'); if (b) b.focus(); }
+  function showCard(blob) {
+    var ov = $('#cardOv');
+    if (!ov) {
+      ov = el('div'); ov.id = 'cardOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+      ov.innerHTML = '<div class="cbox"><img alt=""><div class="cbtns"><button type="button" class="btn gold" id="cardShare"></button><a class="btn ghost" id="cardDl" download="cotizacion-pesopro.png"></a><button type="button" class="btn ghost" id="cardX"></button></div></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click', function (e) { if (e.target === ov) closeCard(); });
+      $('#cardX').addEventListener('click', closeCard);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ov.hidden) closeCard(); });
+      $('#cardDl').addEventListener('click', function () { bump('cards'); });
+      $('#cardShare').addEventListener('click', function () {
+        var f = ov._f; if (!f) return;
+        try { navigator.share({ files: [f], text: t('cardText', { r: ars(S.cfg.rate) }) + ' ' + shareUrl() }).then(function () { bump('cards'); track('card_share'); }).catch(function () {}); } catch (e) {}
+      });
+    }
+    if (ov._u) URL.revokeObjectURL(ov._u); ov._u = URL.createObjectURL(blob);
+    try { ov._f = new File([blob], 'cotizacion-pesopro.png', { type: 'image/png' }); } catch (e) { ov._f = null; }
+    var canShare = !!(ov._f && navigator.canShare && navigator.canShare({ files: [ov._f] }));
+    ov.querySelector('img').src = ov._u; ov.querySelector('img').alt = t('cardTitle'); ov.setAttribute('aria-label', t('cardTitle'));
+    $('#cardShare').textContent = t('cardShare'); $('#cardShare').hidden = !canShare; $('#cardDl').textContent = t('cardDl'); $('#cardDl').href = ov._u; $('#cardX').textContent = t('cardX');
+    ov.hidden = false; document.body.style.overflow = 'hidden'; setTimeout(function () { (canShare ? $('#cardShare') : $('#cardDl')).focus(); }, 30);
+  }
+  $('#cardBtn').addEventListener('click', function () {
+    if (isLocked() || !(S.cfg.rate > 0) || (fbOk && !S.live)) { copyToast(t('cardWait')); return; }
+    var b = this; b.disabled = true; track('card_open');
+    drawCard().then(showCard).catch(function () { copyToast(t('cardErr')); }).then(function () { b.disabled = false; });
+  });
+
   /* ---------- Avisos push al celular (requiere VAPID_KEY en firebase-config.js y la función de Firebase) ---------- */
   (function () {
     var b = $('#alPush'); if (!b || !window.VAPID_KEY) return;
@@ -1231,7 +1300,7 @@
 
   /* ---------- panel de administrador ---------- */
   var gate = $('#gate'), slot = $('#adminSlot');
-  function openGate() { if (S.admin) return; if (offWanted()) { showOffAdmin(); return; } gate.hidden = false; setTimeout(function () { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pass').focus(); }, 60); }
+  function openGate() { if (S.admin) return; if (fbOk) loadAuth().catch(function () {}); if (offWanted()) { showOffAdmin(); return; } gate.hidden = false; setTimeout(function () { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pass').focus(); }, 60); }
   $('#lockBtn').addEventListener('click', openGate);
   if (location.hash === '#admin') setTimeout(openGate, 1700);
   window.addEventListener('hashchange', function () { if (location.hash === '#admin') openGate(); });
@@ -1248,10 +1317,10 @@
   function login(ids) {
     ids = ids || { pass: '#pass', btn: '#passBtn', msg: '#gateMsg' };
     var gm = $(ids.msg), pw = $(ids.pass).value;
-    if (!auth) { gm.textContent = 'Falta conectar Firebase (revisa el README).'; return; }
+    if (!fbOk) { gm.textContent = 'Falta conectar Firebase (revisa el README).'; return; }
     if (!pw) { gm.textContent = 'Escribe la clave.'; return; }
     $(ids.btn).disabled = true; gm.textContent = '';
-    auth.signInWithEmailAndPassword(window.ADMIN_EMAIL, pw).then(function () { $(ids.pass).value = ''; resetEye($(ids.pass)); })
+    loadAuth().then(function (a) { return a.signInWithEmailAndPassword(window.ADMIN_EMAIL, pw); }).then(function () { $(ids.pass).value = ''; resetEye($(ids.pass)); })
       .catch(function (e) { gm.textContent = errMsg(e); }).then(function () { $(ids.btn).disabled = false; });
   }
   var OFFIDS = { pass: '#offPass', btn: '#offPassBtn', msg: '#offMsg' };
@@ -1515,6 +1584,7 @@
     var bad = Object.keys(S.rulesBad).filter(function (k) { return S.rulesBad[k]; }), parts = [], box = pa('aRules');
     if (VERBAD.length) parts.push('<b>⚠ Archivos con versión distinta:</b> ' + esc(VERBAD.join(', ')) + '. Sube TODOS los archivos juntos a GitHub y recarga la página (en el celular, ciérrala y vuelve a abrirla).');
     if (bad.length) parts.push('<b>⚠ Falta publicar las reglas nuevas</b> (' + esc(bad.join(', ')) + '): Firebase → Realtime Database → Reglas → pega el contenido de firebase.rules.json → Publicar.');
+    if (window.NTFY_TOPIC) parts.push('<b>⚠ El tema de ntfy está escrito en firebase-config.js</b>, que es público: cualquiera puede mandarte avisos falsos. Pásalo a la función de Firebase (PASO 4 del LEEME) y deja NTFY_TOPIC vacío.');
     try { var og = document.querySelector('link[rel=canonical]'); if (og && /TU-USUARIO/.test(og.href)) parts.push('<b>⚠ Falta poner tu dirección real</b> en index.html, halloween.html, robots.txt y sitemap.xml (busca TU-USUARIO.github.io): sin eso WhatsApp no muestra la imagen al compartir.'); } catch (e) {}
     if (!parts.length) parts.push('✔ <b>Todo al día:</b> los archivos tienen la misma versión y las reglas de Firebase responden.');
     box.innerHTML = parts.join('<br>'); box.hidden = false;
@@ -1546,6 +1616,7 @@
     var today = S.stats[dayKey()] || {}, st = 0, dn = 0, days = Object.keys(S.stats);
     pa('aStStarted').textContent = today.started || 0; pa('aStDone').textContent = today.done || 0;
     days.forEach(function (k) { st += S.stats[k].started || 0; dn += S.stats[k].done || 0; });
+    var cd = pa('aStCards'); if (cd) cd.textContent = today.cards || 0;
     var cp = pa('aStCopies'), wj = pa('aStWaJ'), wb = pa('aStWaB'); if (cp) { cp.textContent = today.copies || 0; wj.textContent = today.waJusto || 0; wb.textContent = today.waBoris || 0; }
     var tc = 0, tj = 0, tb = 0; days.forEach(function (k) { tc += S.stats[k].copies || 0; tj += S.stats[k].waJusto || 0; tb += S.stats[k].waBoris || 0; });
     pa('aStWeek').textContent = 'Últimos ' + Math.max(1, days.length) + ' día(s) con actividad: ' + st + ' iniciados · ' + dn + ' concretados. “Iniciados” cuenta los toques en Hacer cambio. Copiados: ' + tc + ' · WhatsApp Justo: ' + tj + ' · WhatsApp Boris: ' + tb + '.';
