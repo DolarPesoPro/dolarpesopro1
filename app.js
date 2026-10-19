@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261020f';
+  var VER = '20261020h';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -57,6 +57,7 @@
       chatWa: 'Chatear por WhatsApp', guideTitle: 'Guía de uso', guideSub: 'Todo lo que necesitas saber para cambiar con Dólar PesoPro.',
       gHow: 'Cómo funciona', gQuick: 'Guía rápida', gFaq: 'Preguntas',
       speedTitle: 'Agiliza tu operación', speedSub: 'Datos opcionales: el mensaje de abajo se arma solo y lo copias con un toque.',
+      rememberData: 'Recordar mis datos en este celular', rememberHelp: 'Se guardan solo en tu celular, no en nuestros servidores. Desmarca la casilla para borrarlos.',
       addData: 'Agregar mis datos (opcional)', holder: 'Nombre completo del titular', holderPh: 'Como figura en tu cuenta', bank: 'Banco o billetera virtual donde recibes',
       bankPh: 'Tu banco de preferencia o billetera virtual', alias: 'Alias, CBU o CVU', aliasPh: 'Tu alias o número de cuenta',
       aliasWarn: 'Por favor, asegúrate de que tu alias o CBU esté bien escrito antes de enviar el mensaje.',
@@ -153,6 +154,7 @@
       instTitle: 'Keep the app on your phone', instBtn: 'Install app',
       instAndroid: 'Tap the Chrome menu ⋮ and choose “Install app” or “Add to Home screen”.',
       instIos: 'In Safari tap the Share button and choose “Add to Home Screen”.',
+      rememberData: 'Remember my details on this phone', rememberHelp: 'They are saved only on your phone, not on our servers. Untick the box to delete them.',
       addData: 'Add my details (optional)',
       offChipR: 'Offline · {r}', revTitle: 'What our customers say', revSub: 'Reviews from people who have already exchanged with us.', revHint: 'Swipe to see more →',
       notifyBtn: 'Notify me when you open', notifyHelp: 'Enter your WhatsApp and we will message you as soon as we are online.', nfSave: 'Save my number',
@@ -770,6 +772,24 @@
   if ('IntersectionObserver' in window && $('.brand')) {
     new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playChat(); else stopChat(); }); }, { threshold: 0.5, rootMargin: '-60px 0px -150px 0px' }).observe($('.brand'));
   }
+  /* Al llegar a "Habla con un administrador" las mascotas saludan y dicen sus frases (una vez cada 25 s; se corta si te vas) */
+  var talkT = [], lastTalk = 0;
+  function stopTalk() { talkT.forEach(clearTimeout); talkT = []; clearBubbles(); }
+  function playTalk() {
+    var now = Date.now(), av = $$('#talkCard .avatar'); if (now - lastTalk < 25000 || av.length < 2 || isLocked()) return; lastTalk = now; stopTalk();
+    var seq = [[0, '¿En qué te puedo ayudar? 💬'], [1, null], [0, null], [1, null]], at = 700;
+    seq.forEach(function (l, i) {
+      talkT.push(setTimeout(function () {
+        var m = av[l[0]], L = linesFor(l[0] ? 'Boris' : 'Justo'), txt = l[1] || L[(i + Math.floor(Math.random() * L.length)) % L.length];
+        hop(m); burst(m, false); say(m, txt);
+      }, at));
+      at += Math.max(2800, Math.min(6500, 1600 + (l[1] || 'xxxxxxxxxxxxxxxxxxxxxxxxx').length * 70)) + 500;
+    });
+  }
+  if ('IntersectionObserver' in window && $('#talkCard')) {
+    var tcAv = $('#talkCard .adm');
+    new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) playTalk(); else stopTalk(); }); }, { threshold: 0.6, rootMargin: '-60px 0px -170px 0px' }).observe(tcAv || $('#talkCard'));
+  }
   /* Los que duermen en la pantalla de apagado también responden al toque */
   /* ---------- Temáticas (themes.js). La activa el administrador desde el panel y la ven todos al instante ---------- */
   var TH = window.PP_THEMES || {};
@@ -966,6 +986,28 @@
     } catch (e) { fallback(); }
   });
   ['holder', 'bank', 'alias'].forEach(function (id) { $('#' + id).addEventListener('input', function (e) { S[id] = e.target.value; update(); }); });
+  /* Recordar datos del cliente (solo si él lo marca): se guardan únicamente en SU celular, nunca en Firebase. Desmarcar los borra. Caducan a los 180 días. */
+  (function () {
+    var cb = $('#rememberData'); if (!cb) return;
+    var K = { holder: 'h', bank: 'b', alias: 'a' };
+    try {
+      var p = JSON.parse(localStorage.getItem('pp_data') || 'null');
+      if (p && Date.now() - (+p.at || 0) < 180 * 86400000) {
+        var any = false;
+        Object.keys(K).forEach(function (id) { var v = typeof p[K[id]] === 'string' ? p[K[id]].slice(0, 120) : ''; if (v) { any = true; S[id] = v; $('#' + id).value = v; } });
+        if (any) { cb.checked = true; $('#dataWrap').classList.add('open'); $('#dataToggle').setAttribute('aria-expanded', 'true'); try { update(); } catch (e) {} }
+      }
+    } catch (e) {}
+    function save() {
+      if (S.admin) return;
+      try {
+        if (cb.checked && (S.holder || S.bank || S.alias)) localStorage.setItem('pp_data', JSON.stringify({ h: S.holder.slice(0, 120), b: S.bank.slice(0, 120), a: S.alias.slice(0, 120), at: Date.now() }));
+        else localStorage.removeItem('pp_data');
+      } catch (e) {}
+    }
+    cb.addEventListener('change', save);
+    Object.keys(K).forEach(function (id) { $('#' + id).addEventListener('input', save); });
+  })();
   /* globo verde "Mensaje copiado" que se ve incluso encima del menú de "¿Con quién haces el cambio?" */
   var copyToastT;
   function copyToast(msg) {
