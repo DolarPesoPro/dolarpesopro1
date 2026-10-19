@@ -20,3 +20,8 @@ window.NTFY_TOPIC = "pesopro-justo-im6zas834chdzq";
 // Google Analytics 4 (opcional). Pega aquí tu ID de medición, que empieza con "G-" (ej: "G-AB12CD34EF").
 // Déjalo vacío ("") para no usar Analytics. Nunca cuenta al administrador.
 window.GA_ID = "";
+
+// Avisos push al celular de los clientes (opcional). Pega aquí la "clave pública" (VAPID) de
+// Firebase → Configuración del proyecto → Cloud Messaging → Certificados push web → Generar par de claves.
+// Déjalo vacío ("") y el botón de avisos al celular no aparece.
+window.VAPID_KEY = "";

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /halloween.html
+Sitemap: https://TU-USUARIO.github.io/DolarPesoPro/sitemap.xml
