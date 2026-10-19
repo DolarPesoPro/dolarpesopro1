@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261017g';
+  var VER = '20261019a';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -319,7 +319,7 @@
       var stRefP = db.ref('status');
       function stCb(s) {
         var was = S.open; S.status = s.val(); applyStatus();
-        S.themePub = (S.status && S.status.theme) || ''; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} applySeason(); if (S.admin) renderThemes();
+        S.themePub = (S.status && S.status.theme) || ''; S.themeFrom = (S.status && S.status.themeFrom) || ''; S.themeTo = (S.status && S.status.themeTo) || ''; try { localStorage.setItem('pp_theme', S.themePub); localStorage.setItem('pp_theme_win', JSON.stringify({ f: S.themeFrom, t: S.themeTo })); } catch (e) {} applySeason(); if (S.admin) renderThemes();
         if (S.open && was === false && !S.admin) S.live = false;     // reabre: espera la cotización real antes de mostrarla
         if (!S.open) S.live = true;
         syncData(); update(); if (S.admin) refreshPanel();
@@ -609,7 +609,7 @@
     /* mensaje + enlaces */
     var msg = message(k); var mb = $('#msgbox'); if (mb.value !== msg) mb.value = msg;
     $$('[data-wa]').forEach(function (x) { x.href = 'https://wa.me/' + PHONES[x.getAttribute('data-wa')] + '?text=' + encodeURIComponent(msg); });
-    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar'); $('#stCopy').classList.toggle('ok', S.copied);
+    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar'); $('#stCopy').classList.toggle('ok', S.copied); setText('#stPop', '✓ ' + t('copied')); $('#stPop').classList.toggle('show', !!S.copied);
     /* guía (se redibuja si cambia el idioma o las comisiones) */
     var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct + '|' + OS;
     if (gk !== guideKey) { guideKey = gk; renderGuide(); setGuideTab(); }
@@ -683,6 +683,37 @@
     }
     step(0, 800);
   }
+  /* Sonidos de Halloween sintetizados con WebAudio (sin archivos). Solo suenan con un toque del cliente y se pueden silenciar con el botón 🔔 */
+  var AC = null; try { S.sfxOn = localStorage.getItem('pp_sfx') !== '0'; } catch (e) { S.sfxOn = true; }
+  function sfxCtx() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } } if (AC.state === 'suspended') AC.resume(); return AC; }
+  function note(c, f0, f1, t0, dur, type, vol, lp) {
+    var o = c.createOscillator(), g = c.createGain(), now = c.currentTime + t0, out = g;
+    o.type = type; o.frequency.setValueAtTime(f0, now); if (f1) o.frequency.exponentialRampToValueAtTime(f1, now + dur);
+    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(vol, now + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    if (lp) { var f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; g.connect(f); out = f; }
+    o.connect(g); out.connect(c.destination); o.start(now); o.stop(now + dur + 0.05);
+  }
+  var SFX = {
+    ding:  function (c) { note(c, 1046, 0, 0, .35, 'sine', .12); note(c, 1568, 0, .09, .45, 'sine', .1); },
+    chime: function (c) { note(c, 880, 0, 0, .6, 'triangle', .1); note(c, 1318, 0, .12, .7, 'sine', .09); note(c, 1760, 0, .26, .8, 'sine', .06); },
+    boo:   function (c) { note(c, 220, 110, 0, .55, 'sawtooth', .12, 700); note(c, 165, 82, .05, .55, 'square', .05, 500); },
+    bat:   function (c) { note(c, 1800, 3200, 0, .12, 'sine', .08); note(c, 2400, 3600, .15, .12, 'sine', .07); note(c, 2000, 3000, .3, .1, 'sine', .06); },
+    ghost: function (c) { var o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain(), n = c.currentTime;
+             o.type = 'sine'; o.frequency.setValueAtTime(620, n); o.frequency.exponentialRampToValueAtTime(300, n + .9); l.frequency.value = 7; lg.gain.value = 18; l.connect(lg); lg.connect(o.frequency);
+             g.gain.setValueAtTime(.0001, n); g.gain.exponentialRampToValueAtTime(.11, n + .1); g.gain.exponentialRampToValueAtTime(.0001, n + .95); o.connect(g); g.connect(c.destination); o.start(n); l.start(n); o.stop(n + 1); l.stop(n + 1); }
+  };
+  function sfxPlay(name) {
+    if (!S.sfxOn || !themeDef()) return; var c = sfxCtx(); if (!c) return;
+    if (name === 'random') { var k = ['chime', 'boo', 'bat', 'ghost']; name = k[Math.floor(Math.random() * k.length)]; }
+    try { SFX[name](c); } catch (e) {}
+  }
+  function syncSfxBtn() {
+    var b = $('#sfxBtn'), on = !!themeDef();
+    if (on && !b) { b = document.createElement('button'); b.id = 'sfxBtn'; b.type = 'button'; b.className = 'sfxbtn'; ($('.head') || document.body).appendChild(b);
+      b.addEventListener('click', function () { S.sfxOn = !S.sfxOn; try { localStorage.setItem('pp_sfx', S.sfxOn ? '1' : '0'); } catch (e) {} syncSfxBtn(); if (S.sfxOn) sfxPlay('chime'); }); }
+    if (!on && b) { b.parentNode.removeChild(b); return; }
+    if (b) { b.textContent = S.sfxOn ? '🔔' : '🔕'; b.setAttribute('aria-label', S.sfxOn ? 'Silenciar sonidos' : 'Activar sonidos'); b.title = b.getAttribute('aria-label'); }
+  }
   function hop(m) { m.classList.remove('hop'); void m.offsetWidth; m.classList.add('hop'); setTimeout(function () { m.classList.remove('hop'); }, 650); }
   function burst(node, talk) {
     var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, g = ['$', '₱', '✦', '$', '₱'];
@@ -694,7 +725,7 @@
     if (talk) { var nm = (node.getAttribute('alt') || '').split(',')[0].trim(), L = linesFor(nm); say(node, L[Math.floor(Math.random() * L.length)]); }
     try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
   }
-  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { stopChat(); hop(m); burst(m, true); }); });
+  $$('.mini').forEach(function (m) { m.addEventListener('click', function () { stopChat(); hop(m); burst(m, true); sfxPlay('random'); }); });
   /* Al llegar a Justo y Boris (sección de marca) conversan solos, una vez por visita */
   var CHAT = [[0, '¡Hola, soy Justo! 🤠'], [1, '¡Hola, soy Boris! 😎'], [0, '¡Cambiemos hoy! 💵'], [1, 'Cambio rápido y seguro ⚡'], [0, 'Aquí para ayudarte ✅'], [1, 'Tu plata, bien cuidada 🔒']], chatT = [], lastChat = 0;
   function stopChat() { chatT.forEach(clearTimeout); chatT = []; }
@@ -708,15 +739,18 @@
   /* Los que duermen en la pantalla de apagado también responden al toque */
   /* ---------- Temáticas (themes.js). La activa el administrador desde el panel y la ven todos al instante ---------- */
   var TH = window.PP_THEMES || {};
-  $$('img').forEach(function (i) { var m = (i.getAttribute('src') || '').match(/^assets\/(justo|boris)\.jpg$/); if (m) i.setAttribute('data-av', m[1]); });
-  try { S.themePub = localStorage.getItem('pp_theme') || ''; } catch (e) {}          // última temática conocida: la carga ya sale con el tema
+  $$('img').forEach(function (i) { var m = (i.getAttribute('src') || '').match(/^assets\/(justo|boris)\.webp$/); if (m) i.setAttribute('data-av', m[1]); });
+  try { S.themePub = localStorage.getItem('pp_theme') || ''; var w0 = JSON.parse(localStorage.getItem('pp_theme_win') || '{}'); S.themeFrom = w0.f || ''; S.themeTo = w0.t || ''; } catch (e) {}          // última temática conocida: la carga ya sale con el tema
   (function () { var q = location.search.match(/[?&]tema=([a-z0-9_-]+)/) || (/[?&]halloween=1/.test(location.search) ? [0, 'halloween'] : null); if (q && TH[q[1]]) S.themePreview = q[1]; })();
+  function todayStr() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function inWindow() { var t = todayStr(); return !((S.themeFrom && t < S.themeFrom) || (S.themeTo && t > S.themeTo)); }      // fuera de las fechas programadas se ve el diseño normal
+  function fmtD(d) { var p = String(d || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] : ''; }
   function normTheme(id) { return id === 'dracula_lobo' ? 'halloween' : id; }
   function themeDef() { return (S.themeApplied && TH[S.themeApplied]) || null; }
   S.costume = Math.random() < 0.5 ? 0 : 1;          // cada visita arranca con una pareja distinta al azar
   function costumeSrc(who) {
     var d = themeDef(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].img; }
-    return (d && d.avatars && d.avatars[who]) || 'assets/' + who + '.jpg';
+    return (d && d.avatars && d.avatars[who]) || 'assets/' + who + '.webp';
   }
   /* cambia la foto de una mascota; si pide animación, da la vuelta (flip) y cambia a mitad */
   function paintAvatar(i, animate) {
@@ -743,8 +777,49 @@
     S.costume++; paintAll('justo', true); setTimeout(function () { paintAll('boris', true); }, 700);
     setTimeout(function () { var m = visibleMascot(); if (m && Math.random() < 0.6) { var L = linesFor(m.getAttribute('data-av') === 'boris' ? 'Boris' : 'Justo'); hop(m); say(m, L[Math.floor(Math.random() * L.length)]); } }, 2600);
   }, 12000);
+  /* ---------- Intro en video de la temática: aparece con fundido sobre la pantalla de carga y se disuelve hacia la página ---------- */
+  function introSeen() { try { return Date.now() - (+localStorage.getItem('pp_intro') || 0) < 6 * 3600 * 1000; } catch (e) { return false; } }   // una vez cada 6 horas
+  function maybeIntro() {
+    var d = themeDef(); if (!d || !d.intro || S.introStarted) return;
+    var force = /[?&]intro=1/.test(location.search);                                  // ?intro=1 lo fuerza (para probarlo)
+    if (!force) {
+      if (S.themePreview !== undefined || introSeen() || (window.performance && performance.now() > 5000)) return;
+      try { if (matchMedia('(prefers-reduced-motion: reduce)').matches || (navigator.connection && navigator.connection.saveData)) return; } catch (e) {}
+    }
+    S.introStarted = true; S.introPlaying = true;
+    var ov = document.createElement('div'); ov.id = 'intro'; ov.className = 'intro'; ov.setAttribute('aria-hidden', 'true');
+    ov.innerHTML = '<canvas class="ibg" width="64" height="36"></canvas><video class="ivid" muted playsinline webkit-playsinline preload="auto"></video><div class="ivig"></div>' +
+      '<button type="button" class="ibtn iskip">Saltar ›</button><button type="button" class="ibtn isnd" aria-label="Activar sonido">🔇</button>';
+    var v = ov.querySelector('video'), cv = ov.querySelector('canvas'), cx = cv.getContext && cv.getContext('2d'), over = false, raf = 0;
+    if (d.introPoster) v.setAttribute('poster', d.introPoster);
+    document.body.appendChild(ov);
+    function paintBg() { if (over) return; try { if (cx && v.readyState >= 2) cx.drawImage(v, 0, 0, cv.width, cv.height); } catch (e) {} raf = requestAnimationFrame(paintBg); }
+    function finish(fast) {
+      if (over) return; over = true; cancelAnimationFrame(raf); clearTimeout(guard);
+      try { localStorage.setItem('pp_intro', String(Date.now())); } catch (e) {}
+      ov.classList.add(fast ? 'out fast' : 'out'); document.body.style.overflow = ''; S.introPlaying = false;
+      setTimeout(function () { try { v.pause(); } catch (e) {} if (ov.parentNode) ov.parentNode.removeChild(ov); maybeInitialToast(); }, fast ? 450 : 1100);
+    }
+    function abort() { if (over) return; over = true; cancelAnimationFrame(raf); clearTimeout(guard); S.introPlaying = false; document.body.style.overflow = ''; if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    var started = false, guard = setTimeout(abort, 3500);                                // si el video tarda en estar listo, no molesta: se omite
+    function go() {
+      if (started || over) return; started = true; clearTimeout(guard);
+      var pr = v.play(); if (pr && pr.catch) pr.catch(abort);
+      document.body.style.overflow = 'hidden'; ov.classList.add('show'); paintBg();
+      guard = setTimeout(function () { finish(); }, ((v.duration || 9) + 2) * 1000);
+    }
+    v.addEventListener('canplay', go); v.addEventListener('playing', go);
+    v.addEventListener('ended', function () { finish(); });
+    v.addEventListener('timeupdate', function () { if (v.duration && v.currentTime > v.duration - 0.6 && !ov.classList.contains('ending')) ov.classList.add('ending'); });   // el último tramo empieza a disolverse
+    ov.querySelector('.iskip').addEventListener('click', function () { finish(true); });
+    ov.querySelector('.isnd').addEventListener('click', function () { v.muted = !v.muted; this.textContent = v.muted ? '🔇' : '🔊'; });
+    var portrait = innerHeight > innerWidth * 1.1, srcV = portrait && d.introV, tried = false;
+    v.addEventListener('loadedmetadata', function () { if (v.videoHeight > v.videoWidth) ov.classList.add('vert'); });
+    v.addEventListener('error', function () { if (srcV && !tried) { tried = true; srcV = null; v.src = d.intro; v.load(); } else abort(); });      // si el video vertical no existe, usa el horizontal
+    v.src = srcV || d.intro; v.load(); try { var p0 = v.play(); if (p0 && p0.catch) p0.catch(function () {}); } catch (e) {}      // iOS a veces no dispara 'canplay' hasta que se intenta reproducir
+  }
   function applySeason() {
-    var id = normTheme(S.themePreview !== undefined ? S.themePreview : (S.themePub || '')), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
+    var id = normTheme(S.themePreview !== undefined ? S.themePreview : (inWindow() ? (S.themePub || '') : '')), def = id && TH[id] ? TH[id] : null, key = def ? id : '';
     if (key === S.themeApplied) return; S.themeApplied = key;
     var root = document.documentElement; Object.keys(TH).forEach(function (k) { root.classList.remove('th-' + k); }); root.classList.remove('th-halloween');
     if (def && !S.userMode && S.theme !== 'dark') { S.forcedDark = true; applyTheme('dark'); } else if (!def && S.forcedDark && !S.userMode) { S.forcedDark = false; applyTheme('light'); }
@@ -754,12 +829,15 @@
     if (def && def.costumes) Object.keys(def.costumes).forEach(function (w) { def.costumes[w].forEach(function (c) { var im = new Image(); im.src = c.img; }); });
     if (def && def.logo) { var lg = new Image(); lg.src = def.logo; }
     paintAll(null, false);
-    $$('img.logoimg').forEach(function (i) { var src = (def && def.logo) || 'assets/logo.jpg'; if (i.getAttribute('src') !== src) i.src = src; });
+    $$('img.logoimg').forEach(function (i) { var src = (def && def.logo) || 'assets/logo.webp'; if (i.getAttribute('src') !== src) i.src = src; });
     try { var sp = $('#splash'); if (sp) sp.setAttribute('data-scene', (def && def.splash) || sceneNow()); } catch (e) {}
-    if (def && def.peeks && def.peeks.length) setTimeout(peek, 7000);
+    if (def && def.peeks && def.peeks.length) setTimeout(function () { if (!S.introPlaying) peek(); else setTimeout(peek, 5000); }, 7000);
+    syncSfxBtn();
+    maybeIntro();
   }
+  setInterval(function () { applySeason(); }, 60000); document.addEventListener('visibilitychange', function () { if (!document.hidden) applySeason(); });
   function peek() {
-    var def = themeDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || document.hidden || (S.admin && S.themePreview === undefined)) return;
+    var def = themeDef(); if (!def || !def.peeks || !def.peeks.length || S.peeking || S.introPlaying || document.hidden || (S.admin && S.themePreview === undefined)) return;
     var sh = $('#sheet2'), off = $('#off'); if ((sh && sh.classList.contains('open')) || (off && !off.hidden)) return;
     var worn = [costumeSrc('justo'), costumeSrc('boris')], pool = def.peeks.filter(function (p) { return worn.indexOf(p.img) < 0; }); if (!pool.length) pool = def.peeks;   // no repetir el disfraz que ya llevan puesto
     var P = pool[Math.floor(Math.random() * pool.length)], left = Math.random() < 0.5, w = document.createElement('div'), im = document.createElement('img');
@@ -784,13 +862,25 @@
       function btn(txt, css, fn) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css; z.addEventListener('click', fn); b.appendChild(z); }
       btn(pv ? 'Quitar vista' : 'Probar', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)', function () { S.themePreview = pv ? undefined : id; applySeason(); renderThemes(); msgA(pv ? 'Vista previa cerrada.' : 'Vista previa de ' + d.name + ': solo la ves tú, los clientes no.'); });
       btn(on ? 'Desactivar' : 'Activar', on ? 'background:#B3261E;color:#fff' : 'background:#0F7A40;color:#fff', function () {
-        var prev = S.themePub; S.themePub = on ? '' : id; try { localStorage.setItem('pp_theme', S.themePub); } catch (e) {} applySeason(); renderThemes();     // se ve al instante; luego se guarda
-        db.ref('status').update({ theme: on ? null : id }).then(function () { msgA(on ? d.name + ' desactivada: todos vuelven al diseño normal.' : d.name + ' ACTIVADA ✓ Los clientes la ven ahora mismo.'); })
-            .catch(function (e) { S.themePub = prev; try { localStorage.setItem('pp_theme', prev || ''); } catch (x) {} applySeason(); renderThemes(); msgA(/permission|PERMISSION/i.test((e && e.message) || '') ? 'Sin permiso para guardar la temática: publica el firebase.rules.json nuevo en Firebase (agrega el campo "theme").' : errMsg(e), true); });
+        var prev = { p: S.themePub, f: S.themeFrom, t: S.themeTo }, f = on ? '' : ((pa('aThFrom') || {}).value || S.themeFrom || ''), t = on ? '' : ((pa('aThTo') || {}).value || S.themeTo || '');
+        S.themePub = on ? '' : id; S.themeFrom = f; S.themeTo = t; try { localStorage.setItem('pp_theme', S.themePub); localStorage.setItem('pp_theme_win', JSON.stringify({ f: f, t: t })); } catch (e) {} applySeason(); renderThemes();     // se ve al instante; luego se guarda
+        db.ref('status').update({ theme: on ? null : id, themeFrom: f || null, themeTo: t || null }).then(function () { msgA(on ? d.name + ' desactivada: todos vuelven al diseño normal.' : d.name + ' ACTIVADA ✓' + (f || t ? ' (programada: ' + (fmtD(f) || 'ya') + ' → ' + (fmtD(t) || 'sin fin') + ')' : ' Los clientes la ven ahora mismo.')); })
+          .catch(function (e) { S.themePub = prev.p; S.themeFrom = prev.f; S.themeTo = prev.t; try { localStorage.setItem('pp_theme', prev.p || ''); } catch (x) {} applySeason(); renderThemes(); msgA(/permission|PERMISSION/i.test((e && e.message) || '') ? 'Sin permiso para guardar: publica el firebase.rules.json nuevo en Firebase (agrega los campos theme, themeFrom y themeTo).' : 'No se pudo guardar la temática. Revisa tu conexión.'); });
       });
       row.appendChild(b); wrap.appendChild(row); if (d.desc) wrap.appendChild(el('div', 'sub', d.desc)); box.appendChild(wrap);
     });
-    pa('aThemeNow').textContent = pub && TH[pub] ? 'Temática activa: ' + TH[pub].name : 'Ninguna temática activa: se ve el diseño normal.';
+    var sch = el('div', 'panelbox'); sch.style.cssText = 'font-size:14px;margin-top:4px'; sch.appendChild(el('div', null, '📅 Programar fechas (opcional). Vacío = sin límite. Fuera de esas fechas el sitio se ve normal, solo.'));
+    var rowD = el('div'); rowD.style.cssText = 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center';
+    function dateIn(id, lab, val) { var w = el('label'); w.style.cssText = 'display:flex;flex-direction:column;gap:3px;font-size:12px;flex:1;min-width:120px'; w.appendChild(el('span', null, lab)); var i = document.createElement('input'); i.type = 'date'; i.id = id; i.className = 'field sm'; i.value = val || ''; w.appendChild(i); rowD.appendChild(w); }
+    dateIn('aThFrom', 'Desde', S.themeFrom); dateIn('aThTo', 'Hasta (inclusive)', S.themeTo);
+    function dbtn(txt, css, fn) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css + ';border-radius:12px;padding:10px 14px;font-weight:700;border:0'; z.addEventListener('click', fn); rowD.appendChild(z); }
+    dbtn('Guardar fechas', 'background:#0F7A40;color:#fff', function () {
+      var f = pa('aThFrom').value || '', t = pa('aThTo').value || ''; if (f && t && t < f) { msgA('La fecha "Hasta" no puede ser anterior a "Desde".'); return; }
+      S.themeFrom = f; S.themeTo = t; try { localStorage.setItem('pp_theme_win', JSON.stringify({ f: f, t: t })); } catch (e) {} applySeason(); renderThemes();
+      db.ref('status').update({ themeFrom: f || null, themeTo: t || null }).then(function () { msgA(f || t ? 'Fechas guardadas ✓' : 'Fechas quitadas: sin límite.'); }).catch(function () { msgA('No se pudo guardar. ¿Publicaste las reglas nuevas de Firebase (themeFrom/themeTo)?'); });
+    });
+    sch.appendChild(rowD); box.appendChild(sch);
+    pa('aThemeNow').textContent = pub && TH[pub] ? 'Temática activa: ' + TH[pub].name + ((S.themeFrom || S.themeTo) ? ' · programada ' + (fmtD(S.themeFrom) || 'desde ya') + ' → ' + (fmtD(S.themeTo) || 'sin fin') + (inWindow() ? ' (ahora se ve)' : ' (ahora fuera de fechas: se ve normal)') : '') : 'Ninguna temática activa: se ve el diseño normal.';
   }
   /* Mientras está apagado, las mascotas hablan dormidas y de vez en cuando pasan rodando por la pantalla */
   var OFFTALK = [['Zzz… ¿ya abrimos? 🥱', 'Soñé con dólares 💭', 'Cinco minutitos más… 😴', 'Shhh… el dólar duerme 🤫'], ['Zzz… ¡mi cotización! 💤', 'Estoy descansando, ¿eh? 😎', 'Volvemos enseguida ⏳', 'Zzz… dame un cafecito ☕']];
@@ -818,7 +908,7 @@
   setInterval(function () { if (Math.random() < 0.75) offAmbient(); }, 9000);
   var ZZ = ['Zzz… cinco minutitos más 😴', 'Zzz… ya volvemos 🌙'];
   $$('.sl img').forEach(function (m, i) { m.addEventListener('click', function () { hop(m); say(m, ZZ[i % 2]); }); });
-  $$('.avatar').forEach(function (m) { m.addEventListener('pointerdown', function () { m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); setTimeout(function () { m.classList.remove('tap'); }, 650); burst(m, false); }); });
+  $$('.avatar').forEach(function (m) { m.addEventListener('pointerdown', function () { m.classList.remove('tap'); void m.offsetWidth; m.classList.add('tap'); setTimeout(function () { m.classList.remove('tap'); }, 650); burst(m, false); sfxPlay('random'); }); });
   $$('#dirTabs button').forEach(function (b) { b.addEventListener('click', function () { S.dir = b.getAttribute('data-dir'); update(); }); });
   $$('#gtabs .chip').forEach(function (b) { b.addEventListener('click', function () { S.gtab = b.getAttribute('data-g'); setGuideTab(); }); });
   function applyTheme(next) {
@@ -842,9 +932,16 @@
     } catch (e) { fallback(); }
   });
   ['holder', 'bank', 'alias'].forEach(function (id) { $('#' + id).addEventListener('input', function (e) { S[id] = e.target.value; update(); }); });
+  /* globo verde "Mensaje copiado" que se ve incluso encima del menú de "¿Con quién haces el cambio?" */
+  var copyToastT;
+  function copyToast(msg) {
+    var sh = $('#sheet2'); if (!msg && !(sh && sh.classList.contains('open'))) return;
+    var n = $('#copyToast'); if (!n) { n = document.createElement('div'); n.id = 'copyToast'; n.setAttribute('role', 'status'); document.body.appendChild(n); }
+    n.textContent = msg || ('✓ ' + t('copied')); void n.offsetWidth; n.classList.add('show'); clearTimeout(copyToastT); copyToastT = setTimeout(function () { n.classList.remove('show'); }, 2200);
+  }
   function doCopy() {
     var m = $('#msgbox').value;
-    function done() { try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) {} S.copied = true; update(); clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
+    function done() { try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) {} copyToast(); sfxPlay('ding'); S.copied = true; update(); clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
     function fb() {
       try { var x = document.createElement('textarea'); x.value = m; x.setAttribute('readonly', ''); x.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
         document.body.appendChild(x); x.focus(); x.select(); x.setSelectionRange(0, 99999); var ok = document.execCommand('copy'); document.body.removeChild(x); if (ok) done(); } catch (e) {}
@@ -1419,7 +1516,7 @@
   }
   $('#toast').addEventListener('click', function () { this.classList.remove('show'); });
   function maybeInitialToast() {
-    if (S.toastShown || !S.splashDone || !S.live || isLocked()) return; S.toastShown = true;
+    if (S.toastShown || !S.splashDone || !S.live || isLocked() || S.introPlaying) return; S.toastShown = true;
     var c = S.cfg; if (!(c.prev > 0) || c.prev === c.rate) return;
     var up = c.rate > c.prev, w = relTime(c.updatedAt);
     showToast(up, 'El dólar ' + (up ? 'subió' : 'bajó') + ' ' + fmtN(Math.abs(c.rate - c.prev)) + ' pesos' + (w ? ' · ' + w : ''));
@@ -1449,6 +1546,19 @@
   var tf = $('#topFoot'); if (tf) tf.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
   function tick() { if (S.denied && !S.admin) S.denied = false; applyStatus(); syncData(); update(); }
   setInterval(tick, 15000);
+  /* ---------- App instalable (Android/Chrome: botón directo; iPhone: instrucciones) ---------- */
+  (function () {
+    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone, ev = null, ios = /iphone|ipad|ipod/i.test(navigator.userAgent), foot = $('.socials');
+    if (standalone || !foot) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'instbtn'; b.textContent = '📲 Instalar app'; b.hidden = true; foot.parentNode.insertBefore(b, foot.nextSibling);
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; b.hidden = false; });
+    if (ios) b.hidden = false;
+    window.addEventListener('appinstalled', function () { b.hidden = true; });
+    b.addEventListener('click', function () {
+      if (ev) { ev.prompt(); ev.userChoice.then(function () { ev = null; b.hidden = true; }); }
+      else copyToast('En Safari: toca Compartir ⬆️ y "Agregar a pantalla de inicio"');
+    });
+  })();
   setInterval(function () { if (S.resync) S.resync(); }, 60000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { if (S.resync) S.resync(); tick(); } });
   window.addEventListener('pageshow', function () { if (S.resync) S.resync(); tick(); });
