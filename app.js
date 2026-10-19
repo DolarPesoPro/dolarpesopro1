@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261020h';
+  var VER = '20261021a';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -57,7 +57,13 @@
       chatWa: 'Chatear por WhatsApp', guideTitle: 'Guía de uso', guideSub: 'Todo lo que necesitas saber para cambiar con Dólar PesoPro.',
       gHow: 'Cómo funciona', gQuick: 'Guía rápida', gFaq: 'Preguntas',
       speedTitle: 'Agiliza tu operación', speedSub: 'Datos opcionales: el mensaje de abajo se arma solo y lo copias con un toque.',
-      rememberData: 'Recordar mis datos en este celular', rememberHelp: 'Se guardan solo en tu celular, no en nuestros servidores. Desmarca la casilla para borrarlos.',
+      rememberData: 'Recordar mis datos en este celular', rememberHelp: 'Puedes guardar hasta 3 cuentas. Se guardan solo en tu celular, no en nuestros servidores. Desmarca la casilla para borrar la cuenta que estás viendo.',
+      accTitle: 'Mis cuentas guardadas', accNew: '+ Nueva cuenta', accGen: 'Cuenta', accDelAll: 'Borrar todas mis cuentas guardadas',
+      dayToday: 'hoy', dayYest: 'ayer', cardStory: 'Historia', cardPost: 'Publicación',
+      backUp: '📈 El dólar subió $ {d} desde tu última visita ({w}).', backDown: '📉 El dólar bajó $ {d} desde tu última visita ({w}).', agoH: 'hace {n} h', agoD: 'hace {n} días',
+      rvOpen: '✍️ Dejar mi opinión', rvName: 'Tu nombre (ej: Karla M.)', rvPlace: 'Ciudad o país (opcional)', rvText: 'Cuéntanos cómo fue tu experiencia', rvSend: 'Enviar opinión', rvStarsL: 'Estrellas',
+      rvOk: '¡Gracias! Revisaremos tu opinión y la publicaremos pronto.', rvBad: 'Escribe tu nombre y una opinión de al menos 10 letras.', rvErr: 'No pudimos enviarla. Intenta de nuevo en un momento.', rvWait: 'Ya nos enviaste una opinión hoy. ¡Gracias!', revEmpty: 'Sé la primera persona en dejar su opinión.',
+      limitMsg: 'Ya enviaste varias solicitudes hoy. Intenta mañana o escríbenos por WhatsApp.',
       addData: 'Agregar mis datos (opcional)', holder: 'Nombre completo del titular', holderPh: 'Como figura en tu cuenta', bank: 'Banco o billetera virtual donde recibes',
       bankPh: 'Tu banco de preferencia o billetera virtual', alias: 'Alias, CBU o CVU', aliasPh: 'Tu alias o número de cuenta',
       aliasWarn: 'Por favor, asegúrate de que tu alias o CBU esté bien escrito antes de enviar el mensaje.',
@@ -89,7 +95,7 @@
       modeIncl: 'Envías el monto exacto: la comisión ya está incluida en el cálculo.',
       modeApart: 'Recibes el monto completo en pesos: la comisión se suma al total a pagar.',
       feeFixedLbl: '{n} USD fijos', feePctLbl: '{n}%',
-      liveOn: 'EN VIVO', liveOff: 'SIN CONEXIÓN', liveDemo: 'DEMOSTRACIÓN', upd: 'Pesos por cada dólar · Act. {d}', updNone: 'Pesos por cada dólar',
+      liveOn: 'EN VIVO', liveOff: 'SIN CONEXIÓN', liveDemo: 'DEMOSTRACIÓN', upd: 'Pesos por cada dólar · Act. {d} (hora AR)', updNone: 'Pesos por cada dólar',
       open: 'Atendiendo ahora · {a}–{b}', closed: 'Fuera de horario · {a}–{b} (Argentina)',
       s1t: 'Cotiza', s1d: 'Ingresa el monto en dólares y mira al instante cuánto recibirás en pesos.',
       s2t: 'Copia tu mensaje', s2d: 'Completa tus datos (opcional) y toca “Hacer cambio”: copiamos tu mensaje y abrimos el chat con Justo o Boris.',
@@ -154,7 +160,13 @@
       instTitle: 'Keep the app on your phone', instBtn: 'Install app',
       instAndroid: 'Tap the Chrome menu ⋮ and choose “Install app” or “Add to Home screen”.',
       instIos: 'In Safari tap the Share button and choose “Add to Home Screen”.',
-      rememberData: 'Remember my details on this phone', rememberHelp: 'They are saved only on your phone, not on our servers. Untick the box to delete them.',
+      rememberData: 'Remember my details on this phone', rememberHelp: 'You can save up to 3 accounts. They are saved only on your phone, not on our servers. Untick the box to delete the account you are viewing.',
+      accTitle: 'My saved accounts', accNew: '+ New account', accGen: 'Account', accDelAll: 'Delete all my saved accounts',
+      dayToday: 'today', dayYest: 'yesterday', cardStory: 'Story', cardPost: 'Post',
+      backUp: '📈 The dollar rose $ {d} since your last visit ({w}).', backDown: '📉 The dollar fell $ {d} since your last visit ({w}).', agoH: '{n} h ago', agoD: '{n} days ago',
+      rvOpen: '✍️ Leave my review', rvName: 'Your name (e.g. Karla M.)', rvPlace: 'City or country (optional)', rvText: 'Tell us about your experience', rvSend: 'Send review', rvStarsL: 'Stars',
+      rvOk: 'Thank you! We will review your opinion and publish it soon.', rvBad: 'Enter your name and a review of at least 10 letters.', rvErr: 'We could not send it. Please try again in a moment.', rvWait: 'You already sent us a review today. Thank you!', revEmpty: 'Be the first to leave a review.',
+      limitMsg: 'You already sent several requests today. Try tomorrow or message us on WhatsApp.',
       addData: 'Add my details (optional)',
       offChipR: 'Offline · {r}', revTitle: 'What our customers say', revSub: 'Reviews from people who have already exchanged with us.', revHint: 'Swipe to see more →',
       notifyBtn: 'Notify me when you open', notifyHelp: 'Enter your WhatsApp and we will message you as soon as we are online.', nfSave: 'Save my number',
@@ -173,7 +185,7 @@
       modeIncl: 'You send the exact amount: the fee is already included in the calculation.',
       modeApart: 'You receive the full amount in pesos: the fee is added to the total you pay.',
       feeFixedLbl: '{n} USD flat', feePctLbl: '{n}%',
-      liveOn: 'LIVE', liveOff: 'OFFLINE', liveDemo: 'DEMO', upd: 'Pesos per dollar · Upd. {d}', updNone: 'Pesos per dollar',
+      liveOn: 'LIVE', liveOff: 'OFFLINE', liveDemo: 'DEMO', upd: 'Pesos per dollar · Upd. {d} (AR time)', updNone: 'Pesos per dollar',
       open: 'Available now · {a}–{b}', closed: 'Outside hours · {a}–{b} (Argentina)',
       s1t: 'Get a quote', s1d: 'Enter the amount in dollars and instantly see how many pesos you will receive.',
       s2t: 'Copy your message', s2d: 'Fill in your details (optional), copy the ready message or open a chat with Justo or Boris.',
@@ -230,6 +242,20 @@
   function whenTxt(ts) {
     var d = new Date(ts); if (isNaN(d.getTime())) return '';
     return d.toLocaleString(S.lang === 'en' ? 'en-GB' : 'es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  }
+  function arWhen(ts) {
+    try {
+      var tz = 'America/Argentina/Buenos_Aires', loc = S.lang === 'en' ? 'en-GB' : 'es-AR', d = new Date(ts), nw = new Date(srvNow());
+      var key = function (x) { return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(x); };
+      var hm = new Intl.DateTimeFormat(loc, { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d), k = key(d);
+      if (k === key(nw)) return t('dayToday') + ' ' + hm;
+      if (k === key(new Date(nw.getTime() - 86400000))) return t('dayYest') + ' ' + hm;
+      return new Intl.DateTimeFormat(loc, { timeZone: tz, day: '2-digit', month: '2-digit' }).format(d) + ' ' + hm;
+    } catch (e) { return whenTxt(ts); }
+  }
+  function capOk(key, max, win) {   // límite por celular (en el navegador): máx. {max} envíos cada {win} ms
+    try { var a = JSON.parse(localStorage.getItem(key) || '[]').filter(function (x) { return Date.now() - x < win; }); if (a.length >= max) return false; a.push(Date.now()); localStorage.setItem(key, JSON.stringify(a)); } catch (e) {}
+    return true;
   }
   function bindClean(el) {
     el.addEventListener('keydown', function (e) { if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') e.preventDefault(); });
@@ -553,6 +579,19 @@
     $('#fDot').className = 'dot ' + (on ? 'g' : 'off');
     setText('#fNow', !fbOk ? '' : (!live ? t('loading') : (on ? t('onChip') : t('offChip'))));
   }
+  var backDone = false;
+  function backCheck(c, mask) {
+    if (backDone || S.admin || mask || !fbOk || !S.live || !c.hasRate) return; backDone = true;
+    try {
+      var n = $('#backNote'), p = JSON.parse(localStorage.getItem('pp_seen') || 'null');
+      if (n && p && p.rate > 0 && Date.now() - p.at > 10 * 60000 && Math.abs(c.rate - p.rate) / p.rate >= 0.003) {
+        var d = c.rate - p.rate, h = Math.round((Date.now() - p.at) / 3600000), w = h < 24 ? t('agoH', { n: Math.max(1, h) }) : t('agoD', { n: Math.round(h / 24) });
+        n.textContent = t(d > 0 ? 'backUp' : 'backDown', { d: fmtN(Math.abs(d)), w: w }); n.hidden = false;
+        n.onclick = function () { n.hidden = true; };
+      }
+      localStorage.setItem('pp_seen', JSON.stringify({ rate: c.rate, at: Date.now() }));
+    } catch (e) {}
+  }
   function update() {
     savePrefs();
     var c = S.cfg, k = calc(); S.lastCalc = k; var locked = isLocked();
@@ -562,7 +601,8 @@
     setText('#officialBig', mask ? '$ ·····' : ars(c.rate)); if ($('#calc')) $('#calc').classList.toggle('dim', mask && !locked);
     var tr = $('#trend');
     if (c.prev > 0 && c.prev !== c.rate && S.live && !locked) { var df = c.rate - c.prev; tr.textContent = (df > 0 ? '▲ +' : '▼ −') + fmtN(Math.abs(df)); } else tr.textContent = '';
-    setText('#updTxt', locked ? t('offHero') : (c.updatedAt ? t('upd', { d: whenTxt(c.updatedAt) }) : t('updNone')));
+    setText('#updTxt', locked ? t('offHero') : (c.updatedAt ? t('upd', { d: arWhen(c.updatedAt) }) : t('updNone')));
+    backCheck(c, mask);
     var dot = $('#liveDot'), lt = $('#liveTxt');
     if (locked) { dot.className = 'dot off'; lt.textContent = t('liveClosed'); }
     else if (!fbOk) { dot.className = 'dot off'; lt.textContent = t('liveDemo'); }
@@ -645,7 +685,7 @@
     var ic = $('#installCard');
     if (standalone || OS === 'desktop') ic.hidden = true;
     else { ic.hidden = false; setText('#instTxt', t(OS === 'ios' ? 'instIos' : 'instAndroid')); $('#instBtn').hidden = !(OS === 'android' && S.dip); }
-    $('#revCard').hidden = locked || !S.reviews.length;
+    $('#revCard').hidden = locked || !fbOk;
     applyLock(locked);
     $('#sticky').classList.toggle('show', S.splashDone === true && !locked);
     syncOff();
@@ -986,27 +1026,44 @@
     } catch (e) { fallback(); }
   });
   ['holder', 'bank', 'alias'].forEach(function (id) { $('#' + id).addEventListener('input', function (e) { S[id] = e.target.value; update(); }); });
-  /* Recordar datos del cliente (solo si él lo marca): se guardan únicamente en SU celular, nunca en Firebase. Desmarcar los borra. Caducan a los 180 días. */
+  /* Cuentas guardadas (solo si el cliente marca la casilla): hasta 3, únicamente en SU celular, nunca en Firebase. Caducan a los 180 días. */
   (function () {
-    var cb = $('#rememberData'); if (!cb) return;
-    var K = { holder: 'h', bank: 'b', alias: 'a' };
+    var cb = $('#rememberData'), box = $('#accList'); if (!cb || !box) return;
+    var KEYS = ['holder', 'bank', 'alias'], SH = { holder: 'h', bank: 'b', alias: 'a' }, MAX = 3, TTL = 180 * 86400000, ACC = [], cur = -1;
+    function persist() { try { if (ACC.length) localStorage.setItem('pp_accts', JSON.stringify(ACC)); else localStorage.removeItem('pp_accts'); localStorage.removeItem('pp_data'); } catch (e) {} }
+    function fill(a) { KEYS.forEach(function (id) { var v = a ? a[SH[id]] : ''; S[id] = v; $('#' + id).value = v; }); try { update(); } catch (e) {} }
+    function paint() {
+      box.textContent = ''; box.hidden = !ACC.length; if (!ACC.length) return;
+      box.appendChild(el('div', 'lbl', t('accTitle')));
+      var row = el('div', 'accrow');
+      ACC.forEach(function (a, i) {
+        var b = el('button', 'sacc' + (i === cur ? ' on' : ''), (a.b || t('accGen')) + (a.a ? ' · ' + (a.a.length > 14 ? a.a.slice(0, 12) + '…' : a.a) : '')); b.type = 'button';
+        b.setAttribute('aria-pressed', i === cur ? 'true' : 'false');
+        b.addEventListener('click', function () { cur = i; cb.checked = true; fill(ACC[i]); paint(); }); row.appendChild(b);
+      });
+      if (ACC.length < MAX) { var nb = el('button', 'sacc new' + (cur === -1 ? ' on' : ''), t('accNew')); nb.type = 'button'; nb.addEventListener('click', function () { cur = -1; fill(null); paint(); try { $('#holder').focus(); } catch (e) {} }); row.appendChild(nb); }
+      box.appendChild(row);
+      var del = el('button', 'linkbtn', t('accDelAll')); del.type = 'button'; del.style.alignSelf = 'flex-start';
+      del.addEventListener('click', function () { ACC = []; cur = -1; persist(); cb.checked = false; fill(null); paint(); }); box.appendChild(del);
+    }
     try {
-      var p = JSON.parse(localStorage.getItem('pp_data') || 'null');
-      if (p && Date.now() - (+p.at || 0) < 180 * 86400000) {
-        var any = false;
-        Object.keys(K).forEach(function (id) { var v = typeof p[K[id]] === 'string' ? p[K[id]].slice(0, 120) : ''; if (v) { any = true; S[id] = v; $('#' + id).value = v; } });
-        if (any) { cb.checked = true; $('#dataWrap').classList.add('open'); $('#dataToggle').setAttribute('aria-expanded', 'true'); try { update(); } catch (e) {} }
-      }
+      var raw = JSON.parse(localStorage.getItem('pp_accts') || 'null'), old = JSON.parse(localStorage.getItem('pp_data') || 'null');
+      if (!Array.isArray(raw)) raw = []; if (old && typeof old === 'object') raw.unshift(old);
+      ACC = raw.filter(function (a) { return a && typeof a === 'object' && Date.now() - (+a.at || 0) < TTL && (a.h || a.b || a.a); })
+        .map(function (a) { return { h: String(a.h || '').slice(0, 120), b: String(a.b || '').slice(0, 120), a: String(a.a || '').slice(0, 120), at: +a.at || Date.now() }; }).slice(0, MAX);
+      if (ACC.length) { cur = 0; cb.checked = true; $('#dataWrap').classList.add('open'); $('#dataToggle').setAttribute('aria-expanded', 'true'); fill(ACC[0]); persist(); }
     } catch (e) {}
+    paint();
     function save() {
       if (S.admin) return;
-      try {
-        if (cb.checked && (S.holder || S.bank || S.alias)) localStorage.setItem('pp_data', JSON.stringify({ h: S.holder.slice(0, 120), b: S.bank.slice(0, 120), a: S.alias.slice(0, 120), at: Date.now() }));
-        else localStorage.removeItem('pp_data');
-      } catch (e) {}
+      if (!cb.checked) { if (cur >= 0) { ACC.splice(cur, 1); cur = -1; persist(); paint(); } return; }
+      if (!(S.holder || S.bank || S.alias)) return;
+      var o = { h: S.holder.slice(0, 120), b: S.bank.slice(0, 120), a: S.alias.slice(0, 120), at: Date.now() };
+      if (cur >= 0) ACC[cur] = o; else { if (ACC.length >= MAX) ACC.shift(); ACC.push(o); cur = ACC.length - 1; }
+      persist(); paint();
     }
     cb.addEventListener('change', save);
-    Object.keys(K).forEach(function (id) { $('#' + id).addEventListener('input', save); });
+    KEYS.forEach(function (id) { $('#' + id).addEventListener('input', save); });
   })();
   /* globo verde "Mensaje copiado" que se ve incluso encima del menú de "¿Con quién haces el cambio?" */
   var copyToastT;
@@ -1075,6 +1132,7 @@
     var target = num($('#alTarget').value), phone = cc + nat, msg = $('#alMsg');
     if (!(target > 0 && target < 100000) || nat.length < 7 || nat.length > 11 || S.alSent >= 3) { msg.textContent = t('alertBad'); msg.style.color = '#E5484D'; return; }
     if (!db) { msg.textContent = t('alertErr'); msg.style.color = '#E5484D'; return; }
+    if (!capOk('pp_cap_al', 5, 86400000)) { msg.textContent = t('limitMsg'); msg.style.color = '#E5484D'; return; }
     track('alert_request');
     db.ref('alerts').push({ phone: phone, target: target, at: firebase.database.ServerValue.TIMESTAMP }).then(function () {
       notifyAdmin(target, phone); S.alSent++; msg.textContent = t('alertOk'); msg.style.color = 'var(--green)'; $('#alTarget').value = ''; $('#alPhone').value = '';
@@ -1086,46 +1144,60 @@
   function arStamp() {
     try { return new Intl.DateTimeFormat(S.lang === 'en' ? 'en-GB' : 'es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(S.cfg.updatedAt || Date.now())); } catch (e) { return whenTxt(S.cfg.updatedAt || Date.now()); }
   }
-  function drawCard() {
-    var hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = 1920, rate = c.rate;
+  function drawCard(kind) {
+    var sq = kind === 'sq', hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = sq ? 1080 : 1920, rate = c.rate;
     var fonts = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('800 100px Sora'), document.fonts.load('700 40px "Plus Jakarta Sans"')]).catch(function () {}) : null;
     return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), loadImg('assets/qr.png').catch(function () { return null; }), fonts]).then(function (r) {
       var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), lg = r[0], X = W / 2;
       var bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, hw ? '#1d0d33' : '#0F1B5C'); bg.addColorStop(1, hw ? '#07030f' : '#0A1038'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
       var top = 0;
-      if (hw) { var lh = Math.round(lg.height * W / lg.width); g.drawImage(lg, 0, 0, W, lh); var fd = g.createLinearGradient(0, lh - 160, 0, lh); fd.addColorStop(0, 'rgba(10,4,20,0)'); fd.addColorStop(1, '#0d0618'); g.fillStyle = fd; g.fillRect(0, lh - 160, W, 160); top = lh; }
-      else { g.fillStyle = '#fff'; g.fillRect(0, 0, W, 780); var lw = 940, lh2 = Math.round(lg.height * lw / lg.width); g.drawImage(lg, (W - lw) / 2, (780 - lh2) / 2, lw, lh2); var fl = ['#F5B800', '#1F3FBF', '#D62839']; fl.forEach(function (col, i) { g.fillStyle = col; g.fillRect(i * W / 3, 780, W / 3, 16); }); top = 796; }
+      if (hw) {
+        var lhf = Math.round(lg.height * W / lg.width), lh = sq ? 360 : lhf;
+        if (sq) { var sh = lg.height * (lh / lhf), sy = (lg.height - sh) / 2; g.drawImage(lg, 0, sy, lg.width, sh, 0, 0, W, lh); } else g.drawImage(lg, 0, 0, W, lh);
+        var fd = g.createLinearGradient(0, lh - 160, 0, lh); fd.addColorStop(0, 'rgba(10,4,20,0)'); fd.addColorStop(1, '#0d0618'); g.fillStyle = fd; g.fillRect(0, lh - 160, W, 160); top = lh;
+      } else {
+        var bandH = sq ? 340 : 780, sh2 = sq ? 12 : 16; g.fillStyle = '#fff'; g.fillRect(0, 0, W, bandH);
+        var lw = sq ? 560 : 940, lh2 = Math.round(lg.height * lw / lg.width); g.drawImage(lg, (W - lw) / 2, (bandH - lh2) / 2, lw, lh2);
+        ['#F5B800', '#1F3FBF', '#D62839'].forEach(function (col, i) { g.fillStyle = col; g.fillRect(i * W / 3, bandH, W / 3, sh2); }); top = bandH + sh2;
+      }
       g.textAlign = 'center'; g.textBaseline = 'alphabetic';
       function txt(s, y, font, col, ls) { g.font = font; g.fillStyle = col; try { g.letterSpacing = (ls || 0) + 'px'; } catch (e) {} g.fillText(s, X, y); try { g.letterSpacing = '0px'; } catch (e) {} }
-      var y = Math.max(top + 130, 930);
-      txt(t('cardLbl'), y, "700 40px 'Plus Jakarta Sans',sans-serif", hw ? '#FF9A3C' : '#B8C7FF', 6);
-      var big = ars(rate), fs = 230; g.font = "800 " + fs + "px Sora,sans-serif"; while (g.measureText(big).width > 940 && fs > 90) { fs -= 8; g.font = "800 " + fs + "px Sora,sans-serif"; }
-      y += fs * 0.95 + 30; txt(big, y, "800 " + fs + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
-      y += 78; txt(t('cardPer'), y, "600 54px 'Plus Jakarta Sans',sans-serif", '#fff');
-      y += 90; txt(t('cardUpd', { d: arStamp() }), y, "500 38px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
-      var bx = 90, bw = W - 180, bh = 290, by = H - 480; g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); if (g.roundRect) g.roundRect(bx, by, bw, bh, 40); else g.rect(bx, by, bw, bh); g.fill();
-      var qs = 220, qx = bx + bw - qs - 35, qy = by + (bh - qs) / 2, tx = bx + 35 + (bw - qs - 105) / 2, tw = bw - qs - 105;
+      var y = sq ? top + 78 : Math.max(top + 130, 930);
+      txt(t('cardLbl'), y, "700 " + (sq ? 32 : 40) + "px 'Plus Jakarta Sans',sans-serif", hw ? '#FF9A3C' : '#B8C7FF', sq ? 5 : 6);
+      var big = ars(rate), fs = sq ? 150 : 230; g.font = "800 " + fs + "px Sora,sans-serif"; while (g.measureText(big).width > 940 && fs > 90) { fs -= 8; g.font = "800 " + fs + "px Sora,sans-serif"; }
+      y += fs * 0.95 + (sq ? 22 : 30); txt(big, y, "800 " + fs + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
+      y += sq ? 60 : 78; txt(t('cardPer'), y, "600 " + (sq ? 44 : 54) + "px 'Plus Jakarta Sans',sans-serif", '#fff');
+      y += sq ? 58 : 90; txt(t('cardUpd', { d: arStamp() }), y, "500 " + (sq ? 31 : 38) + "px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      var bx = 90, bw = W - 180, bh = sq ? 230 : 290, by = sq ? H - 290 : H - 480, qs = sq ? 170 : 220;
+      g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); if (g.roundRect) g.roundRect(bx, by, bw, bh, 40); else g.rect(bx, by, bw, bh); g.fill();
+      var qx = bx + bw - qs - 35, qy = by + (bh - qs) / 2, tw = bw - qs - 105, tx = bx + 35 + tw / 2;
       function txl(s2, y2, font, col) { g.font = font; g.fillStyle = col; g.textAlign = 'center'; g.fillText(s2, tx, y2); }
-      txl('✔ ' + t('cardAdm'), by + 86, "700 36px 'Plus Jakarta Sans',sans-serif", '#fff');
-      var hf = 76, hd = '@dolarpesopro_'; g.font = "800 " + hf + "px Sora,sans-serif"; while (g.measureText(hd).width > tw && hf > 32) { hf -= 2; g.font = "800 " + hf + "px Sora,sans-serif"; }
-      txl(hd, by + 178, "800 " + hf + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
-      var ff = 30; g.font = "500 " + ff + "px 'Plus Jakarta Sans',sans-serif"; while (g.measureText(t('cardFind')).width > tw && ff > 20) { ff -= 1; g.font = "500 " + ff + "px 'Plus Jakarta Sans',sans-serif"; }
-      txl(t('cardFind'), by + 238, "500 " + ff + "px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      txl('✔ ' + t('cardAdm'), by + (sq ? 62 : 86), "700 " + (sq ? 30 : 36) + "px 'Plus Jakarta Sans',sans-serif", '#fff');
+      var hf = sq ? 62 : 76, hd = '@dolarpesopro_'; g.font = "800 " + hf + "px Sora,sans-serif"; while (g.measureText(hd).width > tw && hf > 30) { hf -= 2; g.font = "800 " + hf + "px Sora,sans-serif"; }
+      txl(hd, by + (sq ? 134 : 178), "800 " + hf + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
+      var ff = sq ? 26 : 30; g.font = "500 " + ff + "px 'Plus Jakarta Sans',sans-serif"; while (g.measureText(t('cardFind')).width > tw && ff > 18) { ff -= 1; g.font = "500 " + ff + "px 'Plus Jakarta Sans',sans-serif"; }
+      txl(t('cardFind'), by + (sq ? 190 : 238), "500 " + ff + "px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
       if (r[1]) { g.fillStyle = '#fff'; g.beginPath(); if (g.roundRect) g.roundRect(qx - 10, qy - 10, qs + 20, qs + 20, 22); else g.rect(qx - 10, qy - 10, qs + 20, qs + 20); g.fill(); g.drawImage(r[1], qx, qy, qs, qs); }
-      txt(t('cardFoot'), H - 120, "500 30px 'Plus Jakarta Sans',sans-serif", 'rgba(201,209,255,.85)');
+      g.textAlign = 'center'; txt(t('cardFoot'), sq ? H - 28 : H - 120, "500 " + (sq ? 24 : 30) + "px 'Plus Jakarta Sans',sans-serif", 'rgba(201,209,255,.85)');
       return new Promise(function (ok, no) { cv.toBlob(function (b) { b ? ok(b) : no(); }, 'image/png'); });
     });
   }
   function shareUrl() { var u = location.href.split('#')[0].split('?')[0]; try { if (S.themeApplied === 'halloween') u = new URL('halloween.html', u).href; } catch (e) {} return u; }
   function closeCard() { var ov = $('#cardOv'); if (!ov) return; ov.hidden = true; document.body.style.overflow = ''; if (ov._u) { URL.revokeObjectURL(ov._u); ov._u = null; } var b = $('#cardBtn'); if (b) b.focus(); }
-  function showCard(blob) {
+  function showCard(blob, kind) {
     var ov = $('#cardOv');
     if (!ov) {
       ov = el('div'); ov.id = 'cardOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
-      ov.innerHTML = '<div class="cbox"><img alt=""><div class="cbtns"><button type="button" class="btn gold" id="cardShare"></button><a class="btn ghost" id="cardDl" download="cotizacion-pesopro.png"></a><button type="button" class="btn ghost" id="cardX"></button></div></div>';
+      ov.innerHTML = '<div class="cbox"><div class="ctabs" role="group"><button type="button" data-k="story"></button><button type="button" data-k="sq"></button></div><img alt=""><div class="cbtns"><button type="button" class="btn gold" id="cardShare"></button><a class="btn ghost" id="cardDl" download="cotizacion-pesopro.png"></a><button type="button" class="btn ghost" id="cardX"></button></div></div>';
       document.body.appendChild(ov);
       ov.addEventListener('click', function (e) { if (e.target === ov) closeCard(); });
       $('#cardX').addEventListener('click', closeCard);
+      Array.prototype.forEach.call(ov.querySelectorAll('.ctabs button'), function (tb) {
+        tb.addEventListener('click', function () {
+          var k = tb.getAttribute('data-k'); if (k === ov._k || ov._busy) return; ov._busy = true;
+          drawCard(k).then(function (b) { showCard(b, k); }).catch(function () { copyToast(t('cardErr')); }).then(function () { ov._busy = false; });
+        });
+      });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ov.hidden) closeCard(); });
       $('#cardDl').addEventListener('click', function () { bump('cards'); });
       $('#cardShare').addEventListener('click', function () {
@@ -1133,8 +1205,10 @@
         try { navigator.share({ files: [f], text: t('cardText', { r: ars(S.cfg.rate) }) + ' ' + shareUrl() }).then(function () { bump('cards'); track('card_share'); }).catch(function () {}); } catch (e) {}
       });
     }
-    if (ov._u) URL.revokeObjectURL(ov._u); ov._u = URL.createObjectURL(blob);
-    try { ov._f = new File([blob], 'cotizacion-pesopro.png', { type: 'image/png' }); } catch (e) { ov._f = null; }
+    ov._k = kind || 'story'; var fnm = ov._k === 'sq' ? 'cotizacion-pesopro-cuadrada.png' : 'cotizacion-pesopro.png';
+    Array.prototype.forEach.call(ov.querySelectorAll('.ctabs button'), function (tb) { var on = tb.getAttribute('data-k') === ov._k; tb.classList.toggle('on', on); tb.setAttribute('aria-pressed', on ? 'true' : 'false'); tb.textContent = t(tb.getAttribute('data-k') === 'sq' ? 'cardPost' : 'cardStory'); });
+    if (ov._u) URL.revokeObjectURL(ov._u); ov._u = URL.createObjectURL(blob); $('#cardDl').setAttribute('download', fnm);
+    try { ov._f = new File([blob], fnm, { type: 'image/png' }); } catch (e) { ov._f = null; }
     var canShare = !!(ov._f && navigator.canShare && navigator.canShare({ files: [ov._f] }));
     ov.querySelector('img').src = ov._u; ov.querySelector('img').alt = t('cardTitle'); ov.setAttribute('aria-label', t('cardTitle'));
     $('#cardShare').textContent = t('cardShare'); $('#cardShare').hidden = !canShare; $('#cardDl').textContent = t('cardDl'); $('#cardDl').href = ov._u; $('#cardX').textContent = t('cardX');
@@ -1143,7 +1217,7 @@
   function onCardBtn() {
     if (isLocked() || !(S.cfg.rate > 0) || (fbOk && !S.live)) { copyToast(t('cardWait')); return; }
     var b = this; b.disabled = true; track('card_open');
-    drawCard().then(showCard).catch(function () { copyToast(t('cardErr')); }).then(function () { b.disabled = false; });
+    drawCard('story').then(function (bl) { showCard(bl, 'story'); }).catch(function () { copyToast(t('cardErr')); }).then(function () { b.disabled = false; });
   }
   $('#cardBtn').addEventListener('click', onCardBtn); if ($('#cardBtn2')) $('#cardBtn2').addEventListener('click', onCardBtn);
 
@@ -1199,6 +1273,7 @@
     if (!np.ok || S.nfSent >= 3) { nfSay('nfBad', 'err'); return; }
     if (S.admin) { nfSay('nfPreview'); return; }
     if (!db) { nfSay('nfErr', 'err'); return; }
+    if (!capOk('pp_cap_no', 3, 86400000)) { nfSay('limitMsg', 'err'); return; }
     btn.disabled = true;
     db.ref('notifyOpen').push({ phone: np.phone, at: firebase.database.ServerValue.TIMESTAMP }).then(function () {
       S.nfSent++; notifyAdminOpen(np.phone); nfSay('nfOk', 'ok'); $('#nfPhone').value = ''; $('#offNotifyForm').hidden = true; $('#offNotifyBtn').setAttribute('aria-expanded', 'false');
@@ -1225,10 +1300,36 @@
       for (var i = 1; i <= 5; i++) st.appendChild(el('i', i <= r.stars ? null : 'dim', '★'));
       c.appendChild(st); c.appendChild(el('p', null, '“' + r.text + '”')); box.appendChild(c);
     });
-    $('#revHint').hidden = S.reviews.length < 2;
-    $('#revCard').hidden = isLocked() || !S.reviews.length;
+    $('#revHint').hidden = S.reviews.length < 2; setText('#revSub', S.reviews.length ? t('revSub') : t('revEmpty'));
+    $('#revCard').hidden = isLocked() || !fbOk;
   }
 
+  /* Los clientes pueden enviar su opinión: no se publica hasta que el administrador la apruebe. Máximo 1 por día por celular. */
+  (function () {
+    var open = $('#rvOpen'), form = $('#rvForm'); if (!open || !form) return;
+    var stars = 5, sp = $('#rvStars');
+    function paintS() { Array.prototype.forEach.call(sp.children, function (b, i) { b.classList.toggle('on', i < stars); b.setAttribute('aria-checked', i + 1 === stars ? 'true' : 'false'); }); }
+    for (var q = 1; q <= 5; q++) (function (n) { var b = el('button', null, '★'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-label', n + ' / 5'); b.addEventListener('click', function () { stars = n; paintS(); }); sp.appendChild(b); })(q);
+    paintS();
+    open.addEventListener('click', function () { var o = form.hidden; form.hidden = !o; open.setAttribute('aria-expanded', o ? 'true' : 'false'); if (o) setTimeout(function () { try { $('#rvName').focus(); } catch (e) {} }, 50); });
+    $('#rvSend').addEventListener('click', function () {
+      var msg = $('#rvMsg'), btn = this;
+      function say2(k, bad) { msg.textContent = t(k); msg.style.color = bad ? '#E5484D' : 'var(--green)'; }
+      var name = $('#rvName').value.trim(), place = $('#rvPlace').value.trim(), text = $('#rvText').value.trim();
+      if ($('#rvWeb').value) { say2('rvOk'); return; }
+      if (name.length < 2 || text.length < 10) { say2('rvBad', true); return; }
+      if (S.admin) { say2('nfPreview'); return; }
+      if (!db) { say2('rvErr', true); return; }
+      var last = 0; try { last = +localStorage.getItem('pp_rv') || 0; } catch (e) {}
+      if (Date.now() - last < 24 * 3600000) { say2('rvWait', true); return; }
+      var o = { name: name.slice(0, 40), text: text.slice(0, 300), stars: stars, at: firebase.database.ServerValue.TIMESTAMP }; if (place) o.place = place.slice(0, 40);
+      btn.disabled = true;
+      db.ref('reviewReq').push(o).then(function () {
+        try { localStorage.setItem('pp_rv', String(Date.now())); } catch (e) {}
+        say2('rvOk'); ['rvName', 'rvPlace', 'rvText'].forEach(function (id) { $('#' + id).value = ''; }); stars = 5; paintS();
+      }).catch(function () { say2('rvErr', true); }).then(function () { btn.disabled = false; });
+    });
+  })();
   /* ---------- Teclado abierto: la barra inferior se esconde para no tapar el formulario ---------- */
   var kbT = null;
   document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) { clearTimeout(kbT); document.body.classList.add('kb'); } });
@@ -1582,6 +1683,26 @@
         .catch(function (e) { msgA(/recent/.test(e.code || '') ? 'Sal y vuelve a entrar, luego repite.' : errMsg(e), true); });
     });
     pa('aOut').addEventListener('click', function () { auth.signOut(); });
+    S.rvReq = [];
+    db.ref('reviewReq').on('value', function (s) {
+      var v = s.val() || {}; S.rvReq = Object.keys(v).map(function (k) { var x = v[k] || {}; return { id: k, name: String(x.name || ''), place: String(x.place || ''), text: String(x.text || ''), stars: Math.max(1, Math.min(5, Math.round(+x.stars || 5))), at: +x.at || 0 }; }).filter(function (x) { return x.name && x.text; }).sort(function (a, b) { return b.at - a.at; });
+      S.rulesBad.reviewReq = false; renderRvReq(); renderRules();
+    }, function () { S.rulesBad.reviewReq = true; renderRules(); });
+    function bkInfo() {
+      var last = 0; try { last = +localStorage.getItem('pp_bk') || 0; } catch (e) {} var n = pa('aBkInfo'); if (!n) return;
+      if (!last) n.textContent = 'Aún no descargaste ningún respaldo. Recomendado: uno al mes.';
+      else { var d = Math.floor((Date.now() - last) / 86400000); n.textContent = 'Último respaldo: ' + (d < 1 ? 'hoy' : 'hace ' + d + (d === 1 ? ' día' : ' días')) + '.' + (d >= 30 ? ' ⚠ Ya toca hacer uno nuevo.' : ''); }
+    }
+    bkInfo();
+    pa('aBkBtn').addEventListener('click', function () {
+      var nodes = ['config', 'status', 'history', 'stats', 'inquiries', 'alerts', 'notifyOpen', 'reviews', 'reviewReq']; msgA('Preparando respaldo…');
+      Promise.all(nodes.map(function (n) { return db.ref(n).once('value').then(function (sn) { return [n, sn.val()]; }).catch(function () { return [n, 'SIN_PERMISO']; }); })).then(function (r) {
+        var o = { generado: new Date().toISOString(), version: VER }; r.forEach(function (x) { o[x[0]] = x[1]; });
+        var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(o, null, 1)], { type: 'application/json' })); a.download = 'respaldo-dolarpesopro-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); if (a.parentNode) a.parentNode.removeChild(a); }, 1500);
+        try { localStorage.setItem('pp_bk', String(Date.now())); } catch (e) {} bkInfo(); msgA('Respaldo descargado ✓ Guárdalo en un lugar seguro (no lo subas a GitHub).');
+      }).catch(function (e) { msgA(errMsg(e), true); });
+    });
     S.alRef = db.ref('alerts'); S.alRef.on('value', function (s) {
       var v = s.val() || {}; S.alerts = Object.keys(v).map(function (k) { return { id: k, phone: v[k].phone, target: v[k].target, at: v[k].at }; }); S.rulesBad.alerts = false; renderAlerts(); renderRules();
     }, function () { S.rulesBad.alerts = true; renderRules(); });
@@ -1707,6 +1828,21 @@
       var x = el('button', null, 'Listo'); x.type = 'button'; x.style.cssText = 'background:var(--card);color:var(--ink);border:2px solid var(--fline)';
       x.addEventListener('click', function () { var u = {}; w.ids.forEach(function (id) { u[id] = null; }); db.ref('notifyOpen').update(u).catch(function (e) { msgA(errMsg(e), true); }); });
       b.appendChild(a); b.appendChild(x); row.appendChild(info); row.appendChild(b); box.appendChild(row);
+    });
+  }
+  function renderRvReq() {
+    if (!S.admin || !pa('aRvReq')) return; var box = pa('aRvReq'); box.textContent = ''; pa('aRvReqEmpty').hidden = S.rvReq.length > 0;
+    pa('aRvReqT').textContent = 'Opiniones pendientes de aprobar' + (S.rvReq.length ? ' (' + S.rvReq.length + ')' : '');
+    S.rvReq.forEach(function (r) {
+      var row = el('div', 'alrow'), info = el('div', 'nm', '★'.repeat(r.stars) + ' · ' + r.name + (r.place ? ' (' + r.place + ')' : '') + ': “' + r.text + '”'), b = el('div', 'b');
+      var ok = el('button', null, 'Aprobar'); ok.type = 'button'; ok.style.cssText = 'background:#0F7A40;color:#fff';
+      ok.addEventListener('click', function () {
+        ok.disabled = true; var o = { name: r.name.slice(0, 40), text: r.text.slice(0, 300), stars: r.stars, at: firebase.database.ServerValue.TIMESTAMP }; if (r.place) o.place = r.place.slice(0, 40);
+        db.ref('reviews').push(o).then(function () { return db.ref('reviewReq/' + r.id).remove(); }).then(function () { msgA('Opinión aprobada ✓ Ya la ven los clientes.'); }).catch(function (e) { ok.disabled = false; msgA(errMsg(e), true); });
+      });
+      var no = el('button', null, 'Rechazar'); no.type = 'button'; no.style.cssText = 'background:var(--card);color:var(--ink);border:2px solid var(--fline)';
+      no.addEventListener('click', function () { db.ref('reviewReq/' + r.id).remove().catch(function (e) { msgA(errMsg(e), true); }); });
+      b.appendChild(ok); b.appendChild(no); row.appendChild(info); row.appendChild(b); box.appendChild(row);
     });
   }
   function renderRvAdmin() {

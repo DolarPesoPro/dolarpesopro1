@@ -1,4 +1,4 @@
-:root{--v:"20261020h";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261021a";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -408,7 +408,7 @@ a{color:var(--accent)}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261020h ================= */
+/* ================= v20261021a ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -575,7 +575,7 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 .peek{width:clamp(82px,22vw,108px);height:clamp(82px,22vw,108px);filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
 .peek img{border-width:3px;box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 0 8px rgba(255,138,42,.45),0 10px 22px rgba(0,0,0,.28)}
 
-/* ================= v20261020h · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
+/* ================= v20261021a · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
 html.th-halloween{--bg:#0a0620;--card:#161036;--ink:#FFF1E0;--navy:#2a1458;--muted:#D8C4FF;--line:#3d2478;--soft:#21184f;--field:#0b0924;--fline:#5b3a9a;--accent:#FFA24A;--gold:#FF8A1F;--green:#1e7a38;--warn-bg:#2a1a10;--shadow:0 0 0 1.5px rgba(255,138,31,.42),0 12px 30px rgba(0,0,0,.55),0 0 26px rgba(255,138,31,.12);color-scheme:dark}
 html.th-halloween{background:#0a0620}
 html.th-halloween::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 60% at 50% -8%,#47207f 0,transparent 60%),radial-gradient(70% 40% at 100% 100%,rgba(255,106,0,.20),transparent 60%),#0a0620}
@@ -799,3 +799,11 @@ body.admin-mode.admin-client #adminBack{display:flex}
 body.admin-mode.admin-client #adminSlot{display:none}
 
 .remember{display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:4px 2px}.remember input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--accent)}.remember span{display:flex;flex-direction:column;gap:2px;min-width:0}.remember b{font-size:15px;color:var(--ink)}.remember small{font-size:13px;color:var(--muted);line-height:1.35}
+
+.accs{display:flex;flex-direction:column;gap:8px}.accrow{display:flex;flex-wrap:wrap;gap:8px}
+.sacc{min-height:44px;padding:0 14px;border-radius:14px;border:2px solid var(--fline);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:700;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sacc.on{border-color:var(--accent);background:var(--soft)}.sacc.new{border-style:dashed;color:var(--accent)}
+.backnote{margin:-4px 0 4px;padding:12px 16px;border-radius:16px;background:var(--card);border:2px solid var(--gold);color:var(--ink);font-size:14px;font-weight:700;line-height:1.35;cursor:pointer}
+.rvform{display:flex;flex-direction:column;gap:12px;padding-top:4px;position:relative}
+#cardOv .ctabs{display:flex;gap:8px}#cardOv .ctabs button{flex:1;min-height:42px;border-radius:12px;border:2px solid var(--fline);background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+#cardOv .ctabs button.on{background:var(--gold);border-color:var(--gold);color:#0F1B5C}
