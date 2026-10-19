@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261019a';
+  var VER = '20261019b';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -609,7 +609,7 @@
     /* mensaje + enlaces */
     var msg = message(k); var mb = $('#msgbox'); if (mb.value !== msg) mb.value = msg;
     $$('[data-wa]').forEach(function (x) { x.href = 'https://wa.me/' + PHONES[x.getAttribute('data-wa')] + '?text=' + encodeURIComponent(msg); });
-    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar'); $('#stCopy').classList.toggle('ok', S.copied); setText('#stPop', '✓ ' + t('copied')); $('#stPop').classList.toggle('show', !!S.copied);
+    $('#copyBtn').classList.toggle('ok', S.copied); setText('#copyTxt', t(S.copied ? 'copied' : 'copy')); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar'); setText('#stCopyTxt', S.copied ? '¡Copiado!' : 'Copiar');
     /* guía (se redibuja si cambia el idioma o las comisiones) */
     var gk = S.lang + '|' + c.feeFixed + '|' + c.feeThreshold + '|' + c.feePct + '|' + OS;
     if (gk !== guideKey) { guideKey = gk; renderGuide(); setGuideTab(); }
@@ -939,12 +939,20 @@
     var n = $('#copyToast'); if (!n) { n = document.createElement('div'); n.id = 'copyToast'; n.setAttribute('role', 'status'); document.body.appendChild(n); }
     n.textContent = msg || ('✓ ' + t('copied')); void n.offsetWidth; n.classList.add('show'); clearTimeout(copyToastT); copyToastT = setTimeout(function () { n.classList.remove('show'); }, 2200);
   }
+  /* Confirmación visual del botón de la barra inferior: independiente del resto de la página, así siempre se ve */
+  function flashCopied() {
+    var b = $('#stCopy'), p = $('#stPop');
+    if (b) b.classList.add('ok');
+    if (p) { p.textContent = '✓ ' + (t('copied') || 'Mensaje copiado'); p.classList.add('show'); }
+    clearTimeout(S.fcT); S.fcT = setTimeout(function () { if (b) b.classList.remove('ok'); if (p) p.classList.remove('show'); }, 2500);
+  }
+  function copyFail() { copyToast('No se pudo copiar solo: mantén presionado el mensaje y elige Copiar'); }
   function doCopy() {
     var m = $('#msgbox').value;
-    function done() { try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) {} copyToast(); sfxPlay('ding'); S.copied = true; update(); clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
+    function done() { flashCopied(); try { if (navigator.vibrate) navigator.vibrate(18); } catch (e) {} try { copyToast(); sfxPlay('ding'); } catch (e) {} S.copied = true; try { update(); } catch (e) {} clearTimeout(S.ct); S.ct = setTimeout(function () { S.copied = false; update(); }, 2500); }
     function fb() {
       try { var x = document.createElement('textarea'); x.value = m; x.setAttribute('readonly', ''); x.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
-        document.body.appendChild(x); x.focus(); x.select(); x.setSelectionRange(0, 99999); var ok = document.execCommand('copy'); document.body.removeChild(x); if (ok) done(); } catch (e) {}
+        document.body.appendChild(x); x.focus(); x.select(); x.setSelectionRange(0, 99999); var ok = document.execCommand('copy'); document.body.removeChild(x); if (ok) done(); else copyFail(); } catch (e) { copyFail(); }
     }
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(m).then(done).catch(fb); else fb(); } catch (e) { fb(); }
   }
