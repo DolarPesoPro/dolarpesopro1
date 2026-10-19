@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
 <meta name="twitter:image" content="https://TU-USUARIO.github.io/DolarPesoPro/assets/og-image.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Dólar PesoPro","url":"https://TU-USUARIO.github.io/DolarPesoPro/","inLanguage":"es"},{"@type":"FinancialService","name":"Dólar PesoPro","description":"Cambio de dólares y pesos entre Ecuador y Argentina con administradores verificados.","url":"https://TU-USUARIO.github.io/DolarPesoPro/","logo":"https://TU-USUARIO.github.io/DolarPesoPro/assets/icon-512.png","image":"https://TU-USUARIO.github.io/DolarPesoPro/assets/og-image.jpg","areaServed":["EC","AR"],"sameAs":["https://www.instagram.com/dolarpesopro_","https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR"]}]}</script>
-<meta name="pp-version" content="20261020b">
+<meta name="pp-version" content="20261020d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -39,7 +39,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="style.css?v=20261020b">
+<link rel="stylesheet" href="style.css?v=20261020d">
 </head>
 <body>
 
@@ -56,6 +56,7 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<button type="button" id="adminBack">← Volver al panel de administrador</button>
 
 <div class="wrap">
 
@@ -388,6 +389,7 @@
 <template id="adminTpl">
   <section class="card adminbox rise">
     <div class="srow"><h2 style="font-size:19px">Panel de administrador</h2><button type="button" class="btn ghost" id="aOut" style="width:auto;min-height:44px">Salir</button></div>
+    <button type="button" class="btn ghost" id="aClient">👁 Ver la página como la ve un cliente</button>
 
     <div class="engine" id="aEngineBox">
       <button type="button" class="pwr" id="aEngine" aria-pressed="false" aria-label="Arrancar o apagar el servicio"><svg aria-hidden="true" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></button>
@@ -453,9 +455,11 @@
       <div id="aThemeList" style="display:flex;flex-direction:column;gap:8px"></div></div>
     <hr>
     <div class="fg" id="aInqBox"><b>📲 Consultas por WhatsApp</b>
-      <div class="sub" style="font-size:13px">Cada vez que un cliente toca Justo o Boris queda registrada aquí. Toca <b>Se dio</b> o <b>No</b> para llevar la cuenta; al confirmar “Se dio” se suma a los concretados del día.</div>
+      <div class="sub" style="font-size:13px">Cada vez que un cliente toca Justo o Boris queda registrada aquí. Toca <b>Se dio</b> o <b>No</b>: la consulta sale de Pendientes. Con 🗑 la borras (se pide confirmar). “Se dio” se suma a los concretados del día.</div>
       <div class="panelbox" id="aInqSum" style="font-size:14px"></div>
-      <div id="aInqList" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aInqEmpty">Aún no hay consultas.</div></div>
+      <div class="tabs" id="aInqTabs" role="group" aria-label="Filtrar consultas"></div>
+      <div id="aInqList" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aInqEmpty">Aún no hay consultas.</div>
+      <div id="aInqAct" style="display:flex;flex-direction:column;gap:8px"></div></div>
     <hr>
     <div class="fg"><div class="srow"><b>6. Mostrar horario de atención</b><button type="button" class="sw" id="aHoursOn" role="switch" aria-label="Mostrar horario"><i></i></button></div>
       <div class="two"><div class="fg"><label class="lbl" for="aFrom">Desde</label><select id="aFrom" class="field sm"></select></div><div class="fg"><label class="lbl" for="aTo">Hasta</label><select id="aTo" class="field sm"></select></div></div>
@@ -484,12 +488,12 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261020b"></script>
+<script src="firebase-config.js?v=20261020d"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script>if(window.LAZY_AUTH===false)document.write('<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"><\/script>')</script>
-<script src="themes.js?v=20261020b"></script>
-<script src="app.js?v=20261020b"></script>
+<script src="themes.js?v=20261020d"></script>
+<script src="app.js?v=20261020d"></script>
 <script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>

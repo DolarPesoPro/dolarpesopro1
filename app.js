@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261020b';
+  var VER = '20261020d';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -1300,6 +1300,7 @@
 
   /* ---------- panel de administrador ---------- */
   var gate = $('#gate'), slot = $('#adminSlot');
+  $('#adminBack').addEventListener('click', function () { document.body.classList.remove('admin-client'); try { window.scrollTo(0, 0); } catch (e) {} });
   function openGate() { if (S.admin) return; if (fbOk) loadAuth().catch(function () {}); if (offWanted()) { showOffAdmin(); return; } gate.hidden = false; setTimeout(function () { gate.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#pass').focus(); }, 60); }
   $('#lockBtn').addEventListener('click', openGate);
   if (location.hash === '#admin') setTimeout(openGate, 1700);
@@ -1339,9 +1340,10 @@
     if (!/^Guardando/.test(txt)) aToastT = setTimeout(function () { tt.className = 'atoast'; }, bad ? 12000 : 4500);
   }
   function mountPanel() {
-    if (S.admin) return; S.admin = true; if (window.GA_ID) window['ga-disable-' + window.GA_ID] = true; gate.hidden = true; update();
+    if (S.admin) return; S.admin = true; document.body.classList.add('admin-mode'); document.body.classList.remove('admin-client'); try { window.scrollTo(0, 0); } catch (e) {} if (window.GA_ID) window['ga-disable-' + window.GA_ID] = true; gate.hidden = true; update();
     slot.appendChild(document.getElementById('adminTpl').content.cloneNode(true));
     addEye(pa('aNewPass'));
+    pa('aClient').addEventListener('click', function () { document.body.classList.add('admin-client'); try { window.scrollTo(0, 0); } catch (e) {} });
     ['aFrom', 'aTo'].forEach(function (id) { var sel = pa(id); for (var m = 0; m < 1440; m += 15) { var v = (m / 60 < 10 ? '0' : '') + Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + (m % 60), o = el('option', null, v); o.value = v; sel.appendChild(o); } });
     pa('aPeek').addEventListener('click', function () { S.preview = true; update(); });
     $$('input[inputmode="decimal"]', slot).forEach(function (i) { bindClean(i); i.addEventListener('input', function () { i.dataset.dirty = '1'; }); });
@@ -1399,20 +1401,43 @@
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
     /* --- consultas por WhatsApp: confirmar si se dio o no --- */
+    function twoStep(z, ask, fn) {   // el primer toque pide confirmar; el segundo ejecuta (se desarma solo a los 3 s)
+      var o = z.textContent, tm; z.addEventListener('click', function () {
+        if (z.dataset.arm) { clearTimeout(tm); delete z.dataset.arm; z.textContent = o; fn(); return; }
+        z.dataset.arm = '1'; z.textContent = ask; tm = setTimeout(function () { delete z.dataset.arm; z.textContent = o; }, 3000);
+      });
+    }
+    function inqDel(list) {
+      if (!list.length) return; var m = {}; list.forEach(function (x) { m[x.id] = null; });
+      db.ref('inquiries').update(m).then(function () { msgA(list.length + ' consulta(s) borrada(s) ✓'); }).catch(function (e) { msgA(errMsg(e), true); });
+    }
     function inqRender() {
       var box = pa('aInqList'); if (!box) return; box.textContent = '';
-      var all = S.inq || [], wk = all.filter(function (x) { return x.at >= srvNow() - 7 * 86400000; }), dn = wk.filter(function (x) { return x.st === 'done'; }).length, ls = wk.filter(function (x) { return x.st === 'lost'; }).length, pd = wk.length - dn - ls;
+      var all = S.inq || [], tab = S.inqTab || 'pend', max = S.inqMax || 15;
+      var wk = all.filter(function (x) { return x.at >= srvNow() - 7 * 86400000; }), dn = wk.filter(function (x) { return x.st === 'done'; }).length, ls = wk.filter(function (x) { return x.st === 'lost'; }).length, pd = wk.length - dn - ls;
       var today = all.filter(function (x) { return dayKey(new Date(x.at)) === dayKey(new Date(srvNow())); }), td = today.filter(function (x) { return x.st === 'done'; }).length;
       pa('aInqSum').innerHTML = '<b>Hoy:</b> ' + today.length + ' consulta(s) · ' + td + ' concretada(s)<br><b>Últimos 7 días:</b> ' + wk.length + ' consultas · ' + dn + ' concretadas (' + (wk.length ? Math.round(dn / wk.length * 100) : 0) + '%) · ' + ls + ' no se dieron · ' + pd + ' pendientes';
-      pa('aInqEmpty').hidden = all.length > 0;
-      all.slice(0, 25).forEach(function (x) {
+      var by = { pend: all.filter(function (x) { return x.st !== 'done' && x.st !== 'lost'; }), done: all.filter(function (x) { return x.st === 'done'; }), lost: all.filter(function (x) { return x.st === 'lost'; }) };
+      var tabs = pa('aInqTabs'); tabs.textContent = '';
+      [['pend', 'Pendientes'], ['done', 'Se dieron'], ['lost', 'No']].forEach(function (d) {
+        var z = el('button', tab === d[0] ? 'on' : null, d[1] + ' (' + by[d[0]].length + ')'); z.type = 'button'; z.setAttribute('aria-pressed', tab === d[0] ? 'true' : 'false');
+        z.addEventListener('click', function () { S.inqTab = d[0]; S.inqMax = 15; inqRender(); }); tabs.appendChild(z);
+      });
+      var list = by[tab]; pa('aInqEmpty').hidden = list.length > 0;
+      pa('aInqEmpty').textContent = tab === 'pend' ? (all.length ? 'No hay consultas pendientes. ✔' : 'Aún no hay consultas.') : 'No hay consultas en esta lista.';
+      list.slice(0, max).forEach(function (x) {
         var who = x.who === 'boris' ? 'Boris 😎' : 'Justo 🤠', det = (typeof x.usd === 'number' ? fmtN(x.usd) + ' USD' : 'sin monto') + (typeof x.rate === 'number' ? ' · ' + ars(x.rate) : '') + ' · ' + relTime(x.at);
         var row = el('div', 'alrow' + (x.st === 'done' ? ' hit' : '')), info = el('div', 'nm', (x.st === 'done' ? '✔ ' : x.st === 'lost' ? '✖ ' : '⏳ ') + who + ' · ' + det), b = el('div', 'b');
         function btn(txt, st, css) { var z = el('button', null, txt); z.type = 'button'; z.style.cssText = css; z.addEventListener('click', function () { inqSet(x, st); }); b.appendChild(z); }
         if (x.st === 'pending') { btn('Se dio', 'done', 'background:#0F7A40;color:#fff'); btn('No', 'lost', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)'); }
         else btn('Deshacer', 'pending', 'background:var(--card);color:var(--ink);border:2px solid var(--fline)');
+        var dz = el('button', null, '🗑'); dz.type = 'button'; dz.setAttribute('aria-label', 'Borrar esta consulta'); dz.style.cssText = 'background:var(--card);color:#C62828;border:2px solid var(--fline)'; twoStep(dz, '¿Borrar?', function () { inqDel([x]); }); b.appendChild(dz);
         row.appendChild(info); row.appendChild(b); box.appendChild(row);
       });
+      if (list.length > max) { var mo = el('button', 'btn ghost', 'Ver más (' + (list.length - max) + ')'); mo.type = 'button'; mo.addEventListener('click', function () { S.inqMax = max + 15; inqRender(); }); box.appendChild(mo); }
+      var act = pa('aInqAct'); act.textContent = '';
+      if (by.lost.length) { var c1 = el('button', 'btn ghost', 'Borrar las “No” (' + by.lost.length + ')'); c1.type = 'button'; twoStep(c1, '¿Seguro? Toca otra vez', function () { inqDel(by.lost); }); act.appendChild(c1); }
+      if (all.length) { var c2 = el('button', 'btn ghost', 'Borrar todo el registro (' + all.length + ')'); c2.type = 'button'; twoStep(c2, '¿Seguro? Toca otra vez', function () { inqDel(all); }); act.appendChild(c2); }
     }
     function inqSet(x, st) {
       db.ref('inquiries/' + x.id).update({ st: st, doneAt: st === 'done' ? firebase.database.ServerValue.TIMESTAMP : null }).then(function () {
@@ -1541,7 +1566,7 @@
     setTimeout(function () { slot.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   }
   function unmountPanel() {
-    if (!S.admin) return; S.admin = false; S.preview = false; update();
+    if (!S.admin) return; S.admin = false; S.preview = false; document.body.classList.remove('admin-mode', 'admin-client'); try { window.scrollTo(0, 0); } catch (e) {} update();
     if (S.alRef) { S.alRef.off(); S.alRef = null; }
     if (S.stRef) { S.stRef.off(); S.stRef = null; }
     if (S.noRef) { S.noRef.off(); S.noRef = null; }
