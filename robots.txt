@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /halloween.html
-Sitemap: https://TU-USUARIO.github.io/DolarPesoPro/sitemap.xml
+Sitemap: https://dolarpesopro.github.io/dolarpesopro1/sitemap.xml

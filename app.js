@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261020e';
+  var VER = '20261020f';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -66,7 +66,7 @@
       chk1: 'Administradores verificados. Opera solo con Justo y Boris.', chk2: 'Directo a tu cuenta, en tu banco de preferencia o billetera virtual.', chk3: 'Precio congelado 10 minutos al confirmar.',
       alertTitle: 'Avísame cuando suba', alertSub: 'Dinos a qué cotización quieres cambiar y te escribimos por WhatsApp cuando llegue.',
       alertTarget: 'Cotización objetivo (pesos por USD)', alertPhone: 'Tu WhatsApp', alertBtn: 'Avisarme',
-      cardBtn: '📸 Tarjeta de la cotización', cardTitle: 'Cotización del día', cardShare: 'Compartir', cardDl: 'Descargar', cardX: 'Cerrar', cardWait: 'Espera a que cargue la cotización', cardErr: 'No se pudo crear la imagen. Intenta de nuevo.', cardText: 'Cotización de hoy: {r} por dólar. Calcula tu cambio:', cardLbl: 'COTIZACIÓN DEL DÍA', cardPer: 'pesos por cada dólar', cardUpd: 'Actualizado {d} · hora de Argentina', cardAdm: 'Administradores verificados', cardFoot: 'Valor de referencia: se confirma con un administrador', cardFind: 'Búscanos en Instagram y WhatsApp', alertPriv: 'Solo usaremos tu número para este aviso.', pushBtn: '🔔 Avisarme en este celular', pushOk: '¡Listo! Te avisaremos en este celular cuando suba el dólar.', pushDenied: 'Las notificaciones están bloqueadas. Actívalas en los ajustes del navegador.', pushIos: 'En iPhone primero instala la app: Compartir → Agregar a inicio, y ábrela desde ahí.', pushErr: 'No se pudo activar el aviso. Intenta de nuevo.', alertOk: '¡Listo! Te avisaremos por WhatsApp.',
+      cardBtn: '📸 Tarjeta de la cotización', cardBtnS: '📸 Tarjeta', cardTitle: 'Cotización del día', cardShare: 'Compartir', cardDl: 'Descargar', cardX: 'Cerrar', cardWait: 'Espera a que cargue la cotización', cardErr: 'No se pudo crear la imagen. Intenta de nuevo.', cardText: 'Cotización de hoy: {r} por dólar. Calcula tu cambio:', cardLbl: 'COTIZACIÓN DEL DÍA', cardPer: 'pesos por cada dólar', cardUpd: 'Actualizado {d} · hora de Argentina', cardAdm: 'Administradores verificados', cardFoot: 'Valor de referencia: se confirma con un administrador', cardFind: 'Búscanos en Instagram y WhatsApp', alertPriv: 'Solo usaremos tu número para este aviso.', pushBtn: '🔔 Avisarme en este celular', pushOk: '¡Listo! Te avisaremos en este celular cuando suba el dólar.', pushDenied: 'Las notificaciones están bloqueadas. Actívalas en los ajustes del navegador.', pushIos: 'En iPhone primero instala la app: Compartir → Agregar a inicio, y ábrela desde ahí.', pushErr: 'No se pudo activar el aviso. Intenta de nuevo.', alertOk: '¡Listo! Te avisaremos por WhatsApp.',
       alertBad: 'Revisa la cotización y tu número de WhatsApp.', alertErr: 'No se pudo guardar. Intenta de nuevo.',
       shareTitle: 'Comparte y únete', shareSub: 'Recomienda Dólar PesoPro y entra al grupo para ver las novedades.', shareBtn: 'Compartir con un amigo',
       shareText: 'Cambia dólares a pesos entre Ecuador y Argentina con Dólar PesoPro. Cotiza aquí:',
@@ -145,7 +145,7 @@
       chk1: 'Verified administrators. Only deal with Justo and Boris.', chk2: 'Straight to your account, in your preferred bank or digital wallet.', chk3: 'Price frozen for 10 minutes once confirmed.',
       alertTitle: 'Notify me when it rises', alertSub: 'Tell us the rate you want and we will message you on WhatsApp when it arrives.',
       alertTarget: 'Target rate (pesos per USD)', alertPhone: 'Your WhatsApp', alertBtn: 'Notify me',
-      cardBtn: '📸 Rate card', cardTitle: 'Rate of the day', cardShare: 'Share', cardDl: 'Download', cardX: 'Close', cardWait: 'Wait for the rate to load', cardErr: 'Could not create the image. Please try again.', cardText: 'Today’s rate: {r} per dollar. Work out your exchange:', cardLbl: 'RATE OF THE DAY', cardPer: 'pesos per dollar', cardUpd: 'Updated {d} · Argentina time', cardAdm: 'Verified administrators', cardFoot: 'Reference value: confirmed by an administrator', cardFind: 'Find us on Instagram and WhatsApp', alertPriv: 'We will only use your number for this alert.', pushBtn: '🔔 Notify me on this phone', pushOk: 'Done! We will notify this phone when the dollar rises.', pushDenied: 'Notifications are blocked. Turn them on in your browser settings.', pushIos: 'On iPhone, install the app first: Share → Add to Home Screen, then open it from there.', pushErr: 'Could not enable alerts. Please try again.', alertOk: 'Done! We will notify you on WhatsApp.',
+      cardBtn: '📸 Rate card', cardBtnS: '📸 Card', cardTitle: 'Rate of the day', cardShare: 'Share', cardDl: 'Download', cardX: 'Close', cardWait: 'Wait for the rate to load', cardErr: 'Could not create the image. Please try again.', cardText: 'Today’s rate: {r} per dollar. Work out your exchange:', cardLbl: 'RATE OF THE DAY', cardPer: 'pesos per dollar', cardUpd: 'Updated {d} · Argentina time', cardAdm: 'Verified administrators', cardFoot: 'Reference value: confirmed by an administrator', cardFind: 'Find us on Instagram and WhatsApp', alertPriv: 'We will only use your number for this alert.', pushBtn: '🔔 Notify me on this phone', pushOk: 'Done! We will notify this phone when the dollar rises.', pushDenied: 'Notifications are blocked. Turn them on in your browser settings.', pushIos: 'On iPhone, install the app first: Share → Add to Home Screen, then open it from there.', pushErr: 'Could not enable alerts. Please try again.', alertOk: 'Done! We will notify you on WhatsApp.',
       alertBad: 'Check the rate and your WhatsApp number.', alertErr: 'Could not save. Please try again.',
       shareTitle: 'Share and join', shareSub: 'Recommend Dólar PesoPro and join the group for updates.', shareBtn: 'Share with a friend',
       shareText: 'Exchange dollars for pesos between Ecuador and Argentina with Dólar PesoPro. Check the rate here:',
@@ -1047,7 +1047,7 @@
   function drawCard() {
     var hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = 1920, rate = c.rate;
     var fonts = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('800 100px Sora'), document.fonts.load('700 40px "Plus Jakarta Sans"')]).catch(function () {}) : null;
-    return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), fonts]).then(function (r) {
+    return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), loadImg('assets/qr.png').catch(function () { return null; }), fonts]).then(function (r) {
       var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), lg = r[0], X = W / 2;
       var bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, hw ? '#1d0d33' : '#0F1B5C'); bg.addColorStop(1, hw ? '#07030f' : '#0A1038'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
       var top = 0;
@@ -1061,11 +1061,15 @@
       y += fs * 0.95 + 30; txt(big, y, "800 " + fs + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
       y += 78; txt(t('cardPer'), y, "600 54px 'Plus Jakarta Sans',sans-serif", '#fff');
       y += 90; txt(t('cardUpd', { d: arStamp() }), y, "500 38px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
-      var bx = 90, bw = W - 180, bh = 270, by = H - 470; g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); if (g.roundRect) g.roundRect(bx, by, bw, bh, 40); else g.rect(bx, by, bw, bh); g.fill();
-      txt('✔ ' + t('cardAdm'), by + 72, "700 40px 'Plus Jakarta Sans',sans-serif", '#fff');
-      var hf = 84, hd = '@dolarpesopro_'; g.font = "800 " + hf + "px Sora,sans-serif"; while (g.measureText(hd).width > bw - 60 && hf > 40) { hf -= 4; g.font = "800 " + hf + "px Sora,sans-serif"; }
-      txt(hd, by + 172, "800 " + hf + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
-      txt(t('cardFind'), by + 232, "500 32px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      var bx = 90, bw = W - 180, bh = 290, by = H - 480; g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); if (g.roundRect) g.roundRect(bx, by, bw, bh, 40); else g.rect(bx, by, bw, bh); g.fill();
+      var qs = 220, qx = bx + bw - qs - 35, qy = by + (bh - qs) / 2, tx = bx + 35 + (bw - qs - 105) / 2, tw = bw - qs - 105;
+      function txl(s2, y2, font, col) { g.font = font; g.fillStyle = col; g.textAlign = 'center'; g.fillText(s2, tx, y2); }
+      txl('✔ ' + t('cardAdm'), by + 86, "700 36px 'Plus Jakarta Sans',sans-serif", '#fff');
+      var hf = 76, hd = '@dolarpesopro_'; g.font = "800 " + hf + "px Sora,sans-serif"; while (g.measureText(hd).width > tw && hf > 32) { hf -= 2; g.font = "800 " + hf + "px Sora,sans-serif"; }
+      txl(hd, by + 178, "800 " + hf + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
+      var ff = 30; g.font = "500 " + ff + "px 'Plus Jakarta Sans',sans-serif"; while (g.measureText(t('cardFind')).width > tw && ff > 20) { ff -= 1; g.font = "500 " + ff + "px 'Plus Jakarta Sans',sans-serif"; }
+      txl(t('cardFind'), by + 238, "500 " + ff + "px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      if (r[1]) { g.fillStyle = '#fff'; g.beginPath(); if (g.roundRect) g.roundRect(qx - 10, qy - 10, qs + 20, qs + 20, 22); else g.rect(qx - 10, qy - 10, qs + 20, qs + 20); g.fill(); g.drawImage(r[1], qx, qy, qs, qs); }
       txt(t('cardFoot'), H - 120, "500 30px 'Plus Jakarta Sans',sans-serif", 'rgba(201,209,255,.85)');
       return new Promise(function (ok, no) { cv.toBlob(function (b) { b ? ok(b) : no(); }, 'image/png'); });
     });
@@ -1094,11 +1098,12 @@
     $('#cardShare').textContent = t('cardShare'); $('#cardShare').hidden = !canShare; $('#cardDl').textContent = t('cardDl'); $('#cardDl').href = ov._u; $('#cardX').textContent = t('cardX');
     ov.hidden = false; document.body.style.overflow = 'hidden'; setTimeout(function () { (canShare ? $('#cardShare') : $('#cardDl')).focus(); }, 30);
   }
-  $('#cardBtn').addEventListener('click', function () {
+  function onCardBtn() {
     if (isLocked() || !(S.cfg.rate > 0) || (fbOk && !S.live)) { copyToast(t('cardWait')); return; }
     var b = this; b.disabled = true; track('card_open');
     drawCard().then(showCard).catch(function () { copyToast(t('cardErr')); }).then(function () { b.disabled = false; });
-  });
+  }
+  $('#cardBtn').addEventListener('click', onCardBtn); if ($('#cardBtn2')) $('#cardBtn2').addEventListener('click', onCardBtn);
 
   /* ---------- Avisos push al celular (requiere VAPID_KEY en firebase-config.js y la función de Firebase) ---------- */
   (function () {

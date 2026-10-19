@@ -7,23 +7,23 @@
 <meta name="description" content="Cambia dólares y pesos entre Ecuador y Argentina. Calcula cuánto recibes al instante.">
 <meta name="theme-color" content="#0F1B5C">
 <meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="https://TU-USUARIO.github.io/DolarPesoPro/">
+<link rel="canonical" href="https://dolarpesopro.github.io/dolarpesopro1/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Dólar PesoPro">
 <meta property="og:locale" content="es_AR">
-<meta property="og:url" content="https://TU-USUARIO.github.io/DolarPesoPro/">
+<meta property="og:url" content="https://dolarpesopro.github.io/dolarpesopro1/">
 <meta property="og:title" content="Dólar PesoPro · Cambio Ecuador ⇄ Argentina">
 <meta property="og:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
-<meta property="og:image" content="https://TU-USUARIO.github.io/DolarPesoPro/assets/og-image.jpg">
+<meta property="og:image" content="https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Logo de Dólar PesoPro">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Dólar PesoPro · Cambio Ecuador ⇄ Argentina">
 <meta name="twitter:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
-<meta name="twitter:image" content="https://TU-USUARIO.github.io/DolarPesoPro/assets/og-image.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Dólar PesoPro","url":"https://TU-USUARIO.github.io/DolarPesoPro/","inLanguage":"es"},{"@type":"FinancialService","name":"Dólar PesoPro","description":"Cambio de dólares y pesos entre Ecuador y Argentina con administradores verificados.","url":"https://TU-USUARIO.github.io/DolarPesoPro/","logo":"https://TU-USUARIO.github.io/DolarPesoPro/assets/icon-512.png","image":"https://TU-USUARIO.github.io/DolarPesoPro/assets/og-image.jpg","areaServed":["EC","AR"],"sameAs":["https://www.instagram.com/dolarpesopro_","https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR"]}]}</script>
-<meta name="pp-version" content="20261020e">
+<meta name="twitter:image" content="https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Dólar PesoPro","url":"https://dolarpesopro.github.io/dolarpesopro1/","inLanguage":"es"},{"@type":"FinancialService","name":"Dólar PesoPro","description":"Cambio de dólares y pesos entre Ecuador y Argentina con administradores verificados.","url":"https://dolarpesopro.github.io/dolarpesopro1/","logo":"https://dolarpesopro.github.io/dolarpesopro1/assets/icon-512.png","image":"https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg","areaServed":["EC","AR"],"sameAs":["https://www.instagram.com/dolarpesopro_","https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR"]}]}</script>
+<meta name="pp-version" content="20261020f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -39,7 +39,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="style.css?v=20261020e">
+<link rel="stylesheet" href="style.css?v=20261020f">
 </head>
 <body>
 
@@ -117,7 +117,7 @@
         <div class="fg">
           <div class="rrow">
             <div style="min-width:0"><div class="lbl" data-i18n="rateLbl">Cotización (pesos por USD)</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><strong class="rshow" id="rateShow"></strong><span class="tag2" id="rateTag" hidden>ajustada</span></div></div>
-            <button type="button" class="linkbtn" id="rateAdj" style="flex:none">Ajustar</button>
+            <button type="button" class="linkbtn" id="cardBtn2" style="flex:none" data-i18n="cardBtnS">📸 Tarjeta</button><button type="button" class="linkbtn" id="rateAdj" style="flex:none">Ajustar</button>
             <svg id="rateLock" hidden aria-label="Cotización fijada por el administrador" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6;flex:none"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
           </div>
           <div class="collapse" id="rateBox"><div><div class="fg" style="padding-top:6px">
@@ -489,12 +489,12 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261020e"></script>
+<script src="firebase-config.js?v=20261020f"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script>if(window.LAZY_AUTH===false)document.write('<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"><\/script>')</script>
-<script src="themes.js?v=20261020e"></script>
-<script src="app.js?v=20261020e"></script>
+<script src="themes.js?v=20261020f"></script>
+<script src="app.js?v=20261020f"></script>
 <script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>
