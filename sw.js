@@ -2,7 +2,7 @@
    - Páginas, estilos y scripts: primero la red (así siempre ves la última versión) y si no hay señal, lo guardado.
    - Imágenes: guardadas, se actualizan en segundo plano.
    - Videos y todo lo externo (Firebase, fuentes): no se tocan. */
-var V = 'pp-v20261022b', SHELL = ['./', 'index.html', 'style.css', 'app.js', 'themes.js', 'firebase-config.js', 'manifest.webmanifest',
+var V = 'pp-v20261022c', SHELL = ['./', 'index.html', 'style.css', 'app.js', 'themes.js', 'firebase-config.js', 'manifest.webmanifest',
   'assets/logo.webp', 'assets/logo-halloween.webp', 'assets/justo.webp', 'assets/boris.webp', 'assets/justo-h.webp', 'assets/boris-h.webp', 'assets/peek-wolf.webp', 'assets/peek-vamp.webp', 'assets/icon-192.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () {}); })); }).then(function () { return self.skipWaiting(); }));

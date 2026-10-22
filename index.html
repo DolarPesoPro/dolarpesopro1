@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
 <meta name="twitter:image" content="https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Dólar PesoPro","url":"https://dolarpesopro.github.io/dolarpesopro1/","inLanguage":"es"},{"@type":"FinancialService","name":"Dólar PesoPro","description":"Cambio de dólares y pesos entre Ecuador y Argentina con administradores verificados.","url":"https://dolarpesopro.github.io/dolarpesopro1/","logo":"https://dolarpesopro.github.io/dolarpesopro1/assets/icon-512.png","image":"https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg","areaServed":["EC","AR"],"sameAs":["https://www.instagram.com/dolarpesopro_","https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR"]}]}</script>
-<meta name="pp-version" content="20261022b">
+<meta name="pp-version" content="20261022c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -39,7 +39,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="style.css?v=20261022b">
+<link rel="stylesheet" href="style.css?v=20261022c">
 </head>
 <body>
 
@@ -213,16 +213,6 @@
       <div><h2 data-i18n="revTitle">Lo que dicen nuestros clientes</h2><div class="sub" id="revSub" style="margin-top:4px" data-i18n="revSub">Opiniones de personas que ya cambiaron con nosotros.</div></div>
       <div class="revs" id="revList" tabindex="0" role="list" aria-label="Reseñas de clientes"></div>
       <div class="sub revhint" id="revHint" hidden data-i18n="revHint">Desliza para ver más →</div>
-      <button type="button" class="btn ghost" id="rvOpen" aria-expanded="false" aria-controls="rvForm" data-i18n="rvOpen">✍️ Dejar mi opinión</button>
-      <div class="rvform" id="rvForm" hidden>
-        <input id="rvName" class="field sm" type="text" maxlength="40" autocomplete="off" data-i18n-ph="rvName" placeholder="Tu nombre (ej: Karla M.)" aria-label="Nombre">
-        <input id="rvPlace" class="field sm" type="text" maxlength="40" autocomplete="off" data-i18n-ph="rvPlace" placeholder="Ciudad o país (opcional)" aria-label="Ciudad o país">
-        <div class="starpick" id="rvStars" role="radiogroup" aria-label="Estrellas"></div>
-        <textarea id="rvText" class="field sm" rows="3" maxlength="300" data-i18n-ph="rvText" placeholder="Cuéntanos cómo fue tu experiencia" aria-label="Opinión"></textarea>
-        <input id="rvWeb" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0">
-        <button type="button" class="btn gold" id="rvSend" data-i18n="rvSend">Enviar opinión</button>
-        <div class="nfmsg" id="rvMsg" role="status" aria-live="polite"></div>
-      </div>
     </section>
 
     <!-- Compartir -->
@@ -236,6 +226,21 @@
           <div class="sub"><strong style="color:var(--ink)" data-i18n="group">Grupo de WhatsApp</strong><br><span data-i18n="groupSub">Escanea el QR o toca el botón para unirte.</span></div>
           <a class="btn green" href="https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR" target="_blank" rel="noopener" data-i18n="join">Unirme al grupo</a>
         </div>
+      </div>
+    </section>
+
+    <!-- Dejar opinión (debajo de "Comparte y únete") -->
+    <section class="card" id="rvCard" hidden>
+      <div><h2 data-i18n="rvTitle">¿Ya cambiaste con nosotros?</h2><div class="sub" style="margin-top:4px" data-i18n="rvSubT">Cuéntanos cómo te fue. Revisamos cada opinión antes de publicarla.</div></div>
+      <button type="button" class="btn ghost" id="rvOpen" aria-expanded="false" aria-controls="rvForm" data-i18n="rvOpen">✍️ Dejar mi opinión</button>
+      <div class="rvform" id="rvForm" hidden>
+        <input id="rvName" class="field sm" type="text" maxlength="40" autocomplete="off" data-i18n-ph="rvName" placeholder="Tu nombre (ej: Karla M.)" aria-label="Nombre">
+        <input id="rvPlace" class="field sm" type="text" maxlength="40" autocomplete="off" data-i18n-ph="rvPlace" placeholder="Ciudad o país (opcional)" aria-label="Ciudad o país">
+        <div class="starpick" id="rvStars" role="radiogroup" aria-label="Estrellas"></div>
+        <textarea id="rvText" class="field sm" rows="3" maxlength="300" data-i18n-ph="rvText" placeholder="Cuéntanos cómo fue tu experiencia" aria-label="Opinión"></textarea>
+        <input id="rvWeb" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0">
+        <button type="button" class="btn gold" id="rvSend" data-i18n="rvSend">Enviar opinión</button>
+        <div class="nfmsg" id="rvMsg" role="status" aria-live="polite"></div>
       </div>
     </section>
 
@@ -512,12 +517,12 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261022b"></script>
+<script src="firebase-config.js?v=20261022c"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script>if(window.LAZY_AUTH===false)document.write('<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"><\/script>')</script>
-<script src="themes.js?v=20261022b"></script>
-<script src="app.js?v=20261022b"></script>
+<script src="themes.js?v=20261022c"></script>
+<script src="app.js?v=20261022c"></script>
 <script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>

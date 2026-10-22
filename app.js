@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261022b';
+  var VER = '20261022c';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -62,6 +62,7 @@
       moveUp: 'EL DÓLAR SUBIÓ', moveDown: 'EL DÓLAR BAJÓ', moveBefore: 'antes {p}', moveUpW: 'subió', moveDownW: 'bajó', moveText: 'El dólar {w}: ahora está a {r}. Calcula tu cambio:',
       dayToday: 'hoy', dayYest: 'ayer', cardStory: 'Historia', cardPost: 'Publicación',
       backUp: '📈 El dólar subió $ {d} desde tu última visita ({w}).', backDown: '📉 El dólar bajó $ {d} desde tu última visita ({w}).', agoH: 'hace {n} h', agoD: 'hace {n} días',
+      rvTitle: '¿Ya cambiaste con nosotros?', rvSubT: 'Cuéntanos cómo te fue. Revisamos cada opinión antes de publicarla.',
       rvOpen: '✍️ Dejar mi opinión', rvName: 'Tu nombre (ej: Karla M.)', rvPlace: 'Ciudad o país (opcional)', rvText: 'Cuéntanos cómo fue tu experiencia', rvSend: 'Enviar opinión', rvStarsL: 'Estrellas',
       rvOk: '¡Gracias! Revisaremos tu opinión y la publicaremos pronto.', rvBad: 'Escribe tu nombre y una opinión de al menos 10 letras.', rvErr: 'No pudimos enviarla. Intenta de nuevo en un momento.', rvWait: 'Ya nos enviaste una opinión hoy. ¡Gracias!', revEmpty: 'Sé la primera persona en dejar su opinión.',
       limitMsg: 'Ya enviaste varias solicitudes hoy. Intenta mañana o escríbenos por WhatsApp.',
@@ -166,6 +167,7 @@
       moveUp: 'THE DOLLAR ROSE', moveDown: 'THE DOLLAR FELL', moveBefore: 'before {p}', moveUpW: 'rose', moveDownW: 'fell', moveText: 'The dollar {w}: it is now {r}. Work out your exchange:',
       dayToday: 'today', dayYest: 'yesterday', cardStory: 'Story', cardPost: 'Post',
       backUp: '📈 The dollar rose $ {d} since your last visit ({w}).', backDown: '📉 The dollar fell $ {d} since your last visit ({w}).', agoH: '{n} h ago', agoD: '{n} days ago',
+      rvTitle: 'Already exchanged with us?', rvSubT: 'Tell us how it went. We review every opinion before publishing it.',
       rvOpen: '✍️ Leave my review', rvName: 'Your name (e.g. Karla M.)', rvPlace: 'City or country (optional)', rvText: 'Tell us about your experience', rvSend: 'Send review', rvStarsL: 'Stars',
       rvOk: 'Thank you! We will review your opinion and publish it soon.', rvBad: 'Enter your name and a review of at least 10 letters.', rvErr: 'We could not send it. Please try again in a moment.', rvWait: 'You already sent us a review today. Thank you!', revEmpty: 'Be the first to leave a review.',
       limitMsg: 'You already sent several requests today. Try tomorrow or message us on WhatsApp.',
@@ -687,7 +689,7 @@
     var ic = $('#installCard');
     if (standalone || OS === 'desktop') ic.hidden = true;
     else { ic.hidden = false; setText('#instTxt', t(OS === 'ios' ? 'instIos' : 'instAndroid')); $('#instBtn').hidden = !(OS === 'android' && S.dip); }
-    $('#revCard').hidden = locked || !fbOk;
+    $('#revCard').hidden = locked || !S.reviews.length; if ($('#rvCard')) $('#rvCard').hidden = locked || !fbOk;
     applyLock(locked);
     $('#sticky').classList.toggle('show', S.splashDone === true && !locked);
     syncOff();
@@ -1326,7 +1328,7 @@
       c.appendChild(st); c.appendChild(el('p', null, '“' + r.text + '”')); box.appendChild(c);
     });
     $('#revHint').hidden = S.reviews.length < 2; setText('#revSub', S.reviews.length ? t('revSub') : t('revEmpty'));
-    $('#revCard').hidden = isLocked() || !fbOk;
+    $('#revCard').hidden = isLocked() || !S.reviews.length; if ($('#rvCard')) $('#rvCard').hidden = isLocked() || !fbOk;
   }
 
   /* Los clientes pueden enviar su opinión: no se publica hasta que el administrador la apruebe. Máximo 1 por día por celular. */
