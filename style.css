@@ -1,4 +1,4 @@
-:root{--v:"20261021a";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
+:root{--v:"20261022b";--bg:#F2F4FB;--card:#fff;--ink:#0F1B5C;--navy:#0F1B5C;--muted:#4A5489;--line:#E3E8F7;--soft:#F6F8FE;--field:#fff;--fline:#DCE2F5;--accent:#2547C8;--gold:#F5B800;--green:#0F7A40;--warn-bg:#FFF7DE;--shadow:0 1px 2px rgba(11,18,64,.05),0 14px 36px rgba(11,18,64,.09);color-scheme:light}
 :root[data-theme=dark]{--bg:#070B26;--card:#131B52;--ink:#F7F8FF;--muted:#C8D0F6;--line:#2E3C86;--soft:#1C2766;--field:#0E1646;--fline:#44559F;--accent:#B8C7FF;--warn-bg:#2A2410;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:200px;scroll-padding-top:20px}
@@ -400,15 +400,15 @@ a{color:var(--accent)}
 #off[data-sc="desierto"] .sunball{right:5%}
 
 /* ---- mascotas: burbuja y chispas al tocar ---- */
-.bubble{position:fixed;z-index:130;transform:translate(-50%,-100%) scale(.6);opacity:0;background:#fff;color:#0F1B5C;border-radius:16px;padding:8px 14px;font:700 13.5px 'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.3);white-space:normal;max-width:min(260px,calc(100vw - 28px));text-align:center;line-height:1.35;pointer-events:none;animation:bubin 2.8s ease forwards}
-.bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+.bubble{position:fixed;z-index:180;transform:translate(-50%,-100%) scale(.96);opacity:0;display:block;box-sizing:border-box;width:max-content;max-width:min(300px,calc(100vw - 24px));min-width:110px;background:#fff;color:#0F1B5C;border:2px solid rgba(37,71,200,.18);border-radius:16px;padding:10px 14px;font:800 14px/1.4 'Plus Jakarta Sans',sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.34);white-space:normal;overflow-wrap:anywhere;word-break:normal;text-align:center;pointer-events:none;animation:bubin 3.6s ease forwards;contain:layout style}
+.bubble::after{content:"";position:absolute;left:calc(50% + var(--tx,0px));bottom:-7px;width:12px;height:12px;background:inherit;border-right:inherit;border-bottom:inherit;transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0}.bubble.bubble-below{transform:translate(-50%,0) scale(.96)}.bubble.bubble-below::after{top:-7px;bottom:auto;transform:translateX(-50%) rotate(225deg)}
 @keyframes bubin{0%{opacity:0;transform:translate(-50%,-90%) scale(.5)}12%{opacity:1;transform:translate(-50%,-100%) scale(1.05)}18%{transform:translate(-50%,-100%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-125%) scale(1)}}
 .spark{position:fixed;z-index:129;pointer-events:none;font:800 18px 'Sora',sans-serif;color:var(--gold);text-shadow:0 2px 6px rgba(0,0,0,.35);animation:spark .9s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes spark{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.3) rotate(var(--rot))}}
 .mini.hop,.avatar.tap{animation:hop .6s cubic-bezier(.3,1.5,.5,1)}
 .istep>.sico{flex:none;width:46px}
 
-/* ================= v20261021a ================= */
+/* ================= v20261022b ================= */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* ---- barra inferior: fila 1 = monto + copiar · fila 2 = Hacer cambio / Justo / Boris ---- */
 .sticky{transition:transform .5s cubic-bezier(.22,1,.36,1)}
@@ -575,7 +575,7 @@ a,button,summary,.adm{-webkit-tap-highlight-color:rgba(245,184,0,.30);-webkit-to
 .peek{width:clamp(82px,22vw,108px);height:clamp(82px,22vw,108px);filter:drop-shadow(0 8px 12px rgba(0,0,0,.25))}
 .peek img{border-width:3px;box-shadow:0 0 0 5px rgba(255,255,255,.88),0 0 0 8px rgba(255,138,42,.45),0 10px 22px rgba(0,0,0,.28)}
 
-/* ================= v20261021a · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
+/* ================= v20261022b · INTERFAZ DE HALLOWEEN (solo con la temática activa) ================= */
 html.th-halloween{--bg:#0a0620;--card:#161036;--ink:#FFF1E0;--navy:#2a1458;--muted:#D8C4FF;--line:#3d2478;--soft:#21184f;--field:#0b0924;--fline:#5b3a9a;--accent:#FFA24A;--gold:#FF8A1F;--green:#1e7a38;--warn-bg:#2a1a10;--shadow:0 0 0 1.5px rgba(255,138,31,.42),0 12px 30px rgba(0,0,0,.55),0 0 26px rgba(255,138,31,.12);color-scheme:dark}
 html.th-halloween{background:#0a0620}
 html.th-halloween::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 60% at 50% -8%,#47207f 0,transparent 60%),radial-gradient(70% 40% at 100% 100%,rgba(255,106,0,.20),transparent 60%),#0a0620}
@@ -666,7 +666,7 @@ html.th-halloween .closebtn,html.th-halloween .qbtn{background:#2a1458;color:#FF
 html.th-halloween .adminbox{border-color:#FF8A1F}
 html.th-halloween .sw.on{background:#1e9a45}
 /* burbujas de las mascotas: tema Halloween */
-html.th-halloween .bubble{background:linear-gradient(180deg,#2b1760,#1a0e45);color:#FFF1E0;border:2px solid #FF8A1F;box-shadow:0 0 18px rgba(255,138,31,.55),0 10px 24px rgba(0,0,0,.5);font-size:14.5px}
+html.th-halloween .bubble{background:linear-gradient(180deg,#2b1760,#1a0e45);color:#FFF1E0;border:2px solid #FF8A1F;box-shadow:0 0 18px rgba(255,138,31,.55),0 10px 24px rgba(0,0,0,.5);font-size:14.5px;z-index:180}
 html.th-halloween .bubble::after{background:#1a0e45;border-right:2px solid #FF8A1F;border-bottom:2px solid #FF8A1F;border-radius:0 0 4px 0}
 html.th-halloween .spark{color:#FF8A1F;text-shadow:0 0 8px rgba(255,138,31,.9)}
 /* pantalla de apagado y carga */
@@ -807,3 +807,13 @@ body.admin-mode.admin-client #adminSlot{display:none}
 .rvform{display:flex;flex-direction:column;gap:12px;padding-top:4px;position:relative}
 #cardOv .ctabs{display:flex;gap:8px}#cardOv .ctabs button{flex:1;min-height:42px;border-radius:12px;border:2px solid var(--fline);background:var(--card);color:var(--ink);font:inherit;font-weight:700;font-size:14px;cursor:pointer}
 #cardOv .ctabs button.on{background:var(--gold);border-color:var(--gold);color:#0F1B5C}
+
+.funrows{display:flex;flex-direction:column;gap:10px}.funhd{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--ink)}.funhd b{font-variant-numeric:tabular-nums}
+.funtr{height:12px;border-radius:8px;background:var(--soft);overflow:hidden}.funfl{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .5s}
+
+/* v20261022b: logo temático completo y burbujas legibles en móvil */
+html.th-halloween .logoimg{-webkit-mask-image:none!important;mask-image:none!important;mix-blend-mode:normal!important}
+@media(max-width:420px){.bubble{max-width:calc(100vw - 20px);font-size:13.5px;padding:9px 11px}.bubble::after{width:10px;height:10px}}
+@media(prefers-reduced-motion:reduce){.bubble{animation:none;opacity:1;transform:translate(-50%,-100%) scale(1)}}
+@keyframes bubinbelow{0%{opacity:0;transform:translate(-50%,10px) scale(.88)}12%{opacity:1;transform:translate(-50%,0) scale(1.02)}18%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,8px) scale(.98)}}
+.bubble.bubble-below{animation-name:bubinbelow}

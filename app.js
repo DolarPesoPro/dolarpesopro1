@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261021a';
+  var VER = '20261022b';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -59,6 +59,7 @@
       speedTitle: 'Agiliza tu operación', speedSub: 'Datos opcionales: el mensaje de abajo se arma solo y lo copias con un toque.',
       rememberData: 'Recordar mis datos en este celular', rememberHelp: 'Puedes guardar hasta 3 cuentas. Se guardan solo en tu celular, no en nuestros servidores. Desmarca la casilla para borrar la cuenta que estás viendo.',
       accTitle: 'Mis cuentas guardadas', accNew: '+ Nueva cuenta', accGen: 'Cuenta', accDelAll: 'Borrar todas mis cuentas guardadas',
+      moveUp: 'EL DÓLAR SUBIÓ', moveDown: 'EL DÓLAR BAJÓ', moveBefore: 'antes {p}', moveUpW: 'subió', moveDownW: 'bajó', moveText: 'El dólar {w}: ahora está a {r}. Calcula tu cambio:',
       dayToday: 'hoy', dayYest: 'ayer', cardStory: 'Historia', cardPost: 'Publicación',
       backUp: '📈 El dólar subió $ {d} desde tu última visita ({w}).', backDown: '📉 El dólar bajó $ {d} desde tu última visita ({w}).', agoH: 'hace {n} h', agoD: 'hace {n} días',
       rvOpen: '✍️ Dejar mi opinión', rvName: 'Tu nombre (ej: Karla M.)', rvPlace: 'Ciudad o país (opcional)', rvText: 'Cuéntanos cómo fue tu experiencia', rvSend: 'Enviar opinión', rvStarsL: 'Estrellas',
@@ -162,6 +163,7 @@
       instIos: 'In Safari tap the Share button and choose “Add to Home Screen”.',
       rememberData: 'Remember my details on this phone', rememberHelp: 'You can save up to 3 accounts. They are saved only on your phone, not on our servers. Untick the box to delete the account you are viewing.',
       accTitle: 'My saved accounts', accNew: '+ New account', accGen: 'Account', accDelAll: 'Delete all my saved accounts',
+      moveUp: 'THE DOLLAR ROSE', moveDown: 'THE DOLLAR FELL', moveBefore: 'before {p}', moveUpW: 'rose', moveDownW: 'fell', moveText: 'The dollar {w}: it is now {r}. Work out your exchange:',
       dayToday: 'today', dayYest: 'yesterday', cardStory: 'Story', cardPost: 'Post',
       backUp: '📈 The dollar rose $ {d} since your last visit ({w}).', backDown: '📉 The dollar fell $ {d} since your last visit ({w}).', agoH: '{n} h ago', agoD: '{n} days ago',
       rvOpen: '✍️ Leave my review', rvName: 'Your name (e.g. Karla M.)', rvPlace: 'City or country (optional)', rvText: 'Tell us about your experience', rvSend: 'Send review', rvStarsL: 'Stars',
@@ -727,19 +729,41 @@
   $$('#seg button').forEach(function (b) { b.addEventListener('click', function () { S.mode = b.getAttribute('data-mode'); update(); }); });
   function linesFor(nm) { var d = themeDef(), who = String(nm || 'Justo').toLowerCase(); if (d && d.costumes && d.costumes[who]) { var c = d.costumes[who]; return c[S.costume % c.length].say; } return SAY[nm] || SAY.Justo; }
   var SAY = { Justo: ['¡Hola, soy Justo! 🤠', '¡Cambiemos hoy! 💵', 'Aquí para ayudarte ✅'], Boris: ['¡Hola, soy Boris! 😎', 'Cambio rápido y seguro ⚡', 'Tu plata, bien cuidada 🔒'] };
-  /* Las burbujas se anclan a la página (position:absolute) y se mueven con el scroll sin ningún código extra: cero vibración.
-     Solo si la mascota está en algo fijo (aparición lateral, menú de cambio, pantalla de apagado) la burbuja también es fija. */
-  function clearBubbles() { $$('.bubble').forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); }); }
+  /* Burbujas: siempre usan coordenadas de pantalla (fixed), nunca mezclan coordenadas del documento
+     con las del viewport. Se recolocan al desplazar/rotar el móvil y se limpian sus listeners al terminar. */
+  var bubbleCleanup = null, bubbleSeq = 0;
+  function clearBubbles() {
+    bubbleSeq++;
+    if (bubbleCleanup) { bubbleCleanup(); bubbleCleanup = null; }
+    $$('.bubble').forEach(function (o) { if (o.parentNode) o.parentNode.removeChild(o); });
+  }
   function say(node, text) {
-    clearBubbles();                                                                                    // una sola burbuja a la vez
-    var dur = Math.max(2800, Math.min(6500, 1600 + text.length * 70)), fixed = !!(node.closest && node.closest('.peek,.stroll,.sheetpanel,.off'));
+    clearBubbles();
+    if (!node || !node.isConnected) return 2800;
+    text = String(text == null ? '' : text).trim(); if (!text) return 2800;
+    var id = bubbleSeq, dur = Math.max(3600, Math.min(7200, 2300 + text.length * 65));
     var b = document.createElement('div');
-    b.className = 'bubble' + (fixed ? '' : ' abs'); b.textContent = text; b.style.cssText = 'left:0;top:0;visibility:hidden;animation-duration:' + dur + 'ms';
+    b.className = 'bubble'; b.textContent = text; b.setAttribute('role', 'status'); b.setAttribute('aria-live', 'polite');
+    b.style.cssText = 'left:0;top:0;visibility:hidden;animation-duration:' + dur + 'ms;max-width:min(300px,calc(100vw - 24px))';
     document.body.appendChild(b);
-    var r = node.getBoundingClientRect(), cx = r.left + r.width / 2, w = b.offsetWidth, bx = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, cx));
-    b.style.left = bx + 'px'; b.style.top = (fixed ? Math.max(56, r.top - 8) : r.top + (window.pageYOffset || 0) - 8) + 'px';
-    b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px'); b.style.visibility = '';
-    setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, dur + 120);
+    function place() {
+      if (!b.isConnected || !node.isConnected) return;
+      var r = node.getBoundingClientRect(), vw = document.documentElement.clientWidth || window.innerWidth || 320;
+      var w = Math.min(b.getBoundingClientRect().width || 260, vw - 24), cx = r.left + r.width / 2;
+      var bx = Math.max(w / 2 + 12, Math.min(vw - w / 2 - 12, cx));
+      var top = r.top - 10;
+      /* Si arriba no hay sitio, mostrar debajo de la mascota sin salir de la pantalla. */
+      if (top < 12) top = Math.min((window.innerHeight || 600) - 16, r.bottom + Math.min(10, (window.innerHeight || 600) - r.bottom - 12));
+      b.style.left = bx + 'px'; b.style.top = Math.max(12, Math.min((window.innerHeight || 600) - 12, top)) + 'px';
+      b.style.setProperty('--tx', Math.max(-w / 2 + 16, Math.min(w / 2 - 16, cx - bx)) + 'px');
+      b.classList.toggle('bubble-below', top >= r.bottom);
+      b.style.visibility = 'visible';
+    }
+    place();
+    var reposition = function () { if (id === bubbleSeq) place(); };
+    window.addEventListener('scroll', reposition, { passive: true }); window.addEventListener('resize', reposition, { passive: true });
+    bubbleCleanup = function () { window.removeEventListener('scroll', reposition); window.removeEventListener('resize', reposition); };
+    setTimeout(function () { if (id !== bubbleSeq) return; if (bubbleCleanup) { bubbleCleanup(); bubbleCleanup = null; } if (b.parentNode) b.parentNode.removeChild(b); }, dur + 160);
     return dur;
   }
   /* al abrir "¿Con quién haces el cambio?" las mascotas saludan */
@@ -1144,8 +1168,8 @@
   function arStamp() {
     try { return new Intl.DateTimeFormat(S.lang === 'en' ? 'en-GB' : 'es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(S.cfg.updatedAt || Date.now())); } catch (e) { return whenTxt(S.cfg.updatedAt || Date.now()); }
   }
-  function drawCard(kind) {
-    var sq = kind === 'sq', hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = sq ? 1080 : 1920, rate = c.rate;
+  function drawCard(kind, opts) {
+    var mv = opts && opts.move ? opts.move : null, sq = kind === 'sq', hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = sq ? 1080 : 1920, rate = c.rate;
     var fonts = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('800 100px Sora'), document.fonts.load('700 40px "Plus Jakarta Sans"')]).catch(function () {}) : null;
     return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), loadImg('assets/qr.png').catch(function () { return null; }), fonts]).then(function (r) {
       var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), lg = r[0], X = W / 2;
@@ -1162,12 +1186,13 @@
       }
       g.textAlign = 'center'; g.textBaseline = 'alphabetic';
       function txt(s, y, font, col, ls) { g.font = font; g.fillStyle = col; try { g.letterSpacing = (ls || 0) + 'px'; } catch (e) {} g.fillText(s, X, y); try { g.letterSpacing = '0px'; } catch (e) {} }
-      var y = sq ? top + 78 : Math.max(top + 130, 930);
-      txt(t('cardLbl'), y, "700 " + (sq ? 32 : 40) + "px 'Plus Jakarta Sans',sans-serif", hw ? '#FF9A3C' : '#B8C7FF', sq ? 5 : 6);
+      var y = sq ? top + 78 : (mv ? 880 : Math.max(top + 130, 930)), up = mv && mv.d > 0;
+      txt(mv ? t(up ? 'moveUp' : 'moveDown') : t('cardLbl'), y, "700 " + (sq ? 32 : 40) + "px 'Plus Jakarta Sans',sans-serif", mv ? (up ? '#3DDC84' : '#FF7A7A') : (hw ? '#FF9A3C' : '#B8C7FF'), sq ? 5 : 6);
       var big = ars(rate), fs = sq ? 150 : 230; g.font = "800 " + fs + "px Sora,sans-serif"; while (g.measureText(big).width > 940 && fs > 90) { fs -= 8; g.font = "800 " + fs + "px Sora,sans-serif"; }
       y += fs * 0.95 + (sq ? 22 : 30); txt(big, y, "800 " + fs + "px Sora,sans-serif", hw ? '#FF8A1F' : '#FFC21A');
-      y += sq ? 60 : 78; txt(t('cardPer'), y, "600 " + (sq ? 44 : 54) + "px 'Plus Jakarta Sans',sans-serif", '#fff');
-      y += sq ? 58 : 90; txt(t('cardUpd', { d: arStamp() }), y, "500 " + (sq ? 31 : 38) + "px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
+      y += sq ? (mv ? 54 : 60) : 78; txt(t('cardPer'), y, "600 " + (sq ? 44 : 54) + "px 'Plus Jakarta Sans',sans-serif", '#fff');
+      if (mv) { y += sq ? 52 : 84; txt((up ? '▲ +' : '▼ −') + ' $ ' + fmt(Math.abs(mv.d)) + (sq ? '' : '  ·  ' + t('moveBefore', { p: ars(mv.prev) })), y, "800 " + (sq ? 40 : 52) + "px 'Plus Jakarta Sans',sans-serif", up ? '#3DDC84' : '#FF7A7A'); }
+      y += sq ? (mv ? 44 : 58) : (mv ? 70 : 90); txt(t('cardUpd', { d: arStamp() }), y, "500 " + (sq ? 31 : 38) + "px 'Plus Jakarta Sans',sans-serif", '#C9D1FF');
       var bx = 90, bw = W - 180, bh = sq ? 230 : 290, by = sq ? H - 290 : H - 480, qs = sq ? 170 : 220;
       g.fillStyle = 'rgba(255,255,255,.09)'; g.beginPath(); if (g.roundRect) g.roundRect(bx, by, bw, bh, 40); else g.rect(bx, by, bw, bh); g.fill();
       var qx = bx + bw - qs - 35, qy = by + (bh - qs) / 2, tw = bw - qs - 105, tx = bx + 35 + tw / 2;
@@ -1184,7 +1209,7 @@
   }
   function shareUrl() { var u = location.href.split('#')[0].split('?')[0]; try { if (S.themeApplied === 'halloween') u = new URL('halloween.html', u).href; } catch (e) {} return u; }
   function closeCard() { var ov = $('#cardOv'); if (!ov) return; ov.hidden = true; document.body.style.overflow = ''; if (ov._u) { URL.revokeObjectURL(ov._u); ov._u = null; } var b = $('#cardBtn'); if (b) b.focus(); }
-  function showCard(blob, kind) {
+  function showCard(blob, kind, opts) {
     var ov = $('#cardOv');
     if (!ov) {
       ov = el('div'); ov.id = 'cardOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
@@ -1195,17 +1220,17 @@
       Array.prototype.forEach.call(ov.querySelectorAll('.ctabs button'), function (tb) {
         tb.addEventListener('click', function () {
           var k = tb.getAttribute('data-k'); if (k === ov._k || ov._busy) return; ov._busy = true;
-          drawCard(k).then(function (b) { showCard(b, k); }).catch(function () { copyToast(t('cardErr')); }).then(function () { ov._busy = false; });
+          drawCard(k, ov._o).then(function (b) { showCard(b, k, ov._o); }).catch(function () { copyToast(t('cardErr')); }).then(function () { ov._busy = false; });
         });
       });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ov.hidden) closeCard(); });
       $('#cardDl').addEventListener('click', function () { bump('cards'); });
       $('#cardShare').addEventListener('click', function () {
         var f = ov._f; if (!f) return;
-        try { navigator.share({ files: [f], text: t('cardText', { r: ars(S.cfg.rate) }) + ' ' + shareUrl() }).then(function () { bump('cards'); track('card_share'); }).catch(function () {}); } catch (e) {}
+        try { navigator.share({ files: [f], text: (ov._o && ov._o.move ? t('moveText', { w: ov._o.move.d > 0 ? t('moveUpW') : t('moveDownW'), r: ars(S.cfg.rate) }) : t('cardText', { r: ars(S.cfg.rate) })) + ' ' + shareUrl() }).then(function () { bump('cards'); track('card_share'); }).catch(function () {}); } catch (e) {}
       });
     }
-    ov._k = kind || 'story'; var fnm = ov._k === 'sq' ? 'cotizacion-pesopro-cuadrada.png' : 'cotizacion-pesopro.png';
+    ov._k = kind || 'story'; ov._o = opts || null; var fnm = ov._k === 'sq' ? 'cotizacion-pesopro-cuadrada.png' : 'cotizacion-pesopro.png';
     Array.prototype.forEach.call(ov.querySelectorAll('.ctabs button'), function (tb) { var on = tb.getAttribute('data-k') === ov._k; tb.classList.toggle('on', on); tb.setAttribute('aria-pressed', on ? 'true' : 'false'); tb.textContent = t(tb.getAttribute('data-k') === 'sq' ? 'cardPost' : 'cardStory'); });
     if (ov._u) URL.revokeObjectURL(ov._u); ov._u = URL.createObjectURL(blob); $('#cardDl').setAttribute('download', fnm);
     try { ov._f = new File([blob], fnm, { type: 'image/png' }); } catch (e) { ov._f = null; }
@@ -1350,6 +1375,12 @@
     if (!db || S.admin || S.preview || (bumpN[f] = (bumpN[f] || 0) + 1) > 12) return;
     try { db.ref('stats/' + dayKey() + '/' + f).transaction(function (v) { return (typeof v === 'number' ? v : 0) + 1; }).catch(function () {}); } catch (e) {}
   }
+  /* Visitantes del día: se cuenta 1 por celular por día (sin datos personales) */
+  (function () {
+    if (!db || location.hash === '#admin' || S.preview) return;
+    try { var d = dayKey(); if (localStorage.getItem('pp_vd') === d) return; localStorage.setItem('pp_vd', d); } catch (e) { return; }
+    bump('visits');
+  })();
   /* ---------- Analytics (opcional) y registro de consultas por WhatsApp ---------- */
   function track(name, params) { try { if (window.gtag && !S.admin) window.gtag('event', name, params || {}); } catch (e) {} }
   function initGA() {
@@ -1389,7 +1420,7 @@
     } else lines.push('Completa un importe válido para ver el resumen.');
     box.textContent = lines.join(' · ') + ' · Precio sujeto a confirmación del administrador.';
   }
-  function doChange() { track('hacer_cambio', { amount: Math.round(num(S.amount) || 0) }); doCopy(true); countStart(); renderPickSummary(); setSheet2(true); }
+  function doChange() { track('hacer_cambio', { amount: Math.round(num(S.amount) || 0) }); track('exchange_started', { direction: S.dir || 'usd' }); doCopy(true); countStart(); renderPickSummary(); setSheet2(true); }
   $('#changeBtn').addEventListener('click', doChange);
   $('#stChange').addEventListener('click', doChange);
   $('#sheet2Close').addEventListener('click', function () { setSheet2(false); });
@@ -1505,6 +1536,11 @@
 
   var P = null;   // nodos del panel
   function pa(id) { return slot.querySelector('#' + id); }
+  function adminLog(action, detail) {
+    if (!db || !S.admin || !auth || !auth.currentUser) return;
+    var item = { action: String(action || 'Cambio').slice(0, 80), detail: String(detail || '').slice(0, 180), at: firebase.database.ServerValue.TIMESTAMP, by: String(auth.currentUser.email || 'administrador').slice(0, 100) };
+    try { db.ref('adminLog').push(item).catch(function () {}); } catch (e) {}
+  }
   var aToastT = null;
   function msgA(txt, bad) {
     var m = pa('aMsg'); if (m) { m.textContent = txt; m.classList.toggle('msgerr', !!bad); }
@@ -1526,9 +1562,9 @@
       var b = el('button', 'chip', (d > 0 ? '+' : '−') + Math.abs(d)); b.type = 'button';
       b.addEventListener('click', function () { var r = pa('aRate'); r.value = inN(Math.max(1, num(r.value) + d)); r.dataset.dirty = '1'; }); st.appendChild(b);
     });
-    function run(p, ok, grp) {
+    function run(p, ok, grp, audit) {
       msgA('Guardando…');
-      p.then(function () { (grp || []).forEach(function (id) { delete pa(id).dataset.dirty; }); msgA(ok + ' ✓ Ya está en vivo para los clientes.'); refreshPanel(); if (S.resync) S.resync(); })
+      p.then(function () { (grp || []).forEach(function (id) { delete pa(id).dataset.dirty; }); if (audit) adminLog(audit[0], audit[1]); msgA(ok + ' ✓ Ya está en vivo para los clientes.'); refreshPanel(); if (S.resync) S.resync(); })
         .catch(function (e) { msgA(errMsg(e), true); refreshPanel(); if (S.resync) S.resync(); });
     }
     pa('aPub').addEventListener('click', function () {
@@ -1538,7 +1574,7 @@
       msgA('Publicando…');
       db.ref().update({ 'config/rate': v, 'config/prev': prev, 'config/updatedAt': firebase.database.ServerValue.TIMESTAMP, 'history': items })
         .then(function () { return db.ref('config/rate').once('value'); })
-        .then(function (s) { delete pa('aRate').dataset.dirty; var hits = S.alerts.filter(function (x) { return s.val() >= x.target; }).length; msgA('Publicada ✓ Confirmado en el servidor: ' + ars(s.val()) + '. Los clientes ya la ven.' + (hits ? ' 🔔 ' + hits + ' cliente(s) esperaban este precio: avísales en el punto 7.' : '')); refreshPanel(); })
+        .then(function (s) { adminLog('Cotización publicada', 'Valor: ' + ars(s.val())); delete pa('aRate').dataset.dirty; var hits = S.alerts.filter(function (x) { return s.val() >= x.target; }).length; msgA('Publicada ✓ Confirmado en el servidor: ' + ars(s.val()) + '. Los clientes ya la ven.' + (prev > 0 && Math.abs(v - prev) / prev >= 0.003 ? ' 📸 Cambió ' + (v > prev ? '▲ +' : '▼ −') + fmtN(Math.abs(v - prev)) + ': usa el botón “Tarjeta de la ' + (v > prev ? 'subida' : 'bajada') + '” para compartirla.' : '') + (hits ? ' 🔔 ' + hits + ' cliente(s) esperaban este precio: avísales en el punto 7.' : '')); refreshPanel(); })
         .catch(function (e) { msgA(errMsg(e), true); });
     });
     pa('aManual').addEventListener('click', function () { run(db.ref('config/allowManual').set(!S.cfg.allowManual), 'Permiso actualizado'); });
@@ -1563,14 +1599,14 @@
       else if (S.waiters.length) extra = ' · 🔔 ' + S.waiters.length + ' cliente(s) esperan tu aviso: mira el punto 8';
       pa('aEngineBox').classList.toggle('on', turnOn); pa('aEngine').setAttribute('aria-pressed', turnOn ? 'true' : 'false');
       var mp = { 'config/autoPref': wasAuto }; Object.keys(upd).forEach(function (k) { mp['status/' + k] = upd[k]; });
-      run(db.ref().update(mp), (turnOn ? (wasAuto ? 'Encendido: ahora abre y cierra según el horario' : 'En línea') : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el horario automático queda en pausa hasta que enciendas)' : '')) + extra, turnOn ? [] : ['aReason']);
+      run(db.ref().update(mp), (turnOn ? (wasAuto ? 'Encendido: ahora abre y cierra según el horario' : 'En línea') : 'Apagado general: nadie puede cotizar' + (wasAuto ? ' (el horario automático queda en pausa hasta que enciendas)' : '')) + extra, turnOn ? [] : ['aReason'], [turnOn ? 'Servicio encendido' : 'Servicio apagado', (turnOn ? 'Disponible para clientes' : (rr || 'Fuera de línea'))]);
     }
     pa('aSellBtn').addEventListener('click', function () {
       var v = num(pa('aSell').value); if (!(v > 0) || v > 100000) { msgA('Escribe una cotización válida (pesos por USD).', true); return; }
       run(db.ref('config/rateSell').set(v), 'Cotización pesos → dólares guardada', ['aSell']);
     });
     pa('aSellOff').addEventListener('click', function () { pa('aSell').value = ''; delete pa('aSell').dataset.dirty; run(db.ref('config/rateSell').remove(), 'Cotización pesos → dólares quitada'); });
-    function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function (e) { msgA(errMsg(e), true); }); }
+    function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).then(function () { adminLog(d > 0 ? 'Operación concretada' : 'Corrección de operaciones', d > 0 ? '+1 operación' : '−1 operación'); track('exchange_completed', { source: 'admin_panel' }); }).catch(function (e) { msgA(errMsg(e), true); }); }
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
     pa('aStMinus').addEventListener('click', function () { bumpDone(-1); });
     /* --- consultas por WhatsApp: confirmar si se dio o no --- */
@@ -1679,7 +1715,7 @@
     pa('aPassBtn').addEventListener('click', function () {
       var np = pa('aNewPass').value; if (np.length < 10) { msgA('La clave debe tener al menos 10 caracteres.', true); return; }
       msgA('Guardando…');
-      auth.currentUser.updatePassword(np).then(function () { pa('aNewPass').value = ''; pa('aNewPass').type = 'password'; passHint(); msgA('Clave cambiada ✓ Úsala la próxima vez. Guárdala en un lugar seguro.'); })
+      auth.currentUser.updatePassword(np).then(function () { adminLog('Clave administrativa cambiada', 'Cambio de credencial confirmado; no se registra la clave.'); pa('aNewPass').value = ''; pa('aNewPass').type = 'password'; passHint(); msgA('Clave cambiada ✓ Úsala la próxima vez. Guárdala en un lugar seguro.'); })
         .catch(function (e) { msgA(/recent/.test(e.code || '') ? 'Sal y vuelve a entrar, luego repite.' : errMsg(e), true); });
     });
     pa('aOut').addEventListener('click', function () { auth.signOut(); });
@@ -1694,13 +1730,21 @@
       else { var d = Math.floor((Date.now() - last) / 86400000); n.textContent = 'Último respaldo: ' + (d < 1 ? 'hoy' : 'hace ' + d + (d === 1 ? ' día' : ' días')) + '.' + (d >= 30 ? ' ⚠ Ya toca hacer uno nuevo.' : ''); }
     }
     bkInfo();
+    /* Registro reciente de acciones administrativas; solo accesible para el usuario autenticado. */
+    var logBox = pa('aAdminLog');
+    if (logBox) db.ref('adminLog').limitToLast(12).on('value', function (snap) {
+      var raw = snap.val() || {}, rows = Object.keys(raw).map(function (k) { return raw[k] || {}; }).sort(function (a, b) { return (+b.at || 0) - (+a.at || 0); });
+      logBox.textContent = '';
+      if (!rows.length) { logBox.textContent = 'Todavía no hay acciones registradas.'; return; }
+      rows.forEach(function (x) { var row = el('div', 'panelbox'), title = el('b', null, String(x.action || 'Acción')); var small = el('div', 'sub', (x.at ? new Date(x.at).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' }) : 'Fecha pendiente') + ' · ' + String(x.by || 'administrador')); var detail = el('div', 'sub', String(x.detail || '')); row.appendChild(title); row.appendChild(small); row.appendChild(detail); logBox.appendChild(row); });
+    }, function () { logBox.textContent = 'No se pudo leer el registro. Comprueba las reglas de Firebase actualizadas.'; });
     pa('aBkBtn').addEventListener('click', function () {
-      var nodes = ['config', 'status', 'history', 'stats', 'inquiries', 'alerts', 'notifyOpen', 'reviews', 'reviewReq']; msgA('Preparando respaldo…');
+      var nodes = ['config', 'status', 'history', 'stats', 'inquiries', 'alerts', 'notifyOpen', 'reviews', 'reviewReq', 'adminLog']; msgA('Preparando respaldo…');
       Promise.all(nodes.map(function (n) { return db.ref(n).once('value').then(function (sn) { return [n, sn.val()]; }).catch(function () { return [n, 'SIN_PERMISO']; }); })).then(function (r) {
         var o = { generado: new Date().toISOString(), version: VER }; r.forEach(function (x) { o[x[0]] = x[1]; });
         var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(o, null, 1)], { type: 'application/json' })); a.download = 'respaldo-dolarpesopro-' + new Date().toISOString().slice(0, 10) + '.json';
         document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); if (a.parentNode) a.parentNode.removeChild(a); }, 1500);
-        try { localStorage.setItem('pp_bk', String(Date.now())); } catch (e) {} bkInfo(); msgA('Respaldo descargado ✓ Guárdalo en un lugar seguro (no lo subas a GitHub).');
+        try { localStorage.setItem('pp_bk', String(Date.now())); } catch (e) {} adminLog('Respaldo descargado', 'Se generó un respaldo JSON desde el panel.'); bkInfo(); msgA('Respaldo descargado ✓ Guárdalo en un lugar seguro (no lo subas a GitHub).');
       }).catch(function (e) { msgA(errMsg(e), true); });
     });
     S.alRef = db.ref('alerts'); S.alRef.on('value', function (s) {
@@ -1718,6 +1762,11 @@
       run(db.ref('status').update(stFull({ offReason: v })), v ? 'Motivo guardado' : 'Motivo quitado', ['aReason']);
     });
     /* --- compartir cotización por WhatsApp --- */
+    pa('aMoveCard').addEventListener('click', function () {
+      var cc = S.cfg, d = cc.rate - cc.prev; if (!(cc.prev > 0) || !d) return; var b = this; b.disabled = true;
+      var opts = { move: { d: d, prev: cc.prev } };
+      drawCard('story', opts).then(function (bl) { showCard(bl, 'story', opts); }).catch(function () { msgA('No se pudo crear la tarjeta. Intenta de nuevo.', true); }).then(function () { b.disabled = false; });
+    });
     pa('aShareRate').addEventListener('click', function () {
       var c = S.cfg, url = location.href.split('#')[0].split('?')[0];
       var txt = '💵 Dólar hoy en Dólar PesoPro: ' + ars(c.rate) + ' por USD' + (c.rateSell > 0 ? '\n🔁 Pesos → dólares: ' + ars(c.rateSell) : '') + '\nCalcula tu envío aquí: ' + url;
@@ -1790,8 +1839,12 @@
     try { refreshSwitches(); } catch (e) { console.error(e); }
     try { refreshPanelFull(); } catch (e) { console.error(e); msgA('Error interno al redibujar el panel: ' + (e && e.message ? e.message : e) + ' · avísame con este texto.', true); }
   }
+  function moveBtn() {
+    var b = pa('aMoveCard'); if (!b) return; var c = S.cfg, d = c.rate - c.prev, ok = c.prev > 0 && Math.abs(d) >= 0.005;
+    b.hidden = !ok; if (ok) b.textContent = '📸 Tarjeta de la ' + (d > 0 ? 'subida ▲ +' : 'bajada ▼ −') + fmtN(Math.abs(d));
+  }
   function refreshPanelFull() {
-    if (!S.admin || !pa('aRate')) return; renderThemes(); var c = S.cfg;
+    if (!S.admin || !pa('aRate')) return; renderThemes(); moveBtn(); var c = S.cfg;
     function fill(id, v) { var n = pa(id); if (n && !n.dataset.dirty && document.activeElement !== n) n.value = v; }
     fill('aRate', inN(c.rate)); fill('aMin', inN(c.minUsd)); fill('aSell', c.rateSell > 0 ? inN(c.rateSell) : '');
     fill('aAnn', c.announcement); fill('aFrom', c.hoursFrom); fill('aTo', c.hoursTo); fill('aReason', c.offReason);
@@ -1862,7 +1915,42 @@
     var cd = pa('aStCards'); if (cd) cd.textContent = today.cards || 0;
     var cp = pa('aStCopies'), wj = pa('aStWaJ'), wb = pa('aStWaB'); if (cp) { cp.textContent = today.copies || 0; wj.textContent = today.waJusto || 0; wb.textContent = today.waBoris || 0; }
     var tc = 0, tj = 0, tb = 0; days.forEach(function (k) { tc += S.stats[k].copies || 0; tj += S.stats[k].waJusto || 0; tb += S.stats[k].waBoris || 0; });
+    try { renderFunnel(); } catch (e) { console.error(e); }
     pa('aStWeek').textContent = 'Últimos ' + Math.max(1, days.length) + ' día(s) con actividad: ' + st + ' iniciados · ' + dn + ' concretados. “Iniciados” cuenta los toques en Hacer cambio. Copiados: ' + tc + ' · WhatsApp Justo: ' + tj + ' · WhatsApp Boris: ' + tb + '.';
+  }
+  function funSum(from, to) {   // suma de días: from..to = días atrás (0 = hoy), en fecha de Argentina
+    var o = { visits: 0, started: 0, copies: 0, wa: 0, done: 0 }, base = srvNow() - 10800000;
+    for (var i = from; i <= to; i++) {
+      var x = S.stats[new Date(base - i * 86400000).toISOString().slice(0, 10)] || {};
+      o.visits += x.visits || 0; o.started += x.started || 0; o.copies += x.copies || 0; o.wa += (x.waJusto || 0) + (x.waBoris || 0); o.done += x.done || 0;
+    }
+    return o;
+  }
+  function pct1(n) { return (Math.round(n * 10) / 10).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %'; }
+  function renderFunnel() {
+    var box = pa('aFunRows'); if (!S.admin || !box) return;
+    var tabs = pa('aFunTabs');
+    if (!tabs._b) { tabs._b = 1; Array.prototype.forEach.call(tabs.children, function (b) { b.addEventListener('click', function () { S.funN = +b.getAttribute('data-n'); renderFunnel(); }); }); }
+    var n = S.funN || 7; Array.prototype.forEach.call(tabs.children, function (b) { b.classList.toggle('on', +b.getAttribute('data-n') === n); b.setAttribute('aria-pressed', +b.getAttribute('data-n') === n ? 'true' : 'false'); });
+    var cur = funSum(0, n - 1), prev = n === 7 ? funSum(7, 13) : funSum(1, 1), note = [];
+    var rows = [['visits', 'Visitaron la página'], ['started', 'Tocaron “Hacer cambio”'], ['copies', 'Copiaron el mensaje'], ['wa', 'Abrieron WhatsApp'], ['done', 'Cambios concretados']];
+    var top = Math.max(1, cur.visits, cur.started, cur.copies, cur.wa, cur.done);
+    box.textContent = '';
+    rows.forEach(function (r) {
+      var v = cur[r[0]], row = el('div', 'funrow'), hd = el('div', 'funhd'), tr = el('div', 'funtr'), fl = el('div', 'funfl');
+      hd.appendChild(el('span', null, r[1])); hd.appendChild(el('b', null, String(v) + (cur.visits > 0 && r[0] !== 'visits' ? ' · ' + pct1(v / cur.visits * 100) : '')));
+      fl.style.width = Math.max(v > 0 ? 3 : 0, Math.round(v / top * 100)) + '%'; tr.appendChild(fl); row.appendChild(hd); row.appendChild(tr); box.appendChild(row);
+    });
+    if (cur.visits > 0) {
+      var cv = cur.done / cur.visits * 100, line = 'De cada 100 visitas se concretan ' + (Math.round(cv * 10) / 10).toLocaleString('es-AR') + '.';
+      if (prev.visits > 0) { var pv = prev.done / prev.visits * 100, dd = cv - pv; line += ' ' + (n === 7 ? 'Semana anterior' : 'Ayer') + ': ' + (Math.round(pv * 10) / 10).toLocaleString('es-AR') + ' (' + (dd > 0.05 ? '▲ +' : dd < -0.05 ? '▼ ' : '= ') + (Math.round(dd * 10) / 10).toLocaleString('es-AR') + ' pts).'; }
+      note.push(line);
+      var worst = null, ks = ['visits', 'started', 'copies', 'wa', 'done'];
+      for (var i = 1; i < ks.length; i++) { var a = cur[ks[i - 1]], b = cur[ks[i]]; if (a >= 5 && b < a) { var rt = b / a; if (!worst || rt < worst.rt) worst = { rt: rt, from: rows[i - 1][1], to: rows[i][1] }; } }
+      if (worst) note.push('Donde más se caen: de «' + worst.from + '» a «' + worst.to + '» (sigue el ' + Math.round(worst.rt * 100) + ' %).');
+    } else note.push('Aún no hay visitas contadas en este período: se empiezan a contar desde que subas esta versión y publiques las reglas nuevas de Firebase.');
+    note.push('Los pasos no siempre van en orden (alguien puede abrir WhatsApp sin copiar). “Visitaron” cuenta 1 por celular por día. “Concretados” son los que marcas con “Se dio” o +1.');
+    pa('aFunNote').textContent = note.join(' ');
   }
   function renderAlerts() {
     if (!S.admin || !pa('aAlerts')) return; var box = pa('aAlerts'); box.textContent = '';

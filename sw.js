@@ -2,8 +2,8 @@
    - Páginas, estilos y scripts: primero la red (así siempre ves la última versión) y si no hay señal, lo guardado.
    - Imágenes: guardadas, se actualizan en segundo plano.
    - Videos y todo lo externo (Firebase, fuentes): no se tocan. */
-var V = 'pp-v20261021a', SHELL = ['./', 'index.html', 'style.css', 'app.js', 'themes.js', 'firebase-config.js', 'manifest.webmanifest',
-  'assets/logo.webp', 'assets/justo.webp', 'assets/boris.webp', 'assets/icon-192.png'];
+var V = 'pp-v20261022b', SHELL = ['./', 'index.html', 'style.css', 'app.js', 'themes.js', 'firebase-config.js', 'manifest.webmanifest',
+  'assets/logo.webp', 'assets/logo-halloween.webp', 'assets/justo.webp', 'assets/boris.webp', 'assets/justo-h.webp', 'assets/boris-h.webp', 'assets/peek-wolf.webp', 'assets/peek-vamp.webp', 'assets/icon-192.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () {}); })); }).then(function () { return self.skipWaiting(); }));
 });
@@ -37,7 +37,7 @@ self.addEventListener('push', function (e) {
 self.addEventListener('notificationclick', function (e) {
   e.notification.close(); var u = (e.notification.data && e.notification.data.url) || './';
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
-    for (var i = 0; i < cs.length; i++) { if ('focus' in cs[i]) return cs[i].focus(); }
+    for (var i = 0; i < cs.length; i++) { if ('focus' in cs[i] && cs[i].url && cs[i].url.indexOf(self.registration.scope) === 0) { return cs[i].navigate ? cs[i].navigate(u).then(function (c) { return c.focus(); }) : cs[i].focus(); } }
     return self.clients.openWindow(u);
   }));
 });

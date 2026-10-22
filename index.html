@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
 <meta name="twitter:image" content="https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Dólar PesoPro","url":"https://dolarpesopro.github.io/dolarpesopro1/","inLanguage":"es"},{"@type":"FinancialService","name":"Dólar PesoPro","description":"Cambio de dólares y pesos entre Ecuador y Argentina con administradores verificados.","url":"https://dolarpesopro.github.io/dolarpesopro1/","logo":"https://dolarpesopro.github.io/dolarpesopro1/assets/icon-512.png","image":"https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg","areaServed":["EC","AR"],"sameAs":["https://www.instagram.com/dolarpesopro_","https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR"]}]}</script>
-<meta name="pp-version" content="20261021a">
+<meta name="pp-version" content="20261022b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -39,7 +39,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="style.css?v=20261021a">
+<link rel="stylesheet" href="style.css?v=20261022b">
 </head>
 <body>
 
@@ -436,6 +436,10 @@
       <div class="two" id="aWeekAct" hidden><button type="button" class="btn gold" id="aWeekWa">Enviar por WhatsApp</button><button type="button" class="btn ghost" id="aWeekCopy">Copiar</button></div>
     </div>
 
+    <div class="fg" id="aFunBox"><b>Embudo de conversión</b>
+      <div class="chips" id="aFunTabs"><button type="button" class="chip on" data-n="7">Últimos 7 días</button><button type="button" class="chip" data-n="1">Hoy</button></div>
+      <div id="aFunRows" class="funrows"></div><div class="sub" id="aFunNote" style="font-size:12px"></div></div>
+    <hr>
     <div class="live" id="aLive"></div>
     <div class="live" id="aRules" hidden></div>
 
@@ -445,6 +449,7 @@
       <div class="chips" id="aSteps"></div>
       <button type="button" class="btn gold" id="aPub">Publicar cotización</button>
       <button type="button" class="btn ghost" id="aShareRate">Enviar cotización por WhatsApp (al grupo)</button>
+      <button type="button" class="btn gold" id="aMoveCard" hidden>📸 Tarjeta de la subida</button>
     </div>
     <hr>
     <div class="fg">
@@ -497,6 +502,8 @@
       <button type="button" class="btn gold" id="aRvAdd">Publicar reseña</button>
       <div id="aRvList" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aRvEmpty">Aún no hay reseñas publicadas.</div></div>
     <hr>
+    <div class="fg"><b>Registro de acciones administrativas</b><div class="sub" style="font-size:12px">Últimas acciones confirmadas: cambios de cotización, encendido/apagado y acciones importantes. No se guardan contraseñas.</div><div id="aAdminLog" style="display:flex;flex-direction:column;gap:8px"></div></div>
+    <hr>
     <div class="fg"><b>Respaldo de datos</b><div class="sub" style="font-size:12px">Descarga un archivo con la cotización, historial, estadísticas, consultas, avisos y reseñas. Guárdalo en tu celular o en tu correo; no lo subas a GitHub.</div><div class="sub" id="aBkInfo" style="font-weight:700"></div><button type="button" class="btn ghost" id="aBkBtn">⬇ Descargar respaldo</button></div>
     <hr>
     <div class="fg"><label class="lbl" for="aNewPass"><b style="color:var(--ink)">9. Cambiar clave</b> (mínimo 10 caracteres; mejor larga)</label><input id="aNewPass" class="field sm" type="password" autocomplete="new-password" placeholder="Nueva clave"><div class="sub" style="font-size:12px" id="aPassHint"></div>
@@ -505,12 +512,12 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261021a"></script>
+<script src="firebase-config.js?v=20261022b"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script>if(window.LAZY_AUTH===false)document.write('<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"><\/script>')</script>
-<script src="themes.js?v=20261021a"></script>
-<script src="app.js?v=20261021a"></script>
+<script src="themes.js?v=20261022b"></script>
+<script src="app.js?v=20261022b"></script>
 <script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>
