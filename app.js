@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261111i';
+  var VER = '20261111j';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -1420,19 +1420,19 @@
   function refBump(f) {   // contador anónimo por enlace (visitas, toques en Hacer cambio, WhatsApp); máximo 12 por tipo y visita
     if (!db || !S.ref || S.admin || S.preview || location.hash === '#admin' || (refN[f] = (refN[f] || 0) + 1) > 12) return;
     try {
-      db.ref('refStats/' + S.ref + '/' + f).transaction(function (v) { return (typeof v === 'number' ? v : 0) + 1; }).catch(function () {});
+      db.ref('refStats/' + S.ref + '/' + f).set(firebase.database.ServerValue.increment(1)).catch(function (e) { try { console.warn('refStats', f, e && e.code); } catch (x) {} });
       db.ref('refStats/' + S.ref + '/last').set(firebase.database.ServerValue.TIMESTAMP).catch(function () {});
     } catch (e) {}
   }
   function countStart() {
     if (!db || S.admin || S.startedN >= 5) return; S.startedN++;
     refBump('started');
-    try { db.ref('stats/' + dayKey() + '/started').transaction(function (v) { return (typeof v === 'number' ? v : 0) + 1; }).catch(function () {}); } catch (e) {}
+    try { db.ref('stats/' + dayKey() + '/started').set(firebase.database.ServerValue.increment(1)).catch(function () {}); } catch (e) {}
   }
   var bumpN = {};
   function bump(f) {   // contador diario anónimo (copiados, WhatsApp Justo/Boris); máximo 12 por tipo y visita
     if (!db || S.admin || S.preview || (bumpN[f] = (bumpN[f] || 0) + 1) > 12) return;
-    try { db.ref('stats/' + dayKey() + '/' + f).transaction(function (v) { return (typeof v === 'number' ? v : 0) + 1; }).catch(function () {}); } catch (e) {}
+    try { db.ref('stats/' + dayKey() + '/' + f).set(firebase.database.ServerValue.increment(1)).catch(function () {}); } catch (e) {}
   }
   /* Visitantes del día: se cuenta 1 por celular por día (sin datos personales) */
   (function () {
@@ -1480,7 +1480,7 @@
       if (code !== 'pesopro' || !db || location.hash === '#admin') return;
       var key = 'pp_ref_seen_' + dayKey(); if (localStorage.getItem(key)) return;
       localStorage.setItem(key, '1');
-      db.ref('referrals/pesopro').transaction(function(v) { return (typeof v === 'number' && v >= 0 ? v : 0) + 1; }).catch(function() {});
+      db.ref('referrals/pesopro').set(firebase.database.ServerValue.increment(1)).catch(function() {});
     } catch (e) {}
   })();
 
