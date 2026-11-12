@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261111j';
+  var VER = '20261111l';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -2294,6 +2294,7 @@
   function renderRvReq() {
     if (!S.admin || !pa('aRvReq')) return; var box = pa('aRvReq'); box.textContent = ''; pa('aRvReqEmpty').hidden = S.rvReq.length > 0;
     pa('aRvReqT').textContent = 'Opiniones pendientes de aprobar' + (S.rvReq.length ? ' (' + S.rvReq.length + ')' : '');
+    if (pa('aRvSum')) pa('aRvSum').textContent = '⭐ Reseñas' + (S.rvReq.length ? ' · ⏳ ' + S.rvReq.length + ' pendiente(s)' : '');
     S.rvReq.forEach(function (r) {
       var row = el('div', 'alrow'), info = el('div', 'nm', '★'.repeat(r.stars) + ' · ' + r.name + (r.place ? ' (' + r.place + ')' : '') + ': “' + r.text + '”'), b = el('div', 'b');
       var ok = el('button', null, 'Aprobar'); ok.type = 'button'; ok.style.cssText = 'background:#0F7A40;color:#fff';
