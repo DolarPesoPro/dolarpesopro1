@@ -23,7 +23,7 @@
 <meta name="twitter:description" content="Cotización en tiempo real y calculadora. Administradores verificados.">
 <meta name="twitter:image" content="https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Dólar PesoPro","url":"https://dolarpesopro.github.io/dolarpesopro1/","inLanguage":"es"},{"@type":"FinancialService","name":"Dólar PesoPro","description":"Cambio de dólares y pesos entre Ecuador y Argentina con administradores verificados.","url":"https://dolarpesopro.github.io/dolarpesopro1/","logo":"https://dolarpesopro.github.io/dolarpesopro1/assets/icon-512.png","image":"https://dolarpesopro.github.io/dolarpesopro1/assets/og-image.jpg","areaServed":["EC","AR"],"sameAs":["https://www.instagram.com/dolarpesopro_","https://chat.whatsapp.com/ImXkklTZoqf1COCQmYDuTR"]}]}</script>
-<meta name="pp-version" content="20261111l">
+<meta name="pp-version" content="20261111m">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PesoPro">
@@ -39,7 +39,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="style.css?v=20261111l">
+<link rel="stylesheet" href="style.css?v=20261111m">
 </head>
 <body>
 
@@ -442,14 +442,6 @@
     <div class="live" id="aRules" hidden></div>
 
     <hr>
-    <div class="fg" id="aInqBox"><b>📲 Consultas por WhatsApp</b>
-      <div class="sub" style="font-size:13px">Cada vez que un cliente toca Justo o Boris queda registrada aquí. Toca <b>Se dio</b> o <b>No</b>: la consulta sale de Pendientes. Con 🗑 la borras (se pide confirmar). “Se dio” se suma a los concretados del día.</div>
-      <div class="panelbox" id="aInqSum" style="font-size:14px"></div>
-      <div class="tabs" id="aInqTabs" role="group" aria-label="Filtrar consultas"></div>
-      <div id="aInqList" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aInqEmpty">Aún no hay consultas.</div>
-      <div id="aInqAct" style="display:flex;flex-direction:column;gap:8px"></div></div>
-
-    <hr>
     <div class="fg">
       <label class="lbl" for="aRate">1. Cotización oficial (pesos por USD)</label>
       <input id="aRate" class="field" type="text" inputmode="decimal" autocomplete="off">
@@ -460,28 +452,40 @@
     </div>
 
     <hr>
+    <div class="fg" id="aInqBox"><b>📲 Consultas por WhatsApp</b>
+      <div class="sub" style="font-size:13px">Cada vez que un cliente toca Justo o Boris queda registrada aquí. Toca <b>Se dio</b> o <b>No</b>: la consulta sale de Pendientes. Con 🗑 la borras (se pide confirmar). “Se dio” se suma a los concretados del día.</div>
+      <div class="panelbox" id="aInqSum" style="font-size:14px"></div>
+      <div class="tabs" id="aInqTabs" role="group" aria-label="Filtrar consultas"></div>
+      <div id="aInqList" style="display:flex;flex-direction:column;gap:8px"></div><div class="sub" id="aInqEmpty">Aún no hay consultas.</div>
+      <div id="aInqAct" style="display:flex;flex-direction:column;gap:8px"></div></div>
+
+    <hr>
+    <div class="fg" id="aReferralBox"><b>🤝 Enlaces de clientes frecuentes y referidos</b><div class="sub" style="font-size:12px">Cada enlace es único y lo creas tú. Cuando alguien entra por ese enlace y consulta por WhatsApp, queda registrado a nombre del enlace y el mensaje a Justo o Boris incluye el código, así sabes de quién viene. En los referidos puedes definir un beneficio para quien refiere y otro para el referido; cada operación que marques “Se dio” queda registrada abajo para que verifiques y marques cuándo entregaste cada beneficio. El beneficio lo das tú a mano.</div><div class="tabs" id="aRefType" role="group" aria-label="Tipo de enlace"></div><div id="aGiftOpts" hidden><label class="sub" style="font-size:12px;display:flex;flex-direction:column;gap:4px">Cantidad de enlaces<input id="aRefCount" class="field sm" type="number" inputmode="numeric" min="1" max="50" value="5"></label><div class="sub" style="font-size:12px;margin-top:8px">Válidos por (0 = sin límite)</div><div class="two"><input id="aRefDur" class="field sm" type="number" inputmode="decimal" min="0" max="43200" value="30" aria-label="Tiempo de validez"><select id="aRefUnit" class="field sm" aria-label="Unidad"><option value="m">minutos</option><option value="h">horas</option></select></div><div class="chips wrapchips" id="aRefDurChips" style="margin-top:6px"></div><div class="sub" style="font-size:12px;margin-top:6px">Regalo: el primero que abre cada enlace se lo queda; los demás ven que ya fue usado. El beneficio que escribas abajo lo ve el cliente.</div></div>
+ <input id="aRefLabel" class="field sm" type="text" maxlength="60" autocomplete="off" placeholder="Número o nombre de quien lo recibe. Ej: 11 5555 1234"><input id="aRefNote" class="field sm" type="text" maxlength="120" autocomplete="off" placeholder="Beneficio acordado (opcional). Ej: −0,5 % de comisión"><input id="aRefBen" class="field sm" type="text" maxlength="120" autocomplete="off" hidden placeholder="Beneficio para el referido (lo ve el cliente)"><button type="button" class="btn gold" id="aRefNew">Crear enlace</button><div class="sub" id="aRefMsg" style="font-size:12px;font-weight:700"></div><div class="panelbox" id="aRefSum" style="font-size:13px;padding:12px 14px"></div><div class="panelbox" id="aGiftBar" hidden></div><div id="aGiftList"></div><div id="aRefList"></div><div class="sub" id="aRefEmpty" style="font-size:12px">Todavía no creaste enlaces.</div><div class="sub" id="aReferralCount" style="font-size:12px"></div></div>
+
+    <hr>
+    <details class="adet" id="aSellDet"><summary>2. Cotización pesos → dólares (opcional)</summary><div class="adetbody">
     <div class="fg">
-      <label class="lbl" for="aSell"><b style="color:var(--ink)">2. Cotización pesos → dólares</b> (opcional)</label>
+      <label class="lbl" for="aSell">Cotización pesos → dólares (opcional)</label>
       <input id="aSell" class="field sm" type="text" inputmode="decimal" autocomplete="off" placeholder="Vacío = se acuerda por chat">
       <div class="sub" style="font-size:12px">Si la escribes, los clientes la ven en la tarjeta de cotización y en la pestaña “Pesos → Dólares”, con un cálculo rápido. Vacía, todo sigue como antes.</div>
       <div class="two"><button type="button" class="btn gold" id="aSellBtn">Guardar</button><button type="button" class="btn ghost" id="aSellOff">Quitar</button></div>
     </div>
+    </div></details>
 
     <hr>
     <div class="srow"><div><b>3. Clientes pueden modificar la cotización</b><div class="sub" style="font-size:12px" id="aManualHelp"></div></div><button type="button" class="sw" id="aManual" role="switch" aria-label="Permitir modificar la cotización"><i></i></button></div>
 
     <hr>
-    <div class="fg"><b>4. Monto mínimo</b>
+    <details class="adet" id="aMinDet"><summary>4. Monto mínimo</summary><div class="adetbody">
+    <div class="fg">
       <label class="lbl" for="aMin">Monto mínimo para calcular (USD)</label><input id="aMin" class="field sm" type="text" inputmode="decimal" autocomplete="off">
       <button type="button" class="btn gold" id="aMinBtn">Guardar mínimo</button>
     </div>
+    </div></details>
 
     <hr>
     <div class="fg"><label class="lbl" for="aAnn"><b style="color:var(--ink)">5. Aviso para los clientes</b> (vacío lo oculta)</label><input id="aAnn" class="field sm" type="text" autocomplete="off" placeholder="Ej: Hoy atendemos hasta las 20:00"><button type="button" class="btn gold" id="aAnnBtn">Guardar aviso</button></div>
-
-    <hr>
-    <div class="fg" id="aReferralBox"><b>🤝 Enlaces de clientes frecuentes y referidos</b><div class="sub" style="font-size:12px">Cada enlace es único y lo creas tú. Cuando alguien entra por ese enlace y consulta por WhatsApp, queda registrado a nombre del enlace y el mensaje a Justo o Boris incluye el código, así sabes de quién viene. En los referidos puedes definir un beneficio para quien refiere y otro para el referido; cada operación que marques “Se dio” queda registrada abajo para que verifiques y marques cuándo entregaste cada beneficio. El beneficio lo das tú a mano.</div><div class="tabs" id="aRefType" role="group" aria-label="Tipo de enlace"></div><div id="aGiftOpts" hidden><label class="sub" style="font-size:12px;display:flex;flex-direction:column;gap:4px">Cantidad de enlaces<input id="aRefCount" class="field sm" type="number" inputmode="numeric" min="1" max="50" value="5"></label><div class="sub" style="font-size:12px;margin-top:8px">Válidos por (0 = sin límite)</div><div class="two"><input id="aRefDur" class="field sm" type="number" inputmode="decimal" min="0" max="43200" value="30" aria-label="Tiempo de validez"><select id="aRefUnit" class="field sm" aria-label="Unidad"><option value="m">minutos</option><option value="h">horas</option></select></div><div class="chips wrapchips" id="aRefDurChips" style="margin-top:6px"></div><div class="sub" style="font-size:12px;margin-top:6px">Regalo: el primero que abre cada enlace se lo queda; los demás ven que ya fue usado. El beneficio que escribas abajo lo ve el cliente.</div></div>
- <input id="aRefLabel" class="field sm" type="text" maxlength="60" autocomplete="off" placeholder="Número o nombre de quien lo recibe. Ej: 11 5555 1234"><input id="aRefNote" class="field sm" type="text" maxlength="120" autocomplete="off" placeholder="Beneficio acordado (opcional). Ej: −0,5 % de comisión"><input id="aRefBen" class="field sm" type="text" maxlength="120" autocomplete="off" hidden placeholder="Beneficio para el referido (lo ve el cliente)"><button type="button" class="btn gold" id="aRefNew">Crear enlace</button><div class="sub" id="aRefMsg" style="font-size:12px;font-weight:700"></div><div class="panelbox" id="aRefSum" style="font-size:13px;padding:12px 14px"></div><div class="panelbox" id="aGiftBar" hidden></div><div id="aGiftList"></div><div id="aRefList"></div><div class="sub" id="aRefEmpty" style="font-size:12px">Todavía no creaste enlaces.</div><div class="sub" id="aReferralCount" style="font-size:12px"></div></div>
 
     <hr>
     <div class="fg"><b>Respuestas rápidas</b><div class="sub" style="font-size:12px">Toca una para copiarla y pégala en el chat del cliente.</div><div class="qrlist" id="aQrList"></div>
@@ -562,13 +566,13 @@
   </section>
 </template>
 
-<script src="firebase-config.js?v=20261111l"></script>
+<script src="firebase-config.js?v=20261111m"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script>if(window.LAZY_AUTH===false)document.write('<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"><\/script>')</script>
-<script src="themes.js?v=20261111l"></script>
-<script src="legal.js?v=20261111l"></script>
-<script src="app.js?v=20261111l"></script>
+<script src="themes.js?v=20261111m"></script>
+<script src="legal.js?v=20261111m"></script>
+<script src="app.js?v=20261111m"></script>
 <script>if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
 </body>
 </html>
