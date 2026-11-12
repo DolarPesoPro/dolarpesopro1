@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261111h';
+  var VER = '20261111i';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -24,7 +24,7 @@
   /* ---------- textos ---------- */
   var I18N = {
     es: {
-      giftOk: '🎁 ¡Enlace de regalo activado!{b} Al escribirle a Justo o Boris, tu mensaje ya lleva tu código {c}.', giftBen: 'Beneficio: {b}.', giftUsed: 'Este enlace de regalo ya fue usado por otra persona o venció. Igual puedes cambiar con la cotización de hoy.',
+      giftOk: '🎁 ¡Enlace de regalo activado!{b} Al escribirle a Justo o Boris, tu mensaje ya lleva tu código {c}.', giftBen: 'Beneficio: {b}.', refOk: '🤝 Te recomendó un cliente de Dólar PesoPro. Tu beneficio: {b}. Al escribirle a Justo o Boris, tu mensaje ya lleva tu código {c}.', giftUsed: 'Este enlace de regalo ya fue usado por otra persona o venció. Igual puedes cambiar con la cotización de hoy.',
       lgTerms: 'Términos y condiciones', lgPriv: 'Política de privacidad', lgDisc: 'Descargo de responsabilidad', lgTitle: 'Información legal', lgTermsS: 'Términos', lgPrivS: 'Privacidad', lgDiscS: 'Descargo',
       fContact: 'Contacto', fHours: 'Horarios', fRates: 'Sobre las cotizaciones', fWaJusto: 'Escribir a Justo (WhatsApp)', fWaBoris: 'Escribir a Boris (WhatsApp)', fGroup: 'Grupo de WhatsApp', fIg: 'Instagram @dolarpesopro_', fTop: 'Volver arriba',
       fHoursOn: 'Todos los días de {a} a {b} (hora de Argentina).', fHoursOff: 'Sin horario fijo: atendemos cuando el indicador dice EN LÍNEA.', fShort: 'Valores de referencia. La operación se confirma con un administrador verificado.',
@@ -117,7 +117,7 @@
       f6q: '¿Y si quiero cambiar pesos a dólares?', f6a: 'No se cobra comisión. Escríbele a un administrador para acordar la cotización en el momento.'
     },
     en: {
-      giftOk: '🎁 Gift link activated!{b} When you message Justo or Boris, your message already carries your code {c}.', giftBen: 'Benefit: {b}.', giftUsed: 'This gift link was already used by someone else or has expired. You can still exchange at todays rate.',
+      giftOk: '🎁 Gift link activated!{b} When you message Justo or Boris, your message already carries your code {c}.', giftBen: 'Benefit: {b}.', refOk: '🤝 A Dólar PesoPro customer recommended you. Your benefit: {b}. When you message Justo or Boris, your message already carries your code {c}.', giftUsed: 'This gift link was already used by someone else or has expired. You can still exchange at todays rate.',
       lgTerms: 'Terms and conditions', lgPriv: 'Privacy policy', lgDisc: 'Disclaimer', lgTitle: 'Legal information', lgTermsS: 'Terms', lgPrivS: 'Privacy', lgDiscS: 'Disclaimer',
       fContact: 'Contact', fHours: 'Hours', fRates: 'About the rates', fWaJusto: 'Message Justo (WhatsApp)', fWaBoris: 'Message Boris (WhatsApp)', fGroup: 'WhatsApp group', fIg: 'Instagram @dolarpesopro_', fTop: 'Back to top',
       fHoursOn: 'Every day from {a} to {b} (Argentina time).', fHoursOff: 'No fixed schedule: we are available when the indicator says ONLINE.', fShort: 'Reference values. Transfers are confirmed by a verified administrator.',
@@ -1457,6 +1457,15 @@
       S.ref = code; S.gift = code; giftShow(code); refBump('visits'); try { update(); } catch (e) {}
     }).catch(function (e) { if (e && /permission/i.test(String(e.code || '') + String(e.message || ''))) giftBanner(t('giftUsed'), false); });
   })();
+  /* Enlace de referido (R-): quien llega ve el beneficio que se le ofreció (si hay uno). */
+  (function () {
+    if (!db || !S.ref || S.ref.charAt(0) !== 'R' || location.hash === '#admin' || S.preview) return;
+    var code = S.ref;
+    Promise.all([db.ref('refLinks/' + code + '/ben').once('value'), db.ref('refLinks/' + code + '/on').once('value')]).then(function (r) {
+      var b = String(r[0].val() || '').trim(); if (!b || r[1].val() === false) return;
+      giftBanner(t('refOk', { b: b, c: code }), true);
+    }).catch(function () {});
+  })();
   /* Visita por enlace propio: se cuenta 1 por celular por día y por enlace. */
   (function () {
     if (!db || !S.ref || S.preview || location.hash === '#admin') return;
@@ -1734,6 +1743,14 @@
       if (!code || !(S.refLinks || {})[code]) return;
       db.ref('refStats/' + code + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).catch(function () {});
     }
+    function refDeal(x, add) {   // registro permanente de operaciones concretadas por enlace (para verificar y entregar beneficios)
+      if (!x || !x.ref || !(S.refLinks || {})[x.ref]) return;
+      var p = db.ref('refDeals/' + x.ref + '/' + x.id);
+      if (!add) { p.remove().catch(function () {}); return; }
+      var o = { at: firebase.database.ServerValue.TIMESTAMP, bR: false, bD: false };
+      if (typeof x.usd === 'number') o.usd = x.usd; if (typeof x.rate === 'number') o.rate = x.rate;
+      p.set(o).catch(function (e) { msgA(errMsg(e), true); });
+    }
     function refName(code) { var x = (S.refLinks || {})[code]; return x && x.label ? x.label + ' (' + code + ')' : code + ' (enlace borrado)'; }
     function bumpDone(d) { db.ref('stats/' + dayKey() + '/done').transaction(function (v) { return Math.max(0, (typeof v === 'number' ? v : 0) + d); }).then(function () { adminLog(d > 0 ? 'Operación concretada' : 'Corrección de operaciones', d > 0 ? '+1 operación' : '−1 operación'); track('exchange_completed', { source: 'admin_panel' }); }).catch(function (e) { msgA(errMsg(e), true); }); }
     pa('aStPlus').addEventListener('click', function () { bumpDone(1); });
@@ -1789,7 +1806,7 @@
     }
     function inqSet(x, st) {
       db.ref('inquiries/' + x.id).update({ st: st, doneAt: st === 'done' ? firebase.database.ServerValue.TIMESTAMP : null }).then(function () {
-        if (st === 'done' && x.st !== 'done') { bumpDone(1); refDone(x.ref, 1); } else if (x.st === 'done' && st !== 'done') { bumpDone(-1); refDone(x.ref, -1); }
+        if (st === 'done' && x.st !== 'done') { bumpDone(1); refDone(x.ref, 1); refDeal(x, true); } else if (x.st === 'done' && st !== 'done') { bumpDone(-1); refDone(x.ref, -1); refDeal(x, false); }
       }).catch(function (e) { msgA(errMsg(e), true); });
     }
     S.inqRef = db.ref('inquiries').orderByKey().limitToLast(80);
@@ -1865,15 +1882,29 @@
       var DEF = [
         ['Ya recibí tu pago', '¡Hola! Ya recibí tu pago ✅ En unos minutos te envío tu dinero. Gracias por confiar en Dólar PesoPro.'],
         ['Operación concretada', 'Tu operación fue concretada ✅ Ya puedes revisar tu cuenta. ¡Gracias por cambiar con Dólar PesoPro! Si quedaste conforme, nos ayuda mucho que dejes tu opinión en la página.'],
-        ['Confirmo y congelo precio', 'Perfecto 🙌 Te confirmo la operación y te congelo el precio por 10 minutos. Antes de enviar, revisa bien los datos de la cuenta y mándame el comprobante cuando lo hagas.'],
         ['Pedir comprobante', '¿Me envías el comprobante de la transferencia, por favor? Con eso lo verifico y sigo con tu cambio.'],
+        ['Ya te paso cuenta', 'Ya te paso la cuenta 🙌 Dame un momento, por favor.'],
         ['Pedir datos de cuenta', 'Para enviarte tu dinero necesito: nombre completo del titular, banco o billetera y alias/CBU/CVU. Por favor revísalos bien antes de mandarlos.'],
-        ['Precio vencido', 'El precio de 10 minutos ya venció. Te paso la cotización actualizada: ¿seguimos con el cambio?'],
         ['Procesando', 'Estoy procesando tu operación, dame unos minutos por favor 🙏'],
         ['Fuera de horario', 'Ahora estamos fuera de horario. Te respondo apenas abramos. ¡Gracias por tu paciencia!'],
-        ['Gracias', '¡Gracias por tu confianza! Cuando quieras volver a cambiar, aquí estamos.']
+        ['Gracias', '¡Gracias por tu confianza! Cuando quieras volver a cambiar, aquí estamos.'],
+        ['Muchísimas gracias', '¡Muchísimas gracias! 🙏 Fue un gusto atenderte.'],
+        ['Linda tarde', '¡Que tengas una linda tarde! ☀️'],
+        ['Linda noche', '¡Que tengas una linda noche! 🌙']
       ], KEY = 'pp_qr', list = pa('aQrList'), box = pa('aQrEditBox'), ta = pa('aQrText');
       if (!list) return;
+      /* Migración única: si ya había plantillas guardadas en este celular, quita las dos eliminadas y agrega las nuevas */
+      try {
+        if (localStorage.getItem('pp_qr_v') !== 'i') {
+          var sv0 = JSON.parse(localStorage.getItem(KEY) || 'null');
+          if (Array.isArray(sv0) && sv0.length) {
+            sv0 = sv0.filter(function (r) { return r && r[0] !== 'Precio vencido' && r[0] !== 'Confirmo y congelo precio'; });
+            DEF.forEach(function (d) { if (/^(Ya te paso cuenta|Muchísimas gracias|Linda tarde|Linda noche)$/.test(d[0]) && !sv0.some(function (r) { return r && r[0] === d[0]; })) sv0.push(d); });
+            localStorage.setItem(KEY, JSON.stringify(sv0.slice(0, 20)));
+          }
+          localStorage.setItem('pp_qr_v', 'i');
+        }
+      } catch (e) {}
       function load() { try { var v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (Array.isArray(v) && v.length) return v.filter(function (r) { return r && r[0] && r[1]; }); } catch (e) {} return DEF; }
       function copyTxt(txt, title) {
         function ok() { copyToast('✓ Copiado: ' + title); }
@@ -1938,6 +1969,10 @@
       function num(v) { return typeof v === 'number' && isFinite(v) ? v : 0; }
       function rmsg(t, bad) { var m = pa('aRefMsg'); if (!m) return; m.textContent = t; m.style.color = bad ? '#C62828' : ''; }
       function linkUrl(c) { return base + '?ref=' + c; }
+      function durTxt(m) { m = Math.round(m); if (m < 60) return m + ' min'; var h = Math.floor(m / 60), r = m % 60; return h + ' h' + (r ? ' ' + r + ' min' : ''); }
+      function delMap(codes) { var m = {}; codes.forEach(function (c) { m['refLinks/' + c] = null; m['refStats/' + c] = null; m['refDeals/' + c] = null; }); return m; }
+      function dealsOf(c) { var d = (S.refDeals || {})[c] || {}; return Object.keys(d).map(function (k) { var v = d[k] || {}; return { id: k, at: +v.at || 0, usd: v.usd, rate: v.rate, bR: v.bR === true, bD: v.bD === true }; }).sort(function (p, q) { return q.at - p.at; }); }
+      S.refOpen = S.refOpen || {};
       function newCode(t) {
         var a = new Uint8Array(6), i, c = t + '-';
         try { crypto.getRandomValues(a); } catch (e) { for (i = 0; i < 6; i++) a[i] = Math.floor(Math.random() * 256); }
@@ -1956,8 +1991,10 @@
         });
         var g = typeSel === 'G';
         pa('aGiftOpts').hidden = !g;
-        pa('aRefLabel').placeholder = g ? 'Nombre de la campaña (opcional). Ej: Regalo del lunes' : '¿A quién se lo das? (nombre o apodo)';
-        pa('aRefNote').placeholder = g ? 'Beneficio que verá el cliente. Ej: 0,5 % menos de comisión' : 'Beneficio acordado (opcional). Ej: −0,5 % de comisión';
+        pa('aRefBen').hidden = typeSel !== 'R';
+        pa('aRefLabel').placeholder = g ? 'Nombre de la campaña (opcional). Ej: Regalo del lunes' : 'Número o nombre de quien lo recibe. Ej: 11 5555 1234';
+        pa('aRefNote').placeholder = g ? 'Beneficio que verá el cliente. Ej: 0,5 % menos de comisión' : typeSel === 'R' ? 'Beneficio para quien refiere (solo lo ves tú). Ej: 0,3 % de bono' : 'Beneficio acordado (opcional). Ej: −0,5 % de comisión';
+        pa('aRefBen').placeholder = 'Beneficio para el referido (lo ve el cliente). Ej: 0,5 % menos de comisión';
         pa('aRefNew').textContent = g ? 'Generar enlaces de regalo' : 'Crear enlace';
       }
       function paint() {
@@ -1973,15 +2010,32 @@
           var card = el('div', 'refcard' + (on ? '' : ' paused')), head = el('div', 'refhead');
           head.appendChild(el('b', null, (isF ? '⭐ ' : '🤝 ') + (x.label || 'Sin nombre')));
           head.appendChild(el('span', 'refbadge ' + (isF ? 'f' : 'r'), (isF ? 'Cliente frecuente' : 'Referido') + (on ? '' : ' · pausado')));
+          var dls = dealsOf(c), pend = dls.reduce(function (n, d) { return n + (d.bR ? 0 : 1) + (isF ? 0 : (d.bD ? 0 : 1)); }, 0);
           card.appendChild(head);
           card.appendChild(el('div', 'refcode', c));
-          if (x.note) card.appendChild(el('div', 'refnote', 'Beneficio acordado: ' + x.note));
+          if (x.note) card.appendChild(el('div', 'refnote', (isF ? 'Beneficio acordado: ' : 'Beneficio para quien refiere: ') + x.note));
+          if (!isF && x.ben) card.appendChild(el('div', 'refnote', 'Beneficio para el referido (lo ve el cliente): ' + x.ben));
           var nums = el('div', 'refnums');
           [[num(s2.visits), 'visitas'], [num(s2.started), 'tocaron Hacer cambio'], [num(s2.wa), 'abrieron WhatsApp'], [num(s2.done), 'concretados']].forEach(function (d) {
             var n = el('div', 'refn'); n.appendChild(el('b', null, String(d[0]))); n.appendChild(el('span', null, d[1])); nums.appendChild(n);
           });
           card.appendChild(nums);
           card.appendChild(el('div', 'refnote', s2.last ? 'Último acceso: ' + relTime(s2.last) : 'Todavía nadie entró con este enlace.'));
+          var dtog = el('button', 'btn ghost', (S.refOpen[c] ? '▾ ' : '▸ ') + 'Operaciones concretadas (' + dls.length + ')' + (pend ? ' · ⏳ ' + pend + ' beneficio(s) por entregar' : (dls.length ? ' · ✅ todo entregado' : '')));
+          dtog.type = 'button'; dtog.style.cssText = 'min-height:40px;font-size:13px;margin:6px 0'; dtog.addEventListener('click', function () { S.refOpen[c] = !S.refOpen[c]; paint(); }); card.appendChild(dtog);
+          if (S.refOpen[c]) {
+            if (!dls.length) card.appendChild(el('div', 'refnote', 'Todavía no hay operaciones concretadas por este enlace. Se registran solas cuando tocas “Se dio” en una consulta que vino de este enlace.'));
+            dls.forEach(function (d) {
+              var rw = el('div', 'alrow'), inf = el('div', 'nm', '✔ ' + (typeof d.usd === 'number' ? fmtN(d.usd) + ' USD' : 'sin monto') + (typeof d.rate === 'number' ? ' · ' + ars(d.rate) : '') + ' · ' + relTime(d.at)), bx = el('div', 'b');
+              function flag(txt, k, v) {
+                var z = el('button', null, (v ? '✅ ' : '⏳ ') + txt); z.type = 'button';
+                z.addEventListener('click', function () { db.ref('refDeals/' + c + '/' + d.id + '/' + k).set(!v).then(function () { adminLog(!v ? 'Beneficio entregado' : 'Beneficio desmarcado', (x.label || '') + ' · ' + txt + ' · ' + c); }).catch(function (e) { rmsg(errMsg(e), true); }); });
+                bx.appendChild(z);
+              }
+              if (isF) flag('Beneficio', 'bR', d.bR); else { flag('Quien refiere', 'bR', d.bR); flag('Referido', 'bD', d.bD); }
+              rw.appendChild(inf); rw.appendChild(bx); card.appendChild(rw);
+            });
+          }
           var b = el('div', 'refbtns');
           function btn(txt, fn, cls) { var z = el('button', cls || null, txt); z.type = 'button'; if (fn) z.addEventListener('click', fn); b.appendChild(z); return z; }
           btn('Copiar enlace', function () { copyTxt(linkUrl(c), 'Enlace copiado ✓ ' + linkUrl(c)); }, 'gold');
@@ -1994,8 +2048,8 @@
             db.ref('refLinks/' + c + '/on').set(!on).then(function () { adminLog(on ? 'Enlace pausado' : 'Enlace reactivado', (x.label || '') + ' · ' + c); rmsg(on ? 'Enlace pausado: deja de contar visitas nuevas.' : 'Enlace reactivado ✓'); }).catch(function (e) { rmsg(errMsg(e), true); });
           });
           var dz = btn('🗑', null, 'del'); dz.setAttribute('aria-label', 'Borrar este enlace');
-          twoStep(dz, '¿Borrar?', function () {
-            var m = {}; m['refLinks/' + c] = null; m['refStats/' + c] = null;
+          twoStep(dz, dls.length ? '¿Borrar y perder el registro?' : '¿Borrar?', function () {
+            var m = delMap([c]);
             db.ref().update(m).then(function () { adminLog('Enlace borrado', (x.label || '') + ' · ' + c); rmsg('Enlace borrado. Las consultas ya registradas conservan su código.'); }).catch(function (e) { rmsg(errMsg(e), true); });
           });
           card.appendChild(b); listBox.appendChild(card);
@@ -2032,7 +2086,7 @@
         }
         if (used.length + dead.length) {
           var cz = bb('Borrar usados y vencidos', null); twoStep(cz, '¿Seguro?', function () {
-            var m = {}; used.concat(dead).forEach(function (c) { m['refLinks/' + c] = null; m['refStats/' + c] = null; });
+            var m = delMap(used.concat(dead));
             db.ref().update(m).then(function () { adminLog('Regalos borrados', (used.length + dead.length) + ' enlace(s) usados o vencidos'); rmsg('Listo ✓ Las consultas ya registradas conservan su código.'); }).catch(function (e) { rmsg(errMsg(e), true); });
           });
         }
@@ -2042,48 +2096,58 @@
           var row = el('div', 'alrow gift-' + sts), info = el('div', 'nm'), b = el('div', 'b');
           var stTxt = sts === 'used' ? '✅ Usado ' + relTime(x.claim.at) : sts === 'expired' ? '⌛ Vencido' : sts === 'paused' ? '⏸ Pausado' : '🟢 Disponible';
           info.appendChild(el('b', null, (x.label || 'Regalo') + ' · ' + stTxt));
-          info.appendChild(el('div', 'refnote', c + (x.note ? ' · ' + x.note : '') + (num(s2.done) ? ' · ' + num(s2.done) + ' concretado(s)' : num(s2.wa) ? ' · abrió WhatsApp' : '')));
+          info.appendChild(el('div', 'refnote', c + (x.note ? ' · ' + x.note : '') + (sts === 'free' && x.exp ? ' · vence en ' + durTxt(Math.max(0, (+x.exp - srvNow()) / 60000)) : '') + (num(s2.done) ? ' · ' + num(s2.done) + ' concretado(s)' : num(s2.wa) ? ' · abrió WhatsApp' : '')));
           function gb(txt, fn) { var z = el('button', null, txt); z.type = 'button'; if (fn) z.addEventListener('click', fn); b.appendChild(z); return z; }
           if (sts === 'free') gb('Copiar', function () { copyTxt(linkUrl(c), 'Enlace copiado ✓'); });
           if (sts === 'used') { var rz = gb('Liberar', null); twoStep(rz, '¿Liberar?', function () { db.ref('refLinks/' + c + '/claim').remove().then(function () { adminLog('Regalo liberado', (x.label || '') + ' · ' + c); rmsg('Regalo liberado: el próximo que lo abra se lo queda.'); }).catch(function (e) { rmsg(errMsg(e), true); }); }); }
           var dz = gb('🗑', null); dz.setAttribute('aria-label', 'Borrar este enlace'); dz.style.color = '#C62828';
-          twoStep(dz, '¿Borrar?', function () { var m = {}; m['refLinks/' + c] = null; m['refStats/' + c] = null; db.ref().update(m).catch(function (e) { rmsg(errMsg(e), true); }); });
+          twoStep(dz, '¿Borrar?', function () { db.ref().update(delMap([c])).then(function () { rmsg('Enlace borrado ✓'); }).catch(function (e) { rmsg(errMsg(e), true); }); });
           row.appendChild(info); row.appendChild(b); box.appendChild(row);
         });
       }
       function createGifts() {
-        var n = Math.max(1, Math.min(50, parseInt(pa('aRefCount').value, 10) || 0)), hrs = Math.max(0, Math.min(720, parseFloat(String(pa('aRefHours').value).replace(',', '.')) || 0));
+        var n = Math.max(1, Math.min(50, parseInt(pa('aRefCount').value, 10) || 0)), dv = parseFloat(String(pa('aRefDur').value).replace(',', '.')) || 0, mins = Math.max(0, Math.min(43200, pa('aRefUnit').value === 'h' ? dv * 60 : dv));
         var note = pa('aRefNote').value.trim().slice(0, 120), camp = pa('aRefLabel').value.trim().slice(0, 48) || 'Regalo';
         if (!parseInt(pa('aRefCount').value, 10)) { rmsg('Escribe cuántos enlaces quieres (de 1 a 50).', true); return; }
         if (!note) { rmsg('Escribe el beneficio: es lo que verá el cliente al abrir su enlace.', true); return; }
-        var m = {}, made = [], i, code, exp = hrs ? Math.round(srvNow() + hrs * 3600000) : 0;
+        var m = {}, made = [], i, code, exp = mins ? Math.round(srvNow() + mins * 60000) : 0;
         for (i = 0; i < n; i++) {
           do { code = newCode('G'); } while ((S.refLinks || {})[code] || m['refLinks/' + code]);
           var o = { t: 'G', label: camp + ' #' + (i + 1), note: note, at: firebase.database.ServerValue.TIMESTAMP, on: true }; if (exp) o.exp = exp;
           m['refLinks/' + code] = o; made.push(code);
         }
         db.ref().update(m).then(function () {
-          adminLog('Regalos generados', n + ' enlace(s) · ' + note + (hrs ? ' · válidos ' + hrs + ' h' : ' · sin vencimiento'));
+          adminLog('Regalos generados', n + ' enlace(s) · ' + note + (mins ? ' · válidos ' + durTxt(mins) : ' · sin vencimiento'));
           pa('aRefLabel').value = ''; pa('aRefNote').value = ''; rmsg('¡Listo! ' + n + ' enlace(s) de regalo creados ✓ Usa “Copiar los disponibles” o “WhatsApp” aquí abajo. No los abras tú: el primero que abre un enlace se lo queda.');
         }).catch(function (e) { rmsg(errMsg(e), true); });
       }
       pa('aRefNew').addEventListener('click', function () {
         if (typeSel === 'G') { createGifts(); return; }
         var label = pa('aRefLabel').value.trim().slice(0, 60), note = pa('aRefNote').value.trim().slice(0, 120);
-        if (!label) { rmsg('Escribe a quién le das este enlace (nombre o apodo) para reconocerlo después.', true); return; }
+        if (!label) { rmsg('Escribe el número o nombre de quien recibe este enlace para reconocerlo después.', true); return; }
+        var ben = typeSel === 'R' ? pa('aRefBen').value.trim().slice(0, 120) : '';
         var code = newCode(typeSel), tries = 0; while ((S.refLinks || {})[code] && tries++ < 5) code = newCode(typeSel);
-        db.ref('refLinks/' + code).set({ t: typeSel, label: label, note: note, at: firebase.database.ServerValue.TIMESTAMP, on: true }).then(function () {
+        var obj = { t: typeSel, label: label, note: note, at: firebase.database.ServerValue.TIMESTAMP, on: true }; if (ben) obj.ben = ben;
+        db.ref('refLinks/' + code).set(obj).then(function () {
           adminLog('Enlace creado', (typeSel === 'F' ? 'Cliente frecuente' : 'Referido') + ' · ' + label + ' · ' + code);
-          pa('aRefLabel').value = ''; pa('aRefNote').value = ''; rmsg('Enlace creado ✓ Ya puedes copiarlo o mandarlo por WhatsApp desde la lista.');
+          pa('aRefLabel').value = ''; pa('aRefNote').value = ''; pa('aRefBen').value = ''; rmsg('Enlace creado ✓ Ya puedes copiarlo o mandarlo por WhatsApp desde la lista.');
         }).catch(function (e) { rmsg(errMsg(e), true); });
       });
+      (function () {
+        var box = pa('aRefDurChips'); if (!box) return;
+        [['15 min', 15, 'm'], ['30 min', 30, 'm'], ['1 hora', 1, 'h'], ['2 horas', 2, 'h'], ['24 horas', 24, 'h'], ['Sin límite', 0, 'm']].forEach(function (d) {
+          var z = el('button', 'chip', d[0]); z.type = 'button';
+          z.addEventListener('click', function () { pa('aRefDur').value = d[1]; pa('aRefUnit').value = d[2]; }); box.appendChild(z);
+        });
+      })();
       paintType();
       db.ref('refLinks').on('value', function (snap) { S.refLinks = snap.val() || {}; paint(); }, function () { listBox.textContent = 'No se pudieron leer los enlaces. Publica las reglas de Firebase actualizadas (carpeta 2_FIREBASE_pegar_reglas).'; });
       db.ref('refStats').on('value', function (snap) { S.refStats = snap.val() || {}; paint(); }, function () {});
+      db.ref('refDeals').on('value', function (snap) { S.refDeals = snap.val() || {}; paint(); }, function () {});
       if (pa('aReferralCount')) db.ref('referrals/pesopro').once('value').then(function (snap) { var n = num(snap.val()); pa('aReferralCount').textContent = n ? 'Enlace general antiguo (?ref=pesopro): ' + n + ' accesos registrados.' : ''; }).catch(function () {});
     })();
     pa('aBkBtn').addEventListener('click', function () {
-      var nodes = ['config', 'status', 'history', 'stats', 'inquiries', 'alerts', 'notifyOpen', 'reviews', 'reviewReq', 'adminLog', 'refLinks', 'refStats']; msgA('Preparando respaldo…');
+      var nodes = ['config', 'status', 'history', 'stats', 'inquiries', 'alerts', 'notifyOpen', 'reviews', 'reviewReq', 'adminLog', 'refLinks', 'refStats', 'refDeals']; msgA('Preparando respaldo…');
       Promise.all(nodes.map(function (n) { return db.ref(n).once('value').then(function (sn) { return [n, sn.val()]; }).catch(function () { return [n, 'SIN_PERMISO']; }); })).then(function (r) {
         var o = { generado: new Date().toISOString(), version: VER }; r.forEach(function (x) { o[x[0]] = x[1]; });
         var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(o, null, 1)], { type: 'application/json' })); a.download = 'respaldo-dolarpesopro-' + new Date().toISOString().slice(0, 10) + '.json';
