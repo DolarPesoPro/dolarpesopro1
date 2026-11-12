@@ -10,8 +10,8 @@ window.PP_THEMES = {
     look: 'halloween',
     splash: 'halloween',
     logo: 'assets/logo-halloween.webp',
-    intro: 'assets/intro-halloween.mp4',        // video de bienvenida (se ve una vez cada 6 horas; ?intro=1 lo fuerza)
-    introPoster: 'assets/intro-poster.webp',
+    // intro: 'assets/intro-halloween.mp4',        // video de bienvenida (se ve una vez cada 6 horas; ?intro=1 lo fuerza)
+    // introPoster: 'assets/intro-poster.webp',
     // introV: 'assets/intro-halloween-v.mp4',   // OPCIONAL: video vertical 9:16. Quita las // y sube el archivo a assets/. En celulares se usa este; si falta, se usa el horizontal.
     fonts: 'https://fonts.googleapis.com/css2?family=Pirata+One&display=swap',
     costumes: {
