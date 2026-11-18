@@ -7,7 +7,7 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* Versión de los archivos: index.html, style.css y app.js deben coincidir. Si el celular guardó uno viejo, se recarga una vez y el panel avisa. */
-  var VER = '20261111n';
+  var VER = '20261117c';
   var VERBAD = (function () {
     var m = document.querySelector('meta[name=pp-version]'), hv = m ? m.getAttribute('content') : '', cv = '', bad = [];
     try { cv = getComputedStyle(document.documentElement).getPropertyValue('--v').replace(/["'\s]/g, ''); } catch (e) {}
@@ -1218,20 +1218,34 @@
   function arStamp() {
     try { return new Intl.DateTimeFormat(S.lang === 'en' ? 'en-GB' : 'es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(S.cfg.updatedAt || Date.now())); } catch (e) { return whenTxt(S.cfg.updatedAt || Date.now()); }
   }
+  /* Mascota de la tarjeta: al azar entre Justo (sombrero), Boris (gafas) o los dos juntos. En Halloween: Justo o Boris disfrazados. Nunca repite la anterior; se queda igual al cambiar entre Historia y Publicación. */
+  var cardMasc = null;
+  function pickMasc() { var o = ['sombrero', 'gafas', 'duo'].filter(function (n) { return n !== cardMasc; }); cardMasc = o[Math.floor(Math.random() * o.length)]; return cardMasc; }
   function drawCard(kind, opts) {
     var mv = opts && opts.move ? opts.move : null, sq = kind === 'sq', hw = S.themeApplied === 'halloween', c = S.cfg, W = 1080, H = sq ? 1080 : 1920, rate = c.rate;
     var fonts = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('800 100px Sora'), document.fonts.load('700 40px "Plus Jakarta Sans"')]).catch(function () {}) : null;
-    return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), loadImg('assets/qr.png').catch(function () { return null; }), fonts]).then(function (r) {
+    var mk = cardMasc || pickMasc();
+    return Promise.all([loadImg(hw ? 'assets/logo-halloween.webp' : 'assets/logo.webp'), loadImg('assets/qr.png').catch(function () { return null; }), fonts, loadImg(hw ? 'assets/' + (mk === 'sombrero' ? 'justo' : 'boris') + '-h.webp' : 'assets/m-' + mk + '.webp').catch(function () { return null; })]).then(function (r) {
       var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var g = cv.getContext('2d'), lg = r[0], X = W / 2;
       var bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, hw ? '#1d0d33' : '#0F1B5C'); bg.addColorStop(1, hw ? '#07030f' : '#0A1038'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-      var top = 0;
+      var top = 0, mi = r[3];
+      function avatar(cx, cy, d) {
+        if (!mi) return;
+        g.save(); g.beginPath(); g.arc(cx, cy, d / 2, 0, Math.PI * 2); g.closePath(); g.shadowColor = 'rgba(10,16,56,.40)'; g.shadowBlur = 26; g.shadowOffsetY = 8; g.fillStyle = '#fff'; g.fill(); g.shadowColor = 'transparent'; g.clip();
+        var k = Math.max(d / mi.width, d / mi.height), w = mi.width * k, h = mi.height * k; g.drawImage(mi, cx - w / 2, cy - h / 2, w, h); g.restore();
+        g.beginPath(); g.arc(cx, cy, d / 2 - 5, 0, Math.PI * 2); g.lineWidth = 10; g.strokeStyle = hw ? '#FF8A1F' : '#F5B800'; g.stroke();
+      }
       if (hw) {
         var lhf = Math.round(lg.height * W / lg.width), lh = sq ? 360 : lhf;
         if (sq) { var sh = lg.height * (lh / lhf), sy = (lg.height - sh) / 2; g.drawImage(lg, 0, sy, lg.width, sh, 0, 0, W, lh); } else g.drawImage(lg, 0, 0, W, lh);
-        var fd = g.createLinearGradient(0, lh - 160, 0, lh); fd.addColorStop(0, 'rgba(10,4,20,0)'); fd.addColorStop(1, '#0d0618'); g.fillStyle = fd; g.fillRect(0, lh - 160, W, 160); top = lh;
+        var fd = g.createLinearGradient(0, lh - 160, 0, lh); fd.addColorStop(0, 'rgba(10,4,20,0)'); fd.addColorStop(1, '#0d0618'); g.fillStyle = fd; g.fillRect(0, lh - 160, W, 160); top = lh; avatar(W - (sq ? 130 : 180), lh - (sq ? 100 : 150), sq ? 190 : 250);
       } else {
         var bandH = sq ? 340 : 780, sh2 = sq ? 12 : 16; g.fillStyle = '#fff'; g.fillRect(0, 0, W, bandH);
-        var lw = sq ? 560 : 940, lh2 = Math.round(lg.height * lw / lg.width); g.drawImage(lg, (W - lw) / 2, (bandH - lh2) / 2, lw, lh2);
+        if (mi) {
+          var stk = !sq && mi.width / mi.height > 1.2, lw = stk ? 470 : (sq ? 380 : 520), lh2 = Math.round(lg.height * lw / lg.width);
+          if (stk) { g.drawImage(lg, (W - lw) / 2, 14, lw, lh2); var ty = 14 + lh2 + 6, ah0 = bandH - ty - 12, k0 = Math.min((W - 60) / mi.width, ah0 / mi.height); g.drawImage(mi, (W - mi.width * k0) / 2, ty + (ah0 - mi.height * k0) / 2, mi.width * k0, mi.height * k0); }
+          else { var lx = sq ? 24 : 36; g.drawImage(lg, lx, (bandH - lh2) / 2, lw, lh2); var ax = lx + lw + 8, aw = W - ax - (sq ? 16 : 24), ah = bandH - (sq ? 16 : 36), k1 = Math.min(aw / mi.width, ah / mi.height); g.drawImage(mi, ax + (aw - mi.width * k1) / 2, (bandH - mi.height * k1) / 2, mi.width * k1, mi.height * k1); }
+        } else { var lw0 = sq ? 560 : 940, lh0 = Math.round(lg.height * lw0 / lg.width); g.drawImage(lg, (W - lw0) / 2, (bandH - lh0) / 2, lw0, lh0); }
         ['#F5B800', '#1F3FBF', '#D62839'].forEach(function (col, i) { g.fillStyle = col; g.fillRect(i * W / 3, bandH, W / 3, sh2); }); top = bandH + sh2;
       }
       g.textAlign = 'center'; g.textBaseline = 'alphabetic';
@@ -1291,7 +1305,7 @@
   }
   function onCardBtn() {
     if (isLocked() || !(S.cfg.rate > 0) || (fbOk && !S.live)) { copyToast(t('cardWait')); return; }
-    var b = this; b.disabled = true; track('card_open');
+    var b = this; b.disabled = true; track('card_open'); pickMasc();
     drawCard('story').then(function (bl) { showCard(bl, 'story'); }).catch(function () { copyToast(t('cardErr')); }).then(function () { b.disabled = false; });
   }
   $('#cardBtn').addEventListener('click', onCardBtn); if ($('#cardBtn2')) $('#cardBtn2').addEventListener('click', onCardBtn);
@@ -2172,7 +2186,7 @@
     /* --- compartir cotización por WhatsApp --- */
     pa('aMoveCard').addEventListener('click', function () {
       var cc = S.cfg, d = cc.rate - cc.prev; if (!(cc.prev > 0) || !d) return; var b = this; b.disabled = true;
-      var opts = { move: { d: d, prev: cc.prev } };
+      var opts = { move: { d: d, prev: cc.prev } }; pickMasc();
       drawCard('story', opts).then(function (bl) { showCard(bl, 'story', opts); }).catch(function () { msgA('No se pudo crear la tarjeta. Intenta de nuevo.', true); }).then(function () { b.disabled = false; });
     });
     pa('aShareRate').addEventListener('click', function () {
